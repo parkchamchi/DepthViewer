@@ -1,1 +1,7 @@
 *.meta
+.vscode
+*.onnx
+Library/
+Logs/
+ProjectSettings/
+Temp/

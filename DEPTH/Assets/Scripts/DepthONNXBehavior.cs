@@ -26,6 +26,7 @@
 
 #define _CHANNEL_SWAP //baracular 1.0.5 <=
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,16 +39,22 @@ public class DepthONNXBehavior : MonoBehaviour {
 	public NNModel NNM;
 	private static DepthONNX _donnx;
 
+	public const string ModelType = "v2.1-small";
+	public const string Weight = "MiDaS_model-small.onnx";
+
 	public DepthONNX GetDepthONNX() {
 		if (_donnx == null)
-			_donnx = new DepthONNX(NNM);
+			_donnx = new DepthONNX(NNM, ModelType, Weight);
 
 		return _donnx;
 	}
 }
 
-public class DepthONNX {
-	private NNModel NNM;
+public class DepthONNX : IDisposable {
+	public readonly string ModelType;
+	public readonly string Weight;
+
+	private NNModel _nnm;
 
 	private RenderTexture _input;
 	private float[] _output;
@@ -55,7 +62,12 @@ public class DepthONNX {
 	private IWorker _engine;
 	private Model _model;
 
-	public DepthONNX(NNModel NNM) {
+	public DepthONNX(NNModel NNM, string model_type, string weight) {
+		_nnm = NNM;
+
+		ModelType = model_type;
+		Weight = weight;
+
 		InitializeNetwork();
 		AllocateObjects();
 	}
@@ -64,7 +76,7 @@ public class DepthONNX {
 		x = _width;
 		y = _height;
 
-		if (inputTexture == null || NNM == null) {
+		if (inputTexture == null || _nnm == null) {
 			x = y = 0;
 			return null;
 		}
@@ -79,14 +91,20 @@ public class DepthONNX {
 
 	private void OnDestroy() => DeallocateObjects();
 
+	public void Dispose() {
+		DeallocateObjects();
+	}
+
 	/// Loads the NNM asset in memory and creates a Barracuda IWorker
 	private void InitializeNetwork()
 	{
-		if (NNM == null)
+		if (_nnm == null) {
+			Debug.LogError("_nnm == null.");
 			return;
+		}
 
 		// Load the model to memory
-		_model = ModelLoader.Load(NNM);
+		_model = ModelLoader.Load(_nnm);
 
 		// Create a worker
 		_engine = WorkerFactory.CreateWorker(_model, WorkerFactory.Device.GPU);
@@ -126,6 +144,7 @@ public class DepthONNX {
 		_input = null;
 
 		_output = null;
+		_model = null;
 	}
 
 	/// Performs Inference on the Neural Network Model

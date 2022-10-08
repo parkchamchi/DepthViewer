@@ -9,7 +9,7 @@ public class MeshBehavior : MonoBehaviour {
 	private	int[] _triangles;
 	private Material _material;
 
-	private DepthONNX _donnx;
+	//private DepthONNX _donnx;
 
 	private float _width = 320; //canvas size
 	private float _height = 180;
@@ -19,10 +19,6 @@ public class MeshBehavior : MonoBehaviour {
 
 	private float _depthMult = 50f;
 
-	private float[][] _depths;
-	private int _depth_idx;
-
-
 	void Start() {
 		_mesh = new Mesh();
 		_mesh.MarkDynamic();
@@ -30,34 +26,9 @@ public class MeshBehavior : MonoBehaviour {
 		GetComponent<MeshFilter>().mesh = _mesh;
 
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
-
-		int x, y;
-		double orig_ratio;
-		string depth_path = @"";
-		string texture_path = @"";
-
-		_depths = Utils.ReadDepth(depth_path, out x, out y, out orig_ratio);
-		Texture2D texture = Utils.LoadImage(texture_path);
-
-		_depth_idx = 0;
-		SetScene(_depths[_depth_idx++], x, y, orig_ratio, texture);
 	}
 
-	void Update() {
-		if (_depths == null) return;
-
-		if (_depth_idx == _depths.Length)
-			_depth_idx = 0;
-
-		SetDepth(_depths[_depth_idx++]);
-	}
-
-	void GetDepthONNX() {
-		if (_donnx == null)
-			_donnx = GameObject.Find("DepthONNX").GetComponent<DepthONNXBehavior>().GetDepthONNX();
-	}
-
-	private void SetMeshSize(int x, int y, double ratio=0) {
+	private void SetMeshSize(int x, int y, float ratio=0) {
 		/*
 			x, y: pixel count of DEPTH.
 			ratio: (width/height) of IMAGE.
@@ -71,18 +42,18 @@ public class MeshBehavior : MonoBehaviour {
 
 		//If ratio is not given, use x/y.
 		if (ratio == 0)
-			ratio = (double) x/y;
+			ratio = (float) x/y;
 
 		//Check ratio
-		if (ratio > (double) _width/_height) {
+		if (ratio > (float) _width/_height) {
 			//longer width
 			imwidth = _width;
-			imheight = (imwidth/x) * y;
+			imheight = imwidth / ratio;
 		}
 		else {
 			//longer height
 			imheight = _height;
-			imwidth = (imheight/y) * x;
+			imwidth = imheight * ratio;
 		}
 
 		float x_start = -imwidth/2;
@@ -133,7 +104,7 @@ public class MeshBehavior : MonoBehaviour {
 		_mesh.vertices = _vertices;
 	}
 
-	public void SetScene(float[] depths, int x, int y, double ratio=0, Texture2D texture=null) {
+	public void SetScene(float[] depths, int x, int y, float ratio=0, Texture2D texture=null) {
 		if (x*y != depths.Length) {
 			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
 			return;
@@ -146,13 +117,4 @@ public class MeshBehavior : MonoBehaviour {
 		if (texture)
 			_material.mainTexture = texture;
 	}
-
-	void Kkumteul() {
-		for (int i = 0; i < _x*_y; i++) {
-			_vertices[i].z += Random.Range(-0.1f, 0.1f);
-		}
-		_mesh.vertices = _vertices;
-	}
 }
-
-//no stretching?
