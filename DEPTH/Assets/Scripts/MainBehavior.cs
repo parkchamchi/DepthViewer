@@ -10,6 +10,8 @@ public class MainBehavior : MonoBehaviour {
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
 
+	public TMP_Text CallPythonText;
+
 	public enum FileTypes {
 		NotExists, 
 		Dir,
@@ -25,11 +27,12 @@ public class MainBehavior : MonoBehaviour {
 	private FileTypes _currentFileType;
 
 	private MeshBehavior _meshBehavior;
+	private DepthModelBehavior _depthModelBehavior;
 	private DepthONNX _donnx;
 
 	private int _x, _y;
 	int _orig_width, _orig_height;
-	float[] _depths;
+	//float[] _depths;
 
 	private string _orig_filepath;
 	private string _hashval;
@@ -43,7 +46,8 @@ public class MainBehavior : MonoBehaviour {
 
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
-		GetDepthONNX();
+		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
+		GetBuiltInModel();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -87,23 +91,26 @@ public class MainBehavior : MonoBehaviour {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
+
 		//Check if the frame was already processed
 		if (_depths_frames[frame-_startFrame] == null) {
 			//Run the model
 			if (_donnx == null) return;
-			_depths = _donnx.Run(texture, out _x, out _y);
-			_depths_frames[frame-_startFrame] = _depths;
+
+			_depths_frames[frame-_startFrame] = (float[]) _donnx.Run(texture, out _x, out _y).Clone(); //DepthONNX.Run() returns its private member... Took eternity to debug
+
+			Debug.Log("processed");
+		}
+		else {
+			Debug.Log("loaded");
 		}
 
-		_meshBehavior.SetScene(_depths, _x, _y, (float) _orig_width/_orig_height, texture);
-	}
-
-	private void GetDepthONNX() {
-		if (_donnx == null)
-			_donnx = GameObject.Find("DepthONNX").GetComponent<DepthONNXBehavior>().GetDepthONNX();
+		_meshBehavior.SetScene(_depths_frames[frame-_startFrame], _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	public void Quit() {
+		SaveDepth(); //save the current one
+
 		if (_vp != null)
 			Destroy(_vp);
 
@@ -161,6 +168,7 @@ public class MainBehavior : MonoBehaviour {
 		if (ftype != FileTypes.Img && ftype != FileTypes.Vid) return;
 
 		SaveDepth();
+
 		_currentFileType = ftype;
 		_orig_filepath = filepath;
 		_hashval = Utils.GetHashval(filepath);
@@ -194,21 +202,24 @@ public class MainBehavior : MonoBehaviour {
 		_orig_width = texture.width;
 		_orig_height = texture.height;
 
-		//Check if the file was processed
-		List<string> filelist = DepthFileUtils.ProcessedDepthFileExists(_hashval);
-		if (filelist.Count > 0) {
-			_depths_frames = DepthFileUtils.ReadDepthFile(filelist[0], out _x, out _y, out _metadata);
-			_depths = _depths_frames[0];
+		int modelTypeVal;
+		float[] depths;
 
-			FilepathResultText.text = "Depth file read!";
+		//Check if the file was processed
+		string _depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		if (_depthFilePath != null) {
+			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
+			depths = _depths_frames[0];
+
+			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
 
 		else {
-			_depths = _donnx.Run(texture, out _x, out _y);
+			depths = _donnx.Run(texture, out _x, out _y);
 
 			/* Save */
 			_depths_frames = new float[1][];
-			_depths_frames[0] = _depths;
+			_depths_frames[0] = depths;
 
 			FilepathResultText.text = "Processed!";
 		}
@@ -216,7 +227,7 @@ public class MainBehavior : MonoBehaviour {
 		//For metadata
 		_startFrame = 0;
 
-		_meshBehavior.SetScene(_depths, _x, _y, (float) _orig_width/_orig_height, texture);
+		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	private void FromVideo(string filepath) {
@@ -230,20 +241,23 @@ public class MainBehavior : MonoBehaviour {
 			]
 		*/
 
+		int modelTypeVal;
+
 		/* Check if the processed file exists */
-		List<string> filelist = DepthFileUtils.ProcessedDepthFileExists(_hashval);
-		if (filelist.Count > 0) {
-			_depthfilepath = filelist[0];
-			_depths_frames = DepthFileUtils.ReadDepthFile(_depthfilepath, out _x, out _y, out _metadata);
+		string _depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		if (_depthFilePath != null) {
+			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
 
-			//set startframe also
+			//Set startframe also
+			//It is set to negative if it couldn't be determined - in that case we should check it
 			_startFrame = long.Parse(_metadata["startframe"]);
+			_orig_width = int.Parse(_metadata["original_width"]);
+			_orig_height = int.Parse(_metadata["original_height"]);
+			_vp.sendFrameReadyEvents = (_startFrame < 0) ? true : false;
 
-			_vp.sendFrameReadyEvents = false;
-			FilepathResultText.text = "Depth file read!";
+			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
 		else {
-			_depthfilepath = null;
 			_depths_frames = null; //set on update
 			_startFrame = 0; //should be reset in the handler
 			_vp.sendFrameReadyEvents = true; //have vp send events when frame is ready -- so that we can catch the first frame & check if the first frame starts with 0
@@ -257,14 +271,44 @@ public class MainBehavior : MonoBehaviour {
 
 	private void SaveDepth() {
 		if (_depths_frames == null) return;
+		if (_orig_width*_orig_height*_x*_y == 0) return;
 
 		if (_depthfilepath == null) {
 			/* Create a new depth file */
-			DepthFileUtils.DumpDepthFile(_depths_frames, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelType, _donnx.Weight);
+			DepthFileUtils.DumpDepthFile(_depths_frames, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 		}
 		else {
 			/* Update */
 			DepthFileUtils.UpdateDepthFile(_depthfilepath, _depths_frames, _x, _y);
 		}
+
+		//cleanup
+		_depths_frames = null;
+		_x = _y = _orig_width = _orig_height = 0;
+		_startFrame = _currentFrame = 0;
+	}
+
+	public void GetBuiltInModel() {
+		_donnx = _depthModelBehavior.GetBuiltIn();
+	}
+
+	public void CallPythonHybrid() {
+		if (_currentFileType != FileTypes.Img && _currentFileType != FileTypes.Vid)
+			return;
+
+		const string pythonPath = @"python"; //todo: change
+		const string pythonTarget = @"../depthpy/depth.py";
+
+		string isVideo = (_currentFileType == FileTypes.Vid) ? " -v " : " ";
+
+		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), (int) DepthFileUtils.ModelTypes.MidasV3DptHybrid, _hashval);
+
+		string modelType = "dpt_hybrid";
+
+		System.Diagnostics.Process.Start(pythonPath, $"-i {pythonTarget} {_orig_filepath} {depthFilename} {isVideo} -t {modelType}");
+	}
+
+	public void CallPythonLarge() {
+
 	}
 } 

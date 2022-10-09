@@ -7,12 +7,19 @@ using System.Text;
 
 using UnityEngine;
 
-
-
 public static class DepthFileUtils {
 	public const string Version = "PRE-RELEASE";
 	public static readonly string DefaultDepthDir;
 	public const string DepthExt = ".depthviewer";
+
+	//Values are arbitrarily set relative numbers
+	//So that the highest quality of depth file would be loaded
+	public enum ModelTypes : int {
+		MidasV21Small = 100,
+		MiDasV21 = 200,
+		MidasV3DptHybrid = 300,
+		MidasV3DptLarge = 400,
+	}
 
 	static DepthFileUtils() {
 		DefaultDepthDir = Application.persistentDataPath + "/depths";
@@ -20,18 +27,25 @@ public static class DepthFileUtils {
 			Directory.CreateDirectory(DefaultDepthDir);
 	}
 
-	public static void DumpDepthFile(float[][] depths_frames, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, string model_type, string weight) {
+	public static void DumpDepthFile(float[][] depths_frames, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
 			orig_basename: filename of original image (need not be the full path)
 			orig_width, orig_height: size of ORIGINAL IMAGE INPUT.
 			x, y: size of DEPTH.
-			model_type: model used. (see DepthONNXBehavior.ModelType)
-			weight: basename of the model (e.g. "MiDaS_model-small.onnx")
+			model_type: model used. (see DepthONNX.ModelType)
 		*/
 
+		if (x*y*orig_width*orig_height == 0) return;
+
 		orig_basename = Path.GetFileName(orig_basename);
+
+		string model_type;
+		if (Enum.IsDefined(typeof (ModelTypes), model_type_val))
+			model_type = Enum.GetName(typeof (ModelTypes), model_type_val);
+		else //unlikely to happen
+			model_type = $"unknown_{model_type_val}";
 
 		string metadata = WriteMetadata(
 			hashval: hashval,
@@ -40,7 +54,7 @@ public static class DepthFileUtils {
 			width: x.ToString(),
 			height: y.ToString(),
 			model_type: model_type,
-			weight: weight,
+			model_type_val: model_type_val.ToString(),
 			original_name: orig_basename,
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
@@ -48,12 +62,21 @@ public static class DepthFileUtils {
 			version: Version
 		);
 
-		string output_filepath = $"{orig_basename}.model=`{model_type}`.{hashval}{DepthExt}";
+		string output_filepath = GetDepthFileName(orig_basename, model_type_val, hashval);
+		
+		UpdateDepthFile(output_filepath, depths_frames, x, y, metadata);
+	}
+
+	public static string GetDepthFileName(string orig_basename, int model_type_val, string hashval) {
+		orig_basename = Path.GetFileName(orig_basename);
+
+		string output_filepath = $"{orig_basename}.{model_type_val}.{hashval}{DepthExt}";
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
-			output_filepath = $"model=`{model_type}`.{hashval}{DepthExt}";
+			output_filepath = $"{model_type_val}.{hashval}{DepthExt}";
+
 		output_filepath = DefaultDepthDir + '/' + output_filepath;
 
-		UpdateDepthFile(output_filepath, depths_frames, x, y, metadata);
+		return output_filepath;
 	}
 
 	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y) {
@@ -61,10 +84,14 @@ public static class DepthFileUtils {
 	}
 
 	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y, string metadata) {
+		if (x*y == 0) return;
+
 		using (ZipArchive archive = ZipFile.Open(depthfilepath, ZipArchiveMode.Update)) {
 			//Write the metadata, if it's not null
 			if (metadata != null) {
-				ZipArchiveEntry metadataEntry = archive.CreateEntry("METADATA.txt");
+				ZipArchiveEntry metadataEntry = archive.GetEntry("METADATA.txt");
+				if (metadataEntry == null)
+					metadataEntry = archive.CreateEntry("METADATA.txt");
 				using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
 					sw.Write(metadata);
 			}
@@ -73,7 +100,7 @@ public static class DepthFileUtils {
 			for (int i = 0; i < depths_frames.Length; i++) {
 				if (depths_frames[i] == null) continue;
 
-				ZipArchiveEntry entry = archive.GetEntry(string.Format("{0}.pgm", i));
+				ZipArchiveEntry entry = archive.GetEntry($"{i}.pgm");
 				if (entry == null) 
 					entry = archive.CreateEntry($"{i}.pgm");
 				using (BinaryWriter bw = new BinaryWriter(entry.Open()))
@@ -82,33 +109,43 @@ public static class DepthFileUtils {
 		}
 	}
 
-	public static List<string> ProcessedDepthFileExists(string hashval) {
+	public static string ProcessedDepthFileExists(string hashval, out int maxModelTypeVal) {
 		/* 
 			Returns a list of paths of processed depth files.
+			filename format: [basename].modelval.hash64len.ext
 		*/
-		List<string> filelist = new List<string>();
+		maxModelTypeVal = -1;
+		string finalFile = null;
 
 		foreach (string filename in Directory.GetFiles(DefaultDepthDir))
-			if (filename.EndsWith($"{hashval}{DepthExt}"))
-				filelist.Add(filename);
+			if (filename.EndsWith($"{hashval}{DepthExt}")) {
+				string[] tokens = Path.GetFileName(filename).Split('.');
+				int modelTypeVal = int.Parse(tokens[tokens.Length-3]);
+				Debug.Log(modelTypeVal);
+				
+				if (modelTypeVal > maxModelTypeVal) {
+					finalFile = filename;
+					maxModelTypeVal = modelTypeVal;
+				}
+			}
 
-		return filelist;
+		return finalFile;
 	}
 
-	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string weight, 
+	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val,
 		string original_name, string original_width, string original_height, string timestamp, string version) {
 		/*
 		A line per a field, delimited by the initial '='
 		*/
 
-		string metadata = "DEPTHVIEWER FILE\n"
+		string metadata = "DEPTHVIEWER\n"
 			+ $"hashval={hashval}\n"
 			+ $"framecount={framecount}\n"
 			+ $"startframe={startframe}\n"
 			+ $"width={width}\n"
 			+ $"height={height}\n"
 			+ $"model_type={model_type}\n"
-			+ $"weight={weight}\n"
+			+ $"model_type_val={model_type_val}\n"
 			+ $"original_name={original_name}\n"
 			+ $"original_width={original_width}\n"
 			+ $"original_height={original_height}\n"

@@ -30,31 +30,37 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+
 using UnityEngine;
 using Unity.Barracuda;
+using Unity.Barracuda.ONNX;
 
-public class DepthONNXBehavior : MonoBehaviour {
-	/*This script has to be in a single object.*/
+public class DepthModelBehavior : MonoBehaviour {
+	/* Built-in: midas v2.1 small model*/
 
-	public NNModel NNM;
+	public NNModel BuiltIn;
+	public const int ModelTypeVal = (int) DepthFileUtils.ModelTypes.MidasV21Small; //see DepthFileUtils.MotelTypes
+
 	private static DepthONNX _donnx;
+	private string _hashval;
 
-	public const string ModelType = "v2.1-small";
-	public const string Weight = "MiDaS_model-small.onnx";
+	public DepthONNX GetBuiltIn() {
 
-	public DepthONNX GetDepthONNX() {
+		if (_donnx != null && _donnx.ModelTypeVal != ModelTypeVal) {
+			_donnx.Dispose();
+			_donnx = null;
+		}
+
 		if (_donnx == null)
-			_donnx = new DepthONNX(NNM, ModelType, Weight);
+			_donnx = new DepthONNX(BuiltIn, ModelTypeVal);
 
 		return _donnx;
 	}
 }
 
 public class DepthONNX : IDisposable {
-	public readonly string ModelType;
-	public readonly string Weight;
-
-	private NNModel _nnm;
+	public readonly int ModelTypeVal;
 
 	private RenderTexture _input;
 	private float[] _output;
@@ -62,11 +68,24 @@ public class DepthONNX : IDisposable {
 	private IWorker _engine;
 	private Model _model;
 
-	public DepthONNX(NNModel NNM, string model_type, string weight) {
-		_nnm = NNM;
+	public DepthONNX(NNModel nnm, int modelTypeVal) {
+		_model = ModelLoader.Load(nnm);
+		ModelTypeVal = modelTypeVal;
 
-		ModelType = model_type;
-		Weight = weight;
+		InitializeNetwork();
+		AllocateObjects();
+	}
+
+	public DepthONNX(string onnxpath, int modelTypeVal) {
+		/*
+		Currently not used.
+		Args:
+			onnxpath: path to .onnx file
+		*/
+
+		var onnx_conv = new ONNXModelConverter(true);
+		_model = onnx_conv.Convert(onnxpath);
+		ModelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();
@@ -76,7 +95,7 @@ public class DepthONNX : IDisposable {
 		x = _width;
 		y = _height;
 
-		if (inputTexture == null || _nnm == null) {
+		if (inputTexture == null || _model == null) {
 			x = y = 0;
 			return null;
 		}
@@ -98,14 +117,6 @@ public class DepthONNX : IDisposable {
 	/// Loads the NNM asset in memory and creates a Barracuda IWorker
 	private void InitializeNetwork()
 	{
-		if (_nnm == null) {
-			Debug.LogError("_nnm == null.");
-			return;
-		}
-
-		// Load the model to memory
-		_model = ModelLoader.Load(_nnm);
-
 		// Create a worker
 		_engine = WorkerFactory.CreateWorker(_model, WorkerFactory.Device.GPU);
 
@@ -144,6 +155,7 @@ public class DepthONNX : IDisposable {
 		_input = null;
 
 		_output = null;
+
 		_model = null;
 	}
 
