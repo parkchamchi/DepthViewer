@@ -36,12 +36,11 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\DepthFileUtils.cs" />
      <Compile Include="Assets\Scripts\Utils.cs" />
      <Compile Include="Assets\Scripts\MeshBehavior.cs" />
      <Compile Include="Assets\Scripts\MainBehavior.cs" />
      <Compile Include="Assets\Scripts\DepthONNXBehavior.cs" />
-     <Compile Include="Assets\Scripts\DepthFiles.cs" />
-     <Compile Include="Assets\Scripts\DepthFileUtils.cs" />
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
      <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
      <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />

@@ -20,22 +20,23 @@ public static class DepthFileUtils {
 			Directory.CreateDirectory(DefaultDepthDir);
 	}
 
-	public static void DumpDepthFile(float[][] depths_frames, string orig_filepath, int orig_width, int orig_height, int x, int y, string model_type, string weight) {
+	public static void DumpDepthFile(float[][] depths_frames, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, string model_type, string weight) {
 		/*
 		Args:
-			orig_filepath: path to original image
+			hashval: hash value (see Utils)
+			orig_basename: filename of original image (need not be the full path)
 			orig_width, orig_height: size of ORIGINAL IMAGE INPUT.
 			x, y: size of DEPTH.
 			model_type: model used. (see DepthONNXBehavior.ModelType)
 			weight: basename of the model (e.g. "MiDaS_model-small.onnx")
 		*/
 
-		string orig_basename = Path.GetFileName(orig_filepath);
-		string hashval = Utils.GetHashval(orig_filepath);
+		orig_basename = Path.GetFileName(orig_basename);
 
 		string metadata = WriteMetadata(
 			hashval: hashval,
 			framecount: depths_frames.Length.ToString(),
+			startframe: startframe.ToString(),
 			width: x.ToString(),
 			height: y.ToString(),
 			model_type: model_type,
@@ -52,15 +53,29 @@ public static class DepthFileUtils {
 			output_filepath = $"model=`{model_type}`.{hashval}{DepthExt}";
 		output_filepath = DefaultDepthDir + '/' + output_filepath;
 
-		using (ZipArchive archive = ZipFile.Open(output_filepath, ZipArchiveMode.Create)) {
-			//Write the metadata
-			ZipArchiveEntry metadataEntry = archive.CreateEntry("METADATA.txt");
-			using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
-				sw.Write(metadata);
+		UpdateDepthFile(output_filepath, depths_frames, x, y, metadata);
+	}
 
-			//Write the depths
+	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y) {
+		UpdateDepthFile(depthfilepath, depths_frames, x, y, null);
+	}
+
+	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y, string metadata) {
+		using (ZipArchive archive = ZipFile.Open(depthfilepath, ZipArchiveMode.Update)) {
+			//Write the metadata, if it's not null
+			if (metadata != null) {
+				ZipArchiveEntry metadataEntry = archive.CreateEntry("METADATA.txt");
+				using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
+					sw.Write(metadata);
+			}
+
+			//Write the new depths
 			for (int i = 0; i < depths_frames.Length; i++) {
-				ZipArchiveEntry entry = archive.CreateEntry($"{i}.pgm");
+				if (depths_frames[i] == null) continue;
+
+				ZipArchiveEntry entry = archive.GetEntry(string.Format("{0}.pgm", i));
+				if (entry == null) 
+					entry = archive.CreateEntry($"{i}.pgm");
 				using (BinaryWriter bw = new BinaryWriter(entry.Open()))
 					bw.Write(WritePGM(depths_frames[i], x, y));
 			}
@@ -80,7 +95,7 @@ public static class DepthFileUtils {
 		return filelist;
 	}
 
-	public static string WriteMetadata(string hashval, string framecount, string width, string height, string model_type, string weight, 
+	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string weight, 
 		string original_name, string original_width, string original_height, string timestamp, string version) {
 		/*
 		A line per a field, delimited by the initial '='
@@ -89,6 +104,7 @@ public static class DepthFileUtils {
 		string metadata = "DEPTHVIEWER FILE\n"
 			+ $"hashval={hashval}\n"
 			+ $"framecount={framecount}\n"
+			+ $"startframe={startframe}\n"
 			+ $"width={width}\n"
 			+ $"height={height}\n"
 			+ $"model_type={model_type}\n"
@@ -116,18 +132,15 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static float[][] ReadDepthFile(string path, out int x, out int y) {
-		return ReadDepthFile(path, out x, out y, out _, out _);
-	}
-
-	public static float[][] ReadDepthFile(string path, out int x, out int y, out int orig_width, out int orig_height) {
+	public static float[][] ReadDepthFile(string path, out int x, out int y, out Dictionary<string, string> metadata) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
 		*/
 		
 		float[][] depths;
-		orig_width = orig_height = x = y = 0;
+		x = y = 0;
+		metadata = null;
 
 		if (!path.EndsWith(DepthExt)) {
 			Debug.LogError("File " + path + " is not a valid format.");
@@ -145,12 +158,10 @@ public static class DepthFileUtils {
 			ZipArchiveEntry metadataEntry = archive.GetEntry("METADATA.txt");
 			using (StreamReader br = new StreamReader(metadataEntry.Open()))
 				metadataStr = br.ReadToEnd();
-			Dictionary<string, string> metadata = ReadMetadata(metadataStr);
+			metadata = ReadMetadata(metadataStr);
 			
 			x = int.Parse(metadata["width"]);
 			y = int.Parse(metadata["height"]);
-			orig_width = int.Parse(metadata["original_width"]);
-			orig_height = int.Parse(metadata["original_height"]);
 
 			int framecount = int.Parse(metadata["framecount"]);
 			depths = new float[framecount][];
@@ -159,6 +170,8 @@ public static class DepthFileUtils {
 			for (int i = 0; i < framecount; i++) {
 				byte[] pgm;
 				ZipArchiveEntry entry = archive.GetEntry(string.Format("{0}.pgm", i));
+				if (entry == null) continue;
+
 				pgm = new byte[entry.Length];
 
 				using (BinaryReader br = new BinaryReader(entry.Open()))

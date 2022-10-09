@@ -9,8 +9,6 @@ public class MeshBehavior : MonoBehaviour {
 	private	int[] _triangles;
 	private Material _material;
 
-	//private DepthONNX _donnx;
-
 	private float _width = 320; //canvas size
 	private float _height = 180;
 
@@ -104,7 +102,7 @@ public class MeshBehavior : MonoBehaviour {
 		_mesh.vertices = _vertices;
 	}
 
-	public void SetScene(float[] depths, int x, int y, float ratio=0, Texture2D texture=null) {
+	public void SetScene(float[] depths, int x, int y, float ratio=0, Texture texture=null) {
 		if (x*y != depths.Length) {
 			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
 			return;
