@@ -16,7 +16,7 @@ public class MeshBehavior : MonoBehaviour {
 	private int _x = 320; //pixels of the input
 	private int _y = 180;
 
-	private float _ratio;
+	private float _ratio = -1;
 
 	private const float _defaultDepthMult = 50f;
 	private float _depthMult;
@@ -42,7 +42,7 @@ public class MeshBehavior : MonoBehaviour {
 		transform.Rotate(Vector3.up * hInput * Time.deltaTime);
 	}
 
-	private void SetMeshSize(int x, int y, float ratio=0) {
+	private void SetMeshSize(int x, int y, float ratio) {
 		/*
 			x, y: pixel count of DEPTH.
 			ratio: (width/height) of IMAGE.
@@ -54,9 +54,10 @@ public class MeshBehavior : MonoBehaviour {
 		float imwidth = 0;
 		float imheight = 0;
 
-		//If ratio is not given, use x/y.
-		if (ratio == 0)
+		if (ratio <= 0) {
+			Debug.LogError($"Invalid ratio: {ratio}");
 			ratio = (float) x/y;
+		}
 
 		//Check ratio
 		if (ratio > (float) _width/_height) {
@@ -74,12 +75,7 @@ public class MeshBehavior : MonoBehaviour {
 		float y_start = imheight/2;
 
 		float x_gap = (float) imwidth / x;
-		float y_gap = (float) imheight / y;
-
-		if (ratio != _ratio)
-			_ratio = ratio;
-
-		Debug.Log($"{ratio}, {imwidth}, {imheight}");
+		float y_gap = (float) imheight / y;			
 
 		_vertices = new Vector3[x*y]; //<65k for uint16
 		_uv = new Vector2[_vertices.Length];
@@ -110,6 +106,8 @@ public class MeshBehavior : MonoBehaviour {
 
 		_x = x;
 		_y = y;
+
+		_ratio = ratio;
 	}
 
 	private void SetDepth(float[] depths) {
@@ -123,14 +121,13 @@ public class MeshBehavior : MonoBehaviour {
 		_mesh.vertices = _vertices;
 	}
 
-	public void SetScene(float[] depths, int x, int y, float ratio=0, Texture texture=null) {
+	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
 		if (x*y != depths.Length) {
 			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
 			return;
 		}
 
-		//TODO: if this func is call with ratio=0 and _x and _y are changed (depthmaps, not yet implemented), resolution ratio will not change.
-		if (x != _x || y != _y || (ratio != 0 && ratio != _ratio)) 
+		if (x != _x || y != _y || ratio != _ratio)
 			SetMeshSize(x, y, ratio:ratio);
 		SetDepth(depths);
 
