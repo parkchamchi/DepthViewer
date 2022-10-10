@@ -7,7 +7,7 @@ Uses [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS).
 | --- | --- | --- | --- |
 | ![landscape_orig](./examples/landscape_resized.jpg) | ![landscape_small](./examples/landscape_small.png) | ![landscape_large](./examples/landscape_large.png) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
 | ![boat_orig](./examples/boat_resized.jpg) | ![boat_small](./examples/boat_small.png) | ![boat_large](./examples/boat_large.png) | [#](https://commons.wikimedia.org/wiki/File:Escale_%C3%A0_S%C3%A8te_2022_D.jpg) |
-| ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_small.gif) | ![cat_large](./examples/cat_large.gif) | [#](https://upload.wikimedia.org/wikipedia/commons/7/79/Cat_relaxing_on_a_sofa.webm) |
+| ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_small.gif) | ![cat_large](./examples/cat_large.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_kneading_blanket.gk.webm) |
 Note: Angles are not identical.
 
 ## Models
