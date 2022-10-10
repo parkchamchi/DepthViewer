@@ -1,6 +1,5 @@
 # DepthViewer
-Converts 2D videos/images into 3d object.
-Uses [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS).
+Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), converts 2D videos/images into 3D object with Unity for VR.
 
 ## Examples
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Source |
@@ -28,6 +27,7 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - If VR HMD is detected, it will open with OpenXR.
 - All outputs will be cached to Application.persistentDataPath (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
+- C# scripts are in Depth/Assets/Scripts.
 
 ## Tested formats:
 ### Images
