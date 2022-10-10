@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 
 public static class DepthFileUtils {
-	public const string Version = "PRE-RELEASE";
+	public const string Version = "v0.1-alpha";
 	public static readonly string DefaultDepthDir;
 	public const string DepthExt = ".depthviewer";
 

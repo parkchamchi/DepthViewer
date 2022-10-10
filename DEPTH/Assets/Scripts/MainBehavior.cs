@@ -26,8 +26,13 @@ public class MainBehavior : MonoBehaviour {
 		Unsupported
 	};
 
-	public static readonly string[] SupportedImgExts = {".jpg", ".png"};
-	public static readonly string[] SupportedVidExts = {".mp4"};
+	public static readonly string[] SupportedImgExts = {
+		".jpg", ".png", //tested
+	};
+	public static readonly string[] SupportedVidExts = {
+		".mp4", //tested
+		".asf", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
+	};
 	public static readonly string[] SupportedDepthExts = {DepthFileUtils.DepthExt};
 
 	private FileTypes _currentFileType;
@@ -55,7 +60,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
-		_cameraBehavior = GameObject.Find("MainCamera").GetComponent<CameraBehavior>();
+		_cameraBehavior = GameObject.Find("XRRig").GetComponent<CameraBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;

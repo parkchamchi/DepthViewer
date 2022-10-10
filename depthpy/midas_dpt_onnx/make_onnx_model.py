@@ -4,6 +4,8 @@
     imitating https://github.com/isl-org/MiDaS/issues/182
     ONNX file this script creates is not official.
     Disclaimer: I don't know how this code works or whether this actually works.
+
+    The output's opset level is 11, which barracuda does not support.
 """
 import os
 import torch
