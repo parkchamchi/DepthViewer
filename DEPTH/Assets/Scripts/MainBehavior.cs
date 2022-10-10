@@ -4,13 +4,19 @@ using System.IO;
 
 using UnityEngine;
 using UnityEngine.Video;
+using UnityEngine.UI;
 using TMPro;
 
 public class MainBehavior : MonoBehaviour {
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
 
-	public TMP_Text CallPythonText;
+	public TMP_Text StatusText;
+
+	public GameObject UI;
+
+	public Slider DepthMultSlider;
+	public Slider CameraLocSlider;
 
 	public enum FileTypes {
 		NotExists, 
@@ -28,6 +34,7 @@ public class MainBehavior : MonoBehaviour {
 
 	private MeshBehavior _meshBehavior;
 	private DepthModelBehavior _depthModelBehavior;
+	private CameraBehavior _cameraBehavior;
 	private DepthONNX _donnx;
 
 	private int _x, _y;
@@ -48,6 +55,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
+		_cameraBehavior = GameObject.Find("MainCamera").GetComponent<CameraBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -56,6 +64,9 @@ public class MainBehavior : MonoBehaviour {
 	void Update() {
 		if (_currentFileType == FileTypes.Vid && _vp != null)
 			UpdateVideoDepth();
+
+		if (Input.GetMouseButtonDown(1))
+			HideUI();
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -71,7 +82,8 @@ public class MainBehavior : MonoBehaviour {
 		_orig_width = (int) vp.width;
 		_orig_height = (int) vp.height;
 
-		_depths_frames = new float[_vp.frameCount][];
+		if (_depths_frames == null) // i.e. _depthFilePath == null
+			_depths_frames = new float[_vp.frameCount][];
 		
 		//Disable
 		vp.sendFrameReadyEvents = false;
@@ -99,10 +111,10 @@ public class MainBehavior : MonoBehaviour {
 
 			_depths_frames[frame-_startFrame] = (float[]) _donnx.Run(texture, out _x, out _y).Clone(); //DepthONNX.Run() returns its private member... Took eternity to debug
 
-			Debug.Log("processed");
+			StatusText.text = "processed";
 		}
 		else {
-			Debug.Log("loaded");
+			StatusText.text = "loaded";
 		}
 
 		_meshBehavior.SetScene(_depths_frames[frame-_startFrame], _x, _y, (float) _orig_width/_orig_height, texture);
@@ -279,13 +291,20 @@ public class MainBehavior : MonoBehaviour {
 		}
 		else {
 			/* Update */
-			DepthFileUtils.UpdateDepthFile(_depthfilepath, _depths_frames, _x, _y);
+
+			//Should not save if the loaded depth's modeltypeval is higher than the program is using
+			int modelTypeVal = int.Parse(_metadata["model_type_val"]);
+			if (modelTypeVal == _donnx.ModelTypeVal) { //for now just use ==
+				DepthFileUtils.UpdateDepthFile(_depthfilepath, _depths_frames, _x, _y);
+			}
 		}
 
 		//cleanup
 		_depths_frames = null;
 		_x = _y = _orig_width = _orig_height = 0;
 		_startFrame = _currentFrame = 0;
+
+		StatusText.text = "";
 	}
 
 	public void GetBuiltInModel() {
@@ -293,6 +312,20 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void CallPythonHybrid() {
+		int modelVal = (int) DepthFileUtils.ModelTypes.MidasV3DptHybrid;
+		string modelTypeForPy = "dpt_hybrid";
+
+		CallPython(modelVal, modelTypeForPy);
+	}
+
+	public void CallPythonLarge() {
+		int modelVal = (int) DepthFileUtils.ModelTypes.MidasV3DptLarge;
+		string modelTypeForPy = "dpt_large";
+
+		CallPython(modelVal, modelTypeForPy);
+	}
+
+	private void CallPython(int modelTypeVal, string modelTypeStringForPython) {
 		if (_currentFileType != FileTypes.Img && _currentFileType != FileTypes.Vid)
 			return;
 
@@ -301,14 +334,20 @@ public class MainBehavior : MonoBehaviour {
 
 		string isVideo = (_currentFileType == FileTypes.Vid) ? " -v " : " ";
 
-		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), (int) DepthFileUtils.ModelTypes.MidasV3DptHybrid, _hashval);
+		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
 
-		string modelType = "dpt_hybrid";
-
-		System.Diagnostics.Process.Start(pythonPath, $"-i {pythonTarget} {_orig_filepath} {depthFilename} {isVideo} -t {modelType}");
+		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isVideo} -t {modelTypeStringForPython} --zip_in_memory");
 	}
 
-	public void CallPythonLarge() {
+	public void HideUI() {
+		UI.SetActive(!UI.activeSelf);
+	}
 
+	public void SetDepthMult() {
+		_meshBehavior.SetDepthMult(DepthMultSlider.value);
+	}
+
+	public void SetCameraLoc() {
+		_cameraBehavior.SetZ(CameraLocSlider.value);
 	}
 } 

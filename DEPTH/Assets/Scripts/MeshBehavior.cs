@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class MeshBehavior : MonoBehaviour {
+
 	private Mesh _mesh;
 	private Vector3[] _vertices;
 	private Vector2[] _uv;
@@ -15,7 +16,10 @@ public class MeshBehavior : MonoBehaviour {
 	private int _x = 320; //pixels of the input
 	private int _y = 180;
 
-	private float _depthMult = 50f;
+	private const float _defaultDepthMult = 50f;
+	private float _depthMult;
+
+	private float _rotateSpeed = 75f;
 
 	void Start() {
 		_mesh = new Mesh();
@@ -24,6 +28,16 @@ public class MeshBehavior : MonoBehaviour {
 		GetComponent<MeshFilter>().mesh = _mesh;
 
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
+
+		_depthMult = _defaultDepthMult;
+	}
+
+	void Update() {
+		float vInput = Input.GetAxis("Vertical") * _rotateSpeed;
+		float hInput = Input.GetAxis("Horizontal") * _rotateSpeed;
+
+		transform.Rotate(Vector3.left * vInput * Time.deltaTime);
+		transform.Rotate(Vector3.up * hInput * Time.deltaTime);
 	}
 
 	private void SetMeshSize(int x, int y, float ratio=0) {
@@ -114,5 +128,9 @@ public class MeshBehavior : MonoBehaviour {
 
 		if (texture)
 			_material.mainTexture = texture;
+	}
+
+	public void SetDepthMult(float rat) {
+		_depthMult = _defaultDepthMult * rat;
 	}
 }

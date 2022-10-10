@@ -50,7 +50,7 @@ class Runner():
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		print("device: %s" % self.device)
 
-		self.framecount = 0 #for video
+		self.framecount = 1 #for video
 
 	def run(self, inpath, outpath, isvideo, model_type="dpt_hybrid", optimize=True, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
@@ -280,10 +280,10 @@ version={version}
 
 	
 		img = cv2.imread(path)
-		if not img:
-			print("Failed to load: trying the other method")
+		if img is None:
+			print("Error: could not open. This may occur when the path is non-ascii. Trying the other method...")
 			img = cv2.imdecode(np.fromfile(path, np.uint8), cv2.IMREAD_UNCHANGED)
-			if not img:
+			if img is None:
 				raise ValueError("Could not open the image.")
 			print("Success")
 		img = self.as_input(img)
@@ -382,10 +382,17 @@ if __name__ == "__main__":
 	print(f"output: {args.output}")
 
 	if args.update and not args.video and os.path.exists(input):
-		print("Already exists.")
+		print("Image: already exists.")
 		exit(0)
 
 	runner = Runner()
-	outs = runner.run(inpath=args.input, outpath=args.output, isvideo=args.video, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=args.update)
 
-	print("Done.")
+	try:
+		outs = runner.run(inpath=args.input, outpath=args.output, isvideo=args.video, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=args.update)
+
+		print("Done.")
+	except Exception as exc:
+		print("EXCEPTION:")
+		print(exc)
+
+		input("press any key to continue")
