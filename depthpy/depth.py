@@ -251,9 +251,7 @@ class Runner():
 		return b"P5\n" + "{} {} {}\n".format(width, height, 255).encode("ascii") + image.tobytes()
 
 	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, timestamp, version) -> str:
-		"""
-		A pseudo-JSON format.
-		"""
+
 		
 		metadata = (
 f"""DEPTHVIEWER
