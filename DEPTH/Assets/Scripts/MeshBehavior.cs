@@ -16,6 +16,8 @@ public class MeshBehavior : MonoBehaviour {
 	private int _x = 320; //pixels of the input
 	private int _y = 180;
 
+	private float _ratio;
+
 	private const float _defaultDepthMult = 50f;
 	private float _depthMult;
 
@@ -74,6 +76,11 @@ public class MeshBehavior : MonoBehaviour {
 		float x_gap = (float) imwidth / x;
 		float y_gap = (float) imheight / y;
 
+		if (ratio != _ratio)
+			_ratio = ratio;
+
+		Debug.Log($"{ratio}, {imwidth}, {imheight}");
+
 		_vertices = new Vector3[x*y]; //<65k for uint16
 		_uv = new Vector2[_vertices.Length];
 		for (int i = 0; i < _vertices.Length; i++) {
@@ -122,7 +129,8 @@ public class MeshBehavior : MonoBehaviour {
 			return;
 		}
 
-		if (x != _x || y != _y)
+		//TODO: if this func is call with ratio=0 and _x and _y are changed (depthmaps, not yet implemented), resolution ratio will not change.
+		if (x != _x || y != _y || (ratio != 0 && ratio != _ratio)) 
 			SetMeshSize(x, y, ratio:ratio);
 		SetDepth(depths);
 
