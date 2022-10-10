@@ -328,7 +328,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1417,12 +1417,12 @@ GameObject:
   - component: {fileID: 826789900}
   - component: {fileID: 826789901}
   m_Layer: 5
-  m_Name: CameraLocSlider
+  m_Name: MeshLocSlider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &826789900
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1499,7 +1499,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: SetCameraLoc
+        m_MethodName: SetMeshLoc
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3038,8 +3038,8 @@ RectTransform:
   m_Father: {fileID: 1657849891}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3397,7 +3397,7 @@ MonoBehaviour:
   StatusText: {fileID: 224956837}
   UI: {fileID: 1150659574}
   DepthMultSlider: {fileID: 602635056}
-  CameraLocSlider: {fileID: 826789901}
+  MeshLocSlider: {fileID: 826789901}
 --- !u!4 &2128267914
 Transform:
   m_ObjectHideFlags: 0

@@ -23,6 +23,8 @@ public class MeshBehavior : MonoBehaviour {
 
 	private float _rotateSpeed = 75f;
 
+	private const float _defaultZ = 0f;
+
 	void Start() {
 		_mesh = new Mesh();
 		_mesh.MarkDynamic();
@@ -137,5 +139,9 @@ public class MeshBehavior : MonoBehaviour {
 
 	public void SetDepthMult(float rat) {
 		_depthMult = _defaultDepthMult * rat;
+	}
+
+	public void SetZ(float offset) {
+		transform.position = new Vector3(0, 0, _defaultZ - offset);
 	}
 }

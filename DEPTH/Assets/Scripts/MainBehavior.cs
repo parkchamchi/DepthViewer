@@ -16,7 +16,7 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject UI;
 
 	public Slider DepthMultSlider;
-	public Slider CameraLocSlider;
+	public Slider MeshLocSlider;
 
 	public enum FileTypes {
 		NotExists, 
@@ -348,11 +348,12 @@ public class MainBehavior : MonoBehaviour {
 		UI.SetActive(!UI.activeSelf);
 	}
 
+	//TODO: move these to meshbehavior
 	public void SetDepthMult() {
 		_meshBehavior.SetDepthMult(DepthMultSlider.value);
 	}
 
-	public void SetCameraLoc() {
-		_cameraBehavior.SetZ(CameraLocSlider.value);
+	public void SetMeshLoc() {
+		_meshBehavior.SetZ(MeshLocSlider.value);
 	}
 } 
