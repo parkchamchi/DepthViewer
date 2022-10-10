@@ -121,7 +121,6 @@ public static class DepthFileUtils {
 			if (filename.EndsWith($"{hashval}{DepthExt}")) {
 				string[] tokens = Path.GetFileName(filename).Split('.');
 				int modelTypeVal = int.Parse(tokens[tokens.Length-3]);
-				Debug.Log(modelTypeVal);
 				
 				if (modelTypeVal > maxModelTypeVal) {
 					finalFile = filename;

@@ -1,4 +1,0 @@
-ui
-get video texture
-
-...
