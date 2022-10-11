@@ -27,7 +27,7 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - If VR HMD is detected, it will open with OpenXR.
 - All outputs will be cached to Application.persistentDataPath (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
-- C# scripts are in [Depth/Assets/Scripts](Depth/Assets/Scripts/README.md).
+- C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 
 ## Tested formats:
 ### Images
