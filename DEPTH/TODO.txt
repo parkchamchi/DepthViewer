@@ -1,3 +1,5 @@
+delete camerabehavior.cs
+
 UI
 mouselook
 
