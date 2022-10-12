@@ -44,7 +44,7 @@ Other formats has not been tested.
 - Add options, such as not saving the output, camera/depth parameters, ...
 - Fix codecs
 - Open depth map image of .jpg or .png (.depthviewer file itself too)
-- Stablize
+- Stablize & Parallelize
 
 ## Misc
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)

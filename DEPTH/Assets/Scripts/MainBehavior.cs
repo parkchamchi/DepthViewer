@@ -8,15 +8,15 @@ using UnityEngine.UI;
 using TMPro;
 
 public class MainBehavior : MonoBehaviour {
+
+	public Slider DepthMultSlider;
+
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
 
 	public TMP_Text StatusText;
 
 	public GameObject UI;
-
-	public Slider DepthMultSlider;
-	public Slider MeshLocSlider;
 
 	public enum FileTypes {
 		NotExists, 
@@ -35,11 +35,10 @@ public class MainBehavior : MonoBehaviour {
 	};
 	public static readonly string[] SupportedDepthExts = {DepthFileUtils.DepthExt};
 
-	private FileTypes _currentFileType;
+	private FileTypes _currentFileType = FileTypes.NotExists;
 
 	private MeshBehavior _meshBehavior;
 	private DepthModelBehavior _depthModelBehavior;
-	private CameraBehavior _cameraBehavior;
 	private DepthONNX _donnx;
 
 	private int _x, _y;
@@ -60,7 +59,6 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
-		_cameraBehavior = GameObject.Find("XRRig").GetComponent<CameraBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -348,12 +346,12 @@ public class MainBehavior : MonoBehaviour {
 		UI.SetActive(!UI.activeSelf);
 	}
 
-	//TODO: move these to meshbehavior
 	public void SetDepthMult() {
-		_meshBehavior.SetDepthMult(DepthMultSlider.value);
-	}
+		float rat = DepthMultSlider.value;
+		/* Depth has to be updated when the image is being shown */
+		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
-	public void SetMeshLoc() {
-		_meshBehavior.SetZ(MeshLocSlider.value);
+		_meshBehavior.SetDepthMult(rat, shouldUpdate);
+		
 	}
 } 

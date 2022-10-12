@@ -38,7 +38,6 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\DepthFileUtils.cs" />
      <Compile Include="Assets\Scripts\Utils.cs" />
-     <Compile Include="Assets\Scripts\CameraBehavior.cs" />
      <Compile Include="Assets\Scripts\MeshBehavior.cs" />
      <Compile Include="Assets\Scripts\MainBehavior.cs" />
      <Compile Include="Assets\Scripts\DepthModelBehavior.cs" />

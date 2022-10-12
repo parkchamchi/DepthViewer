@@ -1,14 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MeshBehavior : MonoBehaviour {
+
+	public Slider MeshLocSlider;
 
 	private Mesh _mesh;
 	private Vector3[] _vertices;
 	private Vector2[] _uv;
 	private	int[] _triangles;
 	private Material _material;
+
+	private float[] _depths; //for UpdateDepth()
 
 	private float _width = 320; //canvas size
 	private float _height = 180;
@@ -121,6 +126,17 @@ public class MeshBehavior : MonoBehaviour {
 		for (int i = 0; i < depths.Length; i++)
 			_vertices[i].z = -depths[i] * _depthMult;
 		_mesh.vertices = _vertices;
+		_depths = depths; //depth should not change elsewhere! (especially for images)
+	}
+
+	private void UpdateDepth() {
+		/* Called when a image is being shown and depthmult is updated */
+
+		if (_vertices == null || _depths == null) return;
+
+		for (int i = 0; i < _depths.Length; i++)
+			_vertices[i].z = -_depths[i] * _depthMult;
+		_mesh.vertices = _vertices;
 	}
 
 	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
@@ -137,11 +153,17 @@ public class MeshBehavior : MonoBehaviour {
 			_material.mainTexture = texture;
 	}
 
-	public void SetDepthMult(float rat) {
+	/* Should these two get the value directly from the slider? */
+
+	public void SetDepthMult(float rat, bool shouldUpdate) {
 		_depthMult = _defaultDepthMult * rat;
+
+		if (shouldUpdate)
+			UpdateDepth();
 	}
 
-	public void SetZ(float offset) {
+	public void SetZ() {
+		float offset = MeshLocSlider.value;
 		transform.position = new Vector3(0, 0, _defaultZ - offset);
 	}
 }
