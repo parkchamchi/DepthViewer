@@ -30,11 +30,16 @@ public static class DepthFileUtils {
 			Directory.CreateDirectory(DefaultDepthDir);
 	}
 
-	public static void DumpDepthFile(float[][] depths_frames, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val) {
+	public static void Dispose() {
+		if (_archive != null)
+			_archive.Dispose();
+	}
+
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
-			orig_basename: filename of original image (need not be the full path)
+			orig_filename: filename of original image (need not be the full path)
 			orig_width, orig_height: size of ORIGINAL IMAGE INPUT.
 			x, y: size of DEPTH.
 			model_type: model used. (see DepthONNX.ModelType)
@@ -52,7 +57,7 @@ public static class DepthFileUtils {
 
 		string metadata = WriteMetadata(
 			hashval: hashval,
-			framecount: depths_frames.Length.ToString(),
+			framecount: framecount.ToString(),
 			startframe: startframe.ToString(),
 			width: x.ToString(),
 			height: y.ToString(),
@@ -66,8 +71,10 @@ public static class DepthFileUtils {
 		);
 
 		string output_filepath = GetDepthFileName(orig_basename, model_type_val, hashval);
-		
-		UpdateDepthFile(output_filepath, depths_frames, x, y, metadata);
+		if (_archive != null) _archive.Dispose();
+		_archive = ZipFile.Open(output_filepath, ZipArchiveMode.Update);
+
+		UpdateDepthFileMetadata(metadata);
 	}
 
 	public static string GetDepthFileName(string orig_basename, int model_type_val, string hashval) {
@@ -82,39 +89,27 @@ public static class DepthFileUtils {
 		return output_filepath;
 	}
 
-	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y) {
-		UpdateDepthFile(depthfilepath, depths_frames, x, y, null);
+	public static void UpdateDepthFile(float[] depths, long frame, int x, int y) {
+		if (x*y == 0 || depths == null) return;
+
+		string filename = $"{frame}.pgm";
+
+		//Write the new depth
+		ZipArchiveEntry entry = _archive.GetEntry(filename); //is `get` necessary?
+		if (entry == null) 
+			entry = _archive.CreateEntry(filename);
+		using (BinaryWriter bw = new BinaryWriter(entry.Open()))
+			bw.Write(WritePGM(depths, x, y));
 	}
 
-	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y, string metadata) {
-		if (x*y == 0) return;
+	public static void UpdateDepthFileMetadata(string metadata) {
+		if (metadata == null) return;
 
-		if (_archive != null)
-			_archive.Dispose(); //While _archive points the same file, just close and open again
-
-		_archive = ZipFile.Open(depthfilepath, ZipArchiveMode.Update);
-
-		//Write the metadata, if it's not null
-		if (metadata != null) {
-			ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
-			if (metadataEntry == null)
-				metadataEntry = _archive.CreateEntry("METADATA.txt");
-			using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
-				sw.Write(metadata);
-		}
-
-		//Write the new depths
-		for (int i = 0; i < depths_frames.Length; i++) {
-			if (depths_frames[i] == null) continue;
-
-			ZipArchiveEntry entry = _archive.GetEntry($"{i}.pgm");
-			if (entry == null) 
-				entry = _archive.CreateEntry($"{i}.pgm");
-			using (BinaryWriter bw = new BinaryWriter(entry.Open()))
-				bw.Write(WritePGM(depths_frames[i], x, y));
-		}
-		
-		
+		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
+		if (metadataEntry == null)
+			metadataEntry = _archive.CreateEntry("METADATA.txt");
+		using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
+			sw.Write(metadata);
 	}
 
 	public static string ProcessedDepthFileExists(string hashval, out int maxModelTypeVal) {
@@ -195,7 +190,8 @@ public static class DepthFileUtils {
 			return null;
 		}
 
-		_archive = ZipFile.Open(path, ZipArchiveMode.Read);
+		if (_archive != null) _archive.Dispose();
+		_archive = ZipFile.Open(path, ZipArchiveMode.Update);
 		//Read the metadata
 		string metadataStr;
 		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");

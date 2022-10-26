@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 using UnityEngine;
 using UnityEngine.Video;
@@ -54,6 +55,10 @@ public class MainBehavior : MonoBehaviour {
 	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
 
+	private bool _shouldUpdateArchive;
+	private bool _hasCreatedArchive;
+	private List<Task> _processedFrames;
+
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
@@ -84,8 +89,9 @@ public class MainBehavior : MonoBehaviour {
 		_orig_width = (int) vp.width;
 		_orig_height = (int) vp.height;
 
-		if (_depths_frames == null) // i.e. _depthFilePath == null
+		if (_depths_frames == null) { // i.e. _depthFilePath == null
 			_depths_frames = new float[_vp.frameCount][];
+		}
 		
 		//Disable
 		vp.sendFrameReadyEvents = false;
@@ -119,8 +125,17 @@ public class MainBehavior : MonoBehaviour {
 			else {
 				//Run the model
 				if (_donnx == null) return;
-
 				_depths_frames[actualFrame] = (float[]) _donnx.Run(texture, out _x, out _y).Clone(); //DepthONNX.Run() returns its private member...
+
+				/* For a new media, create the depth file */
+				if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
+					DepthFileUtils.CreateDepthFile(_depths_frames.Length, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+					_hasCreatedArchive = true;
+				}
+
+				//Save it
+				if (_shouldUpdateArchive)
+					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(_depths_frames[actualFrame], actualFrame, _x, _y)));
 
 				StatusText.text = "processed";
 			}
@@ -134,6 +149,8 @@ public class MainBehavior : MonoBehaviour {
 
 	public void Quit() {
 		SaveDepth(); //save the current one
+		
+		DepthFileUtils.Dispose();
 
 		if (_vp != null)
 			Destroy(_vp);
@@ -196,6 +213,9 @@ public class MainBehavior : MonoBehaviour {
 		_currentFileType = ftype;
 		_orig_filepath = filepath;
 		_hashval = Utils.GetHashval(filepath);
+		_processedFrames = new List<Task>();
+		_hasCreatedArchive = false;
+		_shouldUpdateArchive = true;
 
 		if (ftype == FileTypes.Img) FromImage(filepath);
 		if (ftype == FileTypes.Vid) FromVideo(filepath);
@@ -221,10 +241,12 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void FromImage(string filepath) {
-
 		Texture texture = Utils.LoadImage(filepath);
 		_orig_width = texture.width;
 		_orig_height = texture.height;
+
+		//For metadata
+		_startFrame = 0;
 
 		int modelTypeVal;
 		float[] depths;
@@ -245,11 +267,15 @@ public class MainBehavior : MonoBehaviour {
 			_depths_frames = new float[1][];
 			_depths_frames[0] = depths;
 
+			if (_shouldUpdateArchive) { //for now, always true
+				DepthFileUtils.CreateDepthFile(1, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+
+				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
+				_hasCreatedArchive = true; //not needed
+			}
+
 			FilepathResultText.text = "Processed!";
 		}
-
-		//For metadata
-		_startFrame = 0;
 
 		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
@@ -279,6 +305,10 @@ public class MainBehavior : MonoBehaviour {
 			_orig_height = int.Parse(_metadata["original_height"]);
 			_vp.sendFrameReadyEvents = (_startFrame < 0) ? true : false;
 
+			//Should not save if the loaded depth's modeltypeval is higher than the program is using
+			if (modelTypeVal != _donnx.ModelTypeVal) //for now just use !=
+				_shouldUpdateArchive = false;
+
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
 		else {
@@ -297,24 +327,21 @@ public class MainBehavior : MonoBehaviour {
 		if (_depths_frames == null) return;
 		if (_orig_width*_orig_height*_x*_y == 0) return;
 
-		if (_depthFilePath == null) {
-			/* Create a new depth file */
-			DepthFileUtils.DumpDepthFile(_depths_frames, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
-		}
-		else {
-			/* Update */
+		/* Wait */
+		Task.WaitAll(_processedFrames.ToArray());
 
-			//Should not save if the loaded depth's modeltypeval is higher than the program is using
-			int modelTypeVal = int.Parse(_metadata["model_type_val"]);
-			if (modelTypeVal == _donnx.ModelTypeVal) { //for now just use ==
-				DepthFileUtils.UpdateDepthFile(_depthFilePath, _depths_frames, _x, _y);
-			}
+		if (_currentFileType == FileTypes.Vid) {
+			_vp.Stop();
+			_vp.url = null;
 		}
 
-		//cleanup
+		//cleanup -- may overlap w/ SelectFile()
 		_depths_frames = null;
 		_x = _y = _orig_width = _orig_height = 0;
 		_startFrame = _currentFrame = 0;
+		_processedFrames = null;
+
+		DepthFileUtils.Dispose();
 
 		StatusText.text = "";
 	}
