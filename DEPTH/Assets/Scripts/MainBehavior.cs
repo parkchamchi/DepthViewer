@@ -315,20 +315,14 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void CallPythonHybrid() {
-		int modelVal = (int) DepthFileUtils.ModelTypes.MidasV3DptHybrid;
-		string modelTypeForPy = "dpt_hybrid";
-
-		CallPython(modelVal, modelTypeForPy);
+		CallPython(DepthFileUtils.ModelTypes.MidasV3DptHybrid);
 	}
 
 	public void CallPythonLarge() {
-		int modelVal = (int) DepthFileUtils.ModelTypes.MidasV3DptLarge;
-		string modelTypeForPy = "dpt_large";
-
-		CallPython(modelVal, modelTypeForPy);
+		CallPython(DepthFileUtils.ModelTypes.MidasV3DptLarge);
 	}
 
-	private void CallPython(int modelTypeVal, string modelTypeStringForPython) {
+	private void CallPython(DepthFileUtils.ModelTypes modelType) {
 		if (_currentFileType != FileTypes.Img && _currentFileType != FileTypes.Vid)
 			return;
 
@@ -337,9 +331,12 @@ public class MainBehavior : MonoBehaviour {
 
 		string isVideo = (_currentFileType == FileTypes.Vid) ? " -v " : " ";
 
+		int modelTypeVal = (int) modelType;
+		string modelTypeString = modelType.ToString();
+
 		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
 
-		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isVideo} -t {modelTypeStringForPython} --zip_in_memory");
+		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isVideo} -t {modelTypeString} --zip_in_memory");
 	}
 
 	public void HideUI() {

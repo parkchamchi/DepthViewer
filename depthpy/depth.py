@@ -29,10 +29,10 @@ class Runner():
 	def __init__(self, model_path=None):
 		#path to model and model_type_val -- see DepthFileUtils.cs for explanation
 		self.default_models = { 
-			"midas_v21_small": ("midas_v21_small-70d6b9c8.pt", 100),
-			"midas_v21": ("midas_v21-f6b98070.pt", 200),
-			"dpt_large": ("dpt_large-midas-2f21e586.pt", 300),
-			"dpt_hybrid": ("dpt_hybrid-midas-501f0c75.pt", 400),
+			"MidasV21Small": ("midas_v21_small-70d6b9c8.pt", 100),
+			"MiDasV21": ("midas_v21-f6b98070.pt", 200),
+			"MidasV3DptHybrid": ("dpt_hybrid-midas-501f0c75.pt", 300),
+			"MidasV3DptLarge": ("dpt_large-midas-2f21e586.pt", 400),
 		}
 		
 		if model_path:
@@ -79,7 +79,7 @@ class Runner():
 			inputs = self.read_image(inpath)
 
 		# load network
-		if model_type == "dpt_large": # DPT-Large
+		if model_type == "MidasV3DptLarge": # DPT-Large
 			model = DPTDepthModel(
 				path=model_weight_path,
 				backbone="vitl16_384",
@@ -88,7 +88,7 @@ class Runner():
 			net_w, net_h = 384, 384
 			resize_mode = "minimal"
 			normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-		elif model_type == "dpt_hybrid": #DPT-Hybrid
+		elif model_type == "MidasV3DptHybrid": #DPT-Hybrid
 			model = DPTDepthModel(
 				path=model_weight_path,
 				backbone="vitb_rn50_384",
@@ -97,14 +97,14 @@ class Runner():
 			net_w, net_h = 384, 384
 			resize_mode="minimal"
 			normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-		elif model_type == "midas_v21":
+		elif model_type == "MiDasV21":
 			model = MidasNet(model_weight_path, non_negative=True)
 			net_w, net_h = 384, 384
 			resize_mode="upper_bound"
 			normalization = NormalizeImage(
 				mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
 			)
-		elif model_type == "midas_v21_small":
+		elif model_type == "MidasV21Small":
 			model = MidasNet_small(model_weight_path, features=64, backbone="efficientnet_lite3", exportable=True, non_negative=True, blocks={'expand': True})
 			net_w, net_h = 256, 256
 			resize_mode="upper_bound"
@@ -361,7 +361,7 @@ if __name__ == "__main__":
 	parser.add_argument('-t', '--model_type',
 		default="dpt_large",
 		help="model type",
-		choices=["dpt_large", "dpt_hybrid", "midas_v21_small", "midas_v21"]
+		choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MiDasV21", "MidasV21Small"]
 	)
 
 	parser.add_argument("--zip_in_memory",
@@ -393,4 +393,4 @@ if __name__ == "__main__":
 		print("EXCEPTION:")
 		print(exc)
 
-		input("press any key to continue")
+		input("press enter to continue\n")
