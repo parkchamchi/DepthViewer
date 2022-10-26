@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using System.Threading.Tasks;
 
 using UnityEngine;
 
@@ -11,6 +12,8 @@ public static class DepthFileUtils {
 	public const string Version = "v0.1-alpha";
 	public static readonly string DefaultDepthDir;
 	public const string DepthExt = ".depthviewer";
+
+	private static ZipArchive _archive;
 
 	//Values are arbitrarily set relative numbers
 	//So that the highest quality of depth file would be loaded
@@ -86,27 +89,32 @@ public static class DepthFileUtils {
 	public static void UpdateDepthFile(string depthfilepath, float[][] depths_frames, int x, int y, string metadata) {
 		if (x*y == 0) return;
 
-		using (ZipArchive archive = ZipFile.Open(depthfilepath, ZipArchiveMode.Update)) {
-			//Write the metadata, if it's not null
-			if (metadata != null) {
-				ZipArchiveEntry metadataEntry = archive.GetEntry("METADATA.txt");
-				if (metadataEntry == null)
-					metadataEntry = archive.CreateEntry("METADATA.txt");
-				using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
-					sw.Write(metadata);
-			}
+		if (_archive != null)
+			_archive.Dispose(); //While _archive points the same file, just close and open again
 
-			//Write the new depths
-			for (int i = 0; i < depths_frames.Length; i++) {
-				if (depths_frames[i] == null) continue;
+		_archive = ZipFile.Open(depthfilepath, ZipArchiveMode.Update);
 
-				ZipArchiveEntry entry = archive.GetEntry($"{i}.pgm");
-				if (entry == null) 
-					entry = archive.CreateEntry($"{i}.pgm");
-				using (BinaryWriter bw = new BinaryWriter(entry.Open()))
-					bw.Write(WritePGM(depths_frames[i], x, y));
-			}
+		//Write the metadata, if it's not null
+		if (metadata != null) {
+			ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
+			if (metadataEntry == null)
+				metadataEntry = _archive.CreateEntry("METADATA.txt");
+			using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
+				sw.Write(metadata);
 		}
+
+		//Write the new depths
+		for (int i = 0; i < depths_frames.Length; i++) {
+			if (depths_frames[i] == null) continue;
+
+			ZipArchiveEntry entry = _archive.GetEntry($"{i}.pgm");
+			if (entry == null) 
+				entry = _archive.CreateEntry($"{i}.pgm");
+			using (BinaryWriter bw = new BinaryWriter(entry.Open()))
+				bw.Write(WritePGM(depths_frames[i], x, y));
+		}
+		
+		
 	}
 
 	public static string ProcessedDepthFileExists(string hashval, out int maxModelTypeVal) {
@@ -174,7 +182,6 @@ public static class DepthFileUtils {
 			out orig_ratio: ratio of ORIGINAL INPUT.
 		*/
 		
-		float[][] depths;
 		x = y = 0;
 		metadata = null;
 
@@ -188,36 +195,40 @@ public static class DepthFileUtils {
 			return null;
 		}
 
-		using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Read)) {
-			//Read the metadata
-			string metadataStr;
-			ZipArchiveEntry metadataEntry = archive.GetEntry("METADATA.txt");
-			using (StreamReader br = new StreamReader(metadataEntry.Open()))
-				metadataStr = br.ReadToEnd();
-			metadata = ReadMetadata(metadataStr);
-			
-			x = int.Parse(metadata["width"]);
-			y = int.Parse(metadata["height"]);
+		_archive = ZipFile.Open(path, ZipArchiveMode.Read);
+		//Read the metadata
+		string metadataStr;
+		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
+		using (StreamReader br = new StreamReader(metadataEntry.Open()))
+			metadataStr = br.ReadToEnd();
+		metadata = ReadMetadata(metadataStr);
+		
+		x = int.Parse(metadata["width"]);
+		y = int.Parse(metadata["height"]);
 
-			int framecount = int.Parse(metadata["framecount"]);
-			depths = new float[framecount][];
+		int framecount = int.Parse(metadata["framecount"]);
+		float[][] depths_frames = new float[framecount][]; //is this necessary?
 
-			//Read the frames
-			for (int i = 0; i < framecount; i++) {
-				byte[] pgm;
-				ZipArchiveEntry entry = archive.GetEntry(string.Format("{0}.pgm", i));
-				if (entry == null) continue;
+		return depths_frames;
+	}
 
-				pgm = new byte[entry.Length];
-
-				using (BinaryReader br = new BinaryReader(entry.Open()))
-					pgm = br.ReadBytes(pgm.Length);
-				
-				depths[i] = ReadPGM(pgm);
-			}
-
-			return depths;
+	public static float[] ReadFromArchive(long frame) {
+		if (_archive == null) {
+			Debug.LogError("Archive is null!");
+			return null;
 		}
+
+		//Read the frames
+		ZipArchiveEntry entry = _archive.GetEntry($"{frame}.pgm");
+		if (entry == null)
+			return null;
+
+		byte[] pgm = new byte[entry.Length];
+
+		using (BinaryReader br = new BinaryReader(entry.Open()))
+			pgm = br.ReadBytes(pgm.Length);
+		
+		return ReadPGM(pgm);
 	}
 
 	public static Dictionary<string, string> ReadMetadata(string metadataStr) {

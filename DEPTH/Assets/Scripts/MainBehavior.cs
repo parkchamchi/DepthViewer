@@ -43,7 +43,6 @@ public class MainBehavior : MonoBehaviour {
 
 	private int _x, _y;
 	int _orig_width, _orig_height;
-	//float[] _depths;
 
 	private string _orig_filepath;
 	private string _hashval;
@@ -52,7 +51,7 @@ public class MainBehavior : MonoBehaviour {
 	private float[][] _depths_frames; //for video
 	private long _startFrame;
 	private long _currentFrame;
-	private string _depthfilepath; //path to the depth file read for a video, null if not exists.
+	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
 
 	void Start() {
@@ -106,21 +105,31 @@ public class MainBehavior : MonoBehaviour {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
+		long actualFrame = frame-_startFrame;
 
 		//Check if the frame was already processed
-		if (_depths_frames[frame-_startFrame] == null) {
-			//Run the model
-			if (_donnx == null) return;
+		if (_depths_frames[actualFrame] == null) {
+			//If depth file exists, try to read from it
+			if (_depthFilePath != null)
+				_depths_frames[actualFrame] = DepthFileUtils.ReadFromArchive(actualFrame);
 
-			_depths_frames[frame-_startFrame] = (float[]) _donnx.Run(texture, out _x, out _y).Clone(); //DepthONNX.Run() returns its private member... Took eternity to debug
+			if (_depths_frames[actualFrame] != null) 
+				StatusText.text = "read from archive";
 
-			StatusText.text = "processed";
+			else {
+				//Run the model
+				if (_donnx == null) return;
+
+				_depths_frames[actualFrame] = (float[]) _donnx.Run(texture, out _x, out _y).Clone(); //DepthONNX.Run() returns its private member...
+
+				StatusText.text = "processed";
+			}
 		}
 		else {
 			StatusText.text = "loaded";
 		}
 
-		_meshBehavior.SetScene(_depths_frames[frame-_startFrame], _x, _y, (float) _orig_width/_orig_height, texture);
+		_meshBehavior.SetScene(_depths_frames[actualFrame], _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	public void Quit() {
@@ -221,10 +230,10 @@ public class MainBehavior : MonoBehaviour {
 		float[] depths;
 
 		//Check if the file was processed
-		string _depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
 			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
-			depths = _depths_frames[0];
+			depths = _depths_frames[0] = DepthFileUtils.ReadFromArchive(0);
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
@@ -259,7 +268,7 @@ public class MainBehavior : MonoBehaviour {
 		int modelTypeVal;
 
 		/* Check if the processed file exists */
-		string _depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
 			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
 
@@ -288,7 +297,7 @@ public class MainBehavior : MonoBehaviour {
 		if (_depths_frames == null) return;
 		if (_orig_width*_orig_height*_x*_y == 0) return;
 
-		if (_depthfilepath == null) {
+		if (_depthFilePath == null) {
 			/* Create a new depth file */
 			DepthFileUtils.DumpDepthFile(_depths_frames, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 		}
@@ -298,7 +307,7 @@ public class MainBehavior : MonoBehaviour {
 			//Should not save if the loaded depth's modeltypeval is higher than the program is using
 			int modelTypeVal = int.Parse(_metadata["model_type_val"]);
 			if (modelTypeVal == _donnx.ModelTypeVal) { //for now just use ==
-				DepthFileUtils.UpdateDepthFile(_depthfilepath, _depths_frames, _x, _y);
+				DepthFileUtils.UpdateDepthFile(_depthFilePath, _depths_frames, _x, _y);
 			}
 		}
 
