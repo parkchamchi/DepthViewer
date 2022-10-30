@@ -1930,8 +1930,8 @@ MonoBehaviour:
   m_FillRect: {fileID: 148880467}
   m_HandleRect: {fileID: 1614981803}
   m_Direction: 0
-  m_MinValue: -50
-  m_MaxValue: 50
+  m_MinValue: -75
+  m_MaxValue: 75
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -1970,7 +1970,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1429728536131650682, guid: c116b7497ab8ca34c9188965d4295e27, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -150
+      value: -200
       objectReference: {fileID: 0}
     - target: {fileID: 1429728536131650682, guid: c116b7497ab8ca34c9188965d4295e27, type: 3}
       propertyPath: m_LocalRotation.w
