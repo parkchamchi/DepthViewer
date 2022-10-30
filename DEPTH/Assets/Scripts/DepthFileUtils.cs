@@ -171,7 +171,7 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static float[][] ReadDepthFile(string path, out int x, out int y, out Dictionary<string, string> metadata) {
+	public static float[][] ReadDepthFile(string path, out int x, out int y, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
@@ -179,6 +179,8 @@ public static class DepthFileUtils {
 		
 		x = y = 0;
 		metadata = null;
+
+		ZipArchiveMode zipmode = (readOnlyMode) ? ZipArchiveMode.Read : ZipArchiveMode.Update;
 
 		if (!path.EndsWith(DepthExt)) {
 			Debug.LogError("File " + path + " is not a valid format.");
@@ -191,7 +193,7 @@ public static class DepthFileUtils {
 		}
 
 		if (_archive != null) _archive.Dispose();
-		_archive = ZipFile.Open(path, ZipArchiveMode.Update);
+		_archive = ZipFile.Open(path, zipmode);
 		//Read the metadata
 		string metadataStr;
 		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");

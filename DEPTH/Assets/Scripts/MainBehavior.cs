@@ -17,6 +17,9 @@ public class MainBehavior : MonoBehaviour {
 
 	public TMP_Text StatusText;
 
+	public Toggle OutputSaveToggle;
+	public TMP_Text OutputSaveText;
+
 	public GameObject UI;
 
 	public enum FileTypes {
@@ -55,6 +58,7 @@ public class MainBehavior : MonoBehaviour {
 	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
 
+	private bool _canUpdateArchive; //User option, toggled in UI; variable below overrides this
 	private bool _shouldUpdateArchive;
 	private bool _hasCreatedArchive;
 	private List<Task> _processedFrames;
@@ -67,6 +71,8 @@ public class MainBehavior : MonoBehaviour {
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
 		_vp.errorReceived += OnVideoError;
+
+		ToggleOutputSave(); //initializing _canUpdadeArchive
 	}
 
 	void Update() {
@@ -171,7 +177,7 @@ public class MainBehavior : MonoBehaviour {
 	public void CheckFileExists() {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
-		string output = "DEBUG: Defulat value, should not be seen.";
+		string output = "DEBUG: Default value, should not be seen.";
 
 		//Check if the file exists
 		switch (ftype) {
@@ -216,7 +222,11 @@ public class MainBehavior : MonoBehaviour {
 		_hashval = Utils.GetHashval(filepath);
 		_processedFrames = new List<Task>();
 		_hasCreatedArchive = false;
-		_shouldUpdateArchive = true;
+
+		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
+			OutputSaveText.text = "Will be saved.";
+		else
+			OutputSaveText.text = "Won't be saved.";
 
 		if (ftype == FileTypes.Img) FromImage(filepath);
 		if (ftype == FileTypes.Vid) FromVideo(filepath);
@@ -255,7 +265,7 @@ public class MainBehavior : MonoBehaviour {
 		//Check if the file was processed
 		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
-			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
+			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
 			depths = _depths_frames[0] = DepthFileUtils.ReadFromArchive(0);
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
@@ -268,7 +278,7 @@ public class MainBehavior : MonoBehaviour {
 			_depths_frames = new float[1][];
 			_depths_frames[0] = depths;
 
-			if (_shouldUpdateArchive) { //for now, always true
+			if (_shouldUpdateArchive) {
 				DepthFileUtils.CreateDepthFile(1, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
@@ -297,7 +307,13 @@ public class MainBehavior : MonoBehaviour {
 		/* Check if the processed file exists */
 		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
-			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata);
+			//Should not save if the loaded depth's modeltypeval is higher than the program is using
+			if (modelTypeVal != _donnx.ModelTypeVal) {//for now just use !=
+				_shouldUpdateArchive = false;
+				OutputSaveText.text = "Not saving.";
+			}
+
+			_depths_frames = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: !_shouldUpdateArchive);
 
 			//Set startframe also
 			//It is set to negative if it couldn't be determined - in that case we should check it
@@ -306,9 +322,7 @@ public class MainBehavior : MonoBehaviour {
 			_orig_height = int.Parse(_metadata["original_height"]);
 			_vp.sendFrameReadyEvents = (_startFrame < 0) ? true : false;
 
-			//Should not save if the loaded depth's modeltypeval is higher than the program is using
-			if (modelTypeVal != _donnx.ModelTypeVal) //for now just use !=
-				_shouldUpdateArchive = false;
+			
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
@@ -393,6 +407,10 @@ public class MainBehavior : MonoBehaviour {
 			Screen.fullScreenMode = FullScreenMode.MaximizedWindow;
 		else
 			Screen.fullScreenMode = FullScreenMode.Windowed;
+	}
+
+	public void ToggleOutputSave() {
+		_canUpdateArchive = OutputSaveToggle.isOn;
 	}
 
 	private void OnVideoError(VideoPlayer vp, string message) {
