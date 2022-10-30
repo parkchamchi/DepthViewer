@@ -73,6 +73,18 @@ public class MainBehavior : MonoBehaviour {
 		_vp.errorReceived += OnVideoError;
 
 		ToggleOutputSave(); //initializing _canUpdadeArchive
+
+		/* Check the first arguement */
+		string[] args = System.Environment.GetCommandLineArgs();
+		if (args.Length > 1) {
+			string arg = args[1];
+			FileTypes argFileType = GetFileType(arg);
+
+			if (argFileType == FileTypes.Img || argFileType == FileTypes.Vid) {
+				FilepathInputField.text = arg;
+				SelectFile();
+			}
+		}
 	}
 
 	void Update() {
