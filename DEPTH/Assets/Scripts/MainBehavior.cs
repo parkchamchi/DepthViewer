@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
+using SFB;
+
 using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.UI;
@@ -63,6 +65,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _hasCreatedArchive;
 	private List<Task> _processedFrames;
 
+	private ExtensionFilter[] _extFilters;
+
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
@@ -85,6 +89,19 @@ public class MainBehavior : MonoBehaviour {
 				SelectFile();
 			}
 		}
+
+		/* Set ExtensionFilter for StandalonFileBrowser */
+		//remove '.'
+		string[] exts = new string[SupportedImgExts.Length + SupportedVidExts.Length];
+		int idx = 0;
+		for (int i = 0; i < SupportedImgExts.Length; i++)
+			exts[idx++] = SupportedImgExts[i].Substring(1, SupportedImgExts[i].Length-1);
+		for (int i = 0; i < SupportedVidExts.Length; i++)
+			exts[idx++] = SupportedVidExts[i].Substring(1, SupportedVidExts[i].Length-1);
+
+		_extFilters = new [] {
+			new ExtensionFilter("Image/Video Files", exts),
+		};
 	}
 
 	void Update() {
@@ -433,5 +450,15 @@ public class MainBehavior : MonoBehaviour {
 
 	public void OpenOutputFolder() {
 		Application.OpenURL(Application.persistentDataPath);
+	}
+
+	public void BrowseFiles() {
+		string[] paths = StandaloneFileBrowser.OpenFilePanel("Open File", "", _extFilters, false);
+		if (paths.Length < 1)
+			return;
+		string path = paths[0];
+
+		FilepathInputField.text = path;
+		SelectFile();
 	}
 } 
