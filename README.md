@@ -1,5 +1,5 @@
 # DepthViewer
-![vvvvvv3d](./examples/vvvvvv3d.png) \
+![vvvvvv3d](./examples/vvvvvv3d.jpg) \
 Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
 ## Examples
