@@ -364,6 +364,12 @@ public class MainBehavior : MonoBehaviour {
 	public void GetBuiltInModel() {
 		_donnx = _depthModelBehavior.GetBuiltIn();
 	}
+	
+	private void OnVideoError(VideoPlayer vp, string message) {
+		FilepathResultText.text = "Failed to load video: " + message;
+		_vp.Stop();
+		_vp.url = "";
+	}
 
 	public void CallPythonHybrid() {
 		CallPython(DepthFileUtils.ModelTypes.MidasV3DptHybrid);
@@ -378,7 +384,7 @@ public class MainBehavior : MonoBehaviour {
 			return;
 
 		const string pythonPath = @"python"; //todo: change
-		const string pythonTarget = @"../depthpy/depth.py";
+		const string pythonTarget = @"./depthpy/depth.py";
 
 		string isVideo = (_currentFileType == FileTypes.Vid) ? " -v " : " ";
 
@@ -413,9 +419,7 @@ public class MainBehavior : MonoBehaviour {
 		_canUpdateArchive = OutputSaveToggle.isOn;
 	}
 
-	private void OnVideoError(VideoPlayer vp, string message) {
-		FilepathResultText.text = "Failed to load video: " + message;
-		_vp.Stop();
-		_vp.url = "";
+	public void OpenOutputFolder() {
+		Application.OpenURL(Application.persistentDataPath);
 	}
 } 

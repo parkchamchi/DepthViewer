@@ -15,7 +15,7 @@ The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/
 ### Call python
 The [MiDaS v3 DPT models](https://github.com/isl-org/MiDaS), which I found to be exceptionally accurate, hasn't been released as ONNX model that can be used with Unity's Barracuda.
 The `Call Python` buttons will call python subprocess and process it with pytorch. 
-For now it just calls `python ../depthpy/depth.py [args]...`, so dependency for MiDaS should be installed manually, for that check [MiDaS github page](https://github.com/isl-org/MiDaS). 
+For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS should be installed manually, for that check [MiDaS github page](https://github.com/isl-org/MiDaS). 
 For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/MiDaS#setup) has to be in `depthpy/weights` directory.
 
 ## Inputs
