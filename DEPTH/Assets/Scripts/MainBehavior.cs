@@ -385,6 +385,13 @@ public class MainBehavior : MonoBehaviour {
 		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
 		_meshBehavior.SetDepthMult(rat, shouldUpdate);
+	}
+
+	public void ToggleFullscreen() {
+		if (Screen.fullScreenMode == FullScreenMode.Windowed)
+			Screen.fullScreenMode = FullScreenMode.MaximizedWindow;
+		else
+			Screen.fullScreenMode = FullScreenMode.Windowed;
 		
 	}
 } 
