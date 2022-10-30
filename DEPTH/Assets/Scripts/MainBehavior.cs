@@ -66,6 +66,7 @@ public class MainBehavior : MonoBehaviour {
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
+		_vp.errorReceived += OnVideoError;
 	}
 
 	void Update() {
@@ -319,7 +320,7 @@ public class MainBehavior : MonoBehaviour {
 
 		/* Load the video -- should be done after hash is computed */
 		_vp.url = filepath;
-		
+
 		_currentFrame = -1;
 	}
 
@@ -392,6 +393,11 @@ public class MainBehavior : MonoBehaviour {
 			Screen.fullScreenMode = FullScreenMode.MaximizedWindow;
 		else
 			Screen.fullScreenMode = FullScreenMode.Windowed;
-		
+	}
+
+	private void OnVideoError(VideoPlayer vp, string message) {
+		FilepathResultText.text = "Failed to load video: " + message;
+		_vp.Stop();
+		_vp.url = "";
 	}
 } 
