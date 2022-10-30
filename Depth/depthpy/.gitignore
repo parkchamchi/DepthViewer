@@ -10,3 +10,4 @@ weights
 misc
 *.mp4
 */__pycache__/
+*.bak
