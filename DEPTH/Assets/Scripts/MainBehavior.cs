@@ -23,6 +23,9 @@ public class MainBehavior : MonoBehaviour {
 	public TMP_Text OutputSaveText;
 
 	public GameObject UI;
+	public GameObject AboutScreen;
+	public TMP_Text AboutText;
+	public TextAsset AboutTextAsset;
 
 	public enum FileTypes {
 		NotExists, 
@@ -102,6 +105,10 @@ public class MainBehavior : MonoBehaviour {
 		_extFilters = new [] {
 			new ExtensionFilter("Image/Video Files", exts),
 		};
+
+		/* Set about screen */
+		CloseAboutScreen(); //redundant
+		AboutText.text = AboutTextAsset.text;
 	}
 
 	void Update() {
@@ -460,5 +467,13 @@ public class MainBehavior : MonoBehaviour {
 
 		FilepathInputField.text = path;
 		SelectFile();
+	}
+
+	public void ShowAboutScreen() {
+		AboutScreen.SetActive(true);
+	}
+
+	public void CloseAboutScreen() {
+		AboutScreen.SetActive(false);
 	}
 } 
