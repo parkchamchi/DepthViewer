@@ -1,6 +1,8 @@
 # DepthViewer
 ![vvvvvv3d](./examples/vvvvvv3d.jpg) \
-Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
+Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR. \
+
+[Web Demo](https://parkchamchi.github.io/DepthViewer/)
 
 ## Examples
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
@@ -49,3 +51,9 @@ Other formats have not been tested.
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
+- [Readme file](DEPTH/Assets/Assets/README.txt)
+
+### WebGL Demo
+- Used [WebXR Export](https://github.com/De-Panther/unity-webxr-export) 
+- [Source of the cat image](https://commons.wikimedia.org/wiki/File:Cat_on_a_veterinary_scale.png)
+- [Readme file](https://github.com/parkchamchi/DepthViewer/blob/webgl/DEPTH/Assets/Assets/README.txt)
