@@ -289,6 +289,13 @@ public class MainBehavior : MonoBehaviour {
 
 	private void FromImage(string filepath) {
 		Texture texture = Utils.LoadImage(filepath);
+
+		/* Couldn't load */
+		if (texture == null) {
+			FilepathResultText.text = "Failed to load image: " + filepath;
+			return;
+		}
+
 		_orig_width = texture.width;
 		_orig_height = texture.height;
 
