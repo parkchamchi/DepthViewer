@@ -7,6 +7,9 @@ public class MeshBehavior : MonoBehaviour {
 
 	public Slider MeshLocSlider;
 
+	public Slider AlphaSlider;
+	public Slider BetaSlider;
+
 	private Mesh _mesh;
 	private Vector3[] _vertices;
 	private Vector2[] _uv;
@@ -30,6 +33,9 @@ public class MeshBehavior : MonoBehaviour {
 
 	private const float _defaultZ = 0f;
 
+	private float _alpha;
+	private float _beta;
+
 	void Start() {
 		_mesh = new Mesh();
 		_mesh.MarkDynamic();
@@ -39,6 +45,9 @@ public class MeshBehavior : MonoBehaviour {
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
 
 		_depthMult = _defaultDepthMult;
+
+		/* Set the default values for alpha & beta sliders */
+		BetaSlider.value = BetaSlider.minValue = System.Single.Epsilon; //smallest positive number
 	}
 
 	void Update() {
@@ -163,5 +172,13 @@ public class MeshBehavior : MonoBehaviour {
 	public void SetZ() {
 		float offset = MeshLocSlider.value;
 		transform.position = new Vector3(0, 0, _defaultZ - offset);
+	}
+
+	public void SetAlpha() {
+		_alpha = AlphaSlider.value;
+	}
+
+	public void SetBeta() {
+		_beta = BetaSlider.value;
 	}
 }
