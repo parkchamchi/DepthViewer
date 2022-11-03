@@ -153,8 +153,6 @@ public class MeshBehavior : MonoBehaviour {
 			_material.mainTexture = texture;
 	}
 
-	/* Should these two get the value directly from the slider? */
-
 	public void SetDepthMult(float rat, bool shouldUpdate) {
 		_depthMult = _defaultDepthMult * rat;
 
