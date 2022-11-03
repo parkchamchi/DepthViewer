@@ -46,8 +46,10 @@ public class MeshBehavior : MonoBehaviour {
 
 		_depthMult = _defaultDepthMult;
 
-		/* Set the default values for alpha & beta sliders */
-		BetaSlider.value = BetaSlider.minValue = System.Single.Epsilon; //smallest positive number
+		/* Set the default values for alpha & beta */
+		_alpha = AlphaSlider.value; //1
+		//_beta = BetaSlider.value = BetaSlider.minValue = System.Single.Epsilon; //smallest positive number
+		_beta = BetaSlider.value;
 	}
 
 	void Update() {
@@ -132,19 +134,31 @@ public class MeshBehavior : MonoBehaviour {
 			return;
 		}
 
-		for (int i = 0; i < depths.Length; i++)
-			_vertices[i].z = -depths[i] * _depthMult;
-		_mesh.vertices = _vertices;
 		_depths = depths; //depth should not change elsewhere! (especially for images)
+
+		UpdateDepth();
 	}
 
 	private void UpdateDepth() {
-		/* Called when a image is being shown and depthmult is updated */
+		/* Also called when a image is being shown and depthmult is updated */
+		/*
+		`depths` are normalized to [0, ..., 1]
+		MiDaS returns inverse depth, so let k be
+		1 / (a*x + b)
+		where a > 0, b > 0.
+		Now k's are [1/b, ... , 1/(a+b)]
+		And normalize such that z be
+		(k * (a + b) - 1) * b / a
+		This gives us [1, ..., 0], where 1 is the closest.
+		*/
 
 		if (_vertices == null || _depths == null) return;
 
-		for (int i = 0; i < _depths.Length; i++)
-			_vertices[i].z = -_depths[i] * _depthMult;
+		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta is assured to be positive
+			float z = (1 / (_alpha * _depths[i] + _beta)); //inverse
+			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
+			_vertices[i].z = z * _depthMult;
+		}
 		_mesh.vertices = _vertices;
 	}
 
