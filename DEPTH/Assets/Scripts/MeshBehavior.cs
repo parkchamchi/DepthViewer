@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class MeshBehavior : MonoBehaviour {
 
 	public Slider MeshLocSlider;
+	public Slider ScaleSlider;
 
 	public Slider AlphaSlider;
 	public Slider BetaSlider;
@@ -47,8 +48,7 @@ public class MeshBehavior : MonoBehaviour {
 		_depthMult = _defaultDepthMult;
 
 		/* Set the default values for alpha & beta */
-		_alpha = AlphaSlider.value; //1
-		//_beta = BetaSlider.value = BetaSlider.minValue = System.Single.Epsilon; //smallest positive number
+		_alpha = AlphaSlider.value;
 		_beta = BetaSlider.value;
 	}
 
@@ -186,6 +186,11 @@ public class MeshBehavior : MonoBehaviour {
 	public void SetZ() {
 		float offset = MeshLocSlider.value;
 		transform.position = new Vector3(0, 0, _defaultZ - offset);
+	}
+
+	public void SetScale() {
+		float scale = ScaleSlider.value;
+		transform.localScale = new Vector3(scale, scale, transform.localScale.z);
 	}
 
 	public void SetAlpha() {
