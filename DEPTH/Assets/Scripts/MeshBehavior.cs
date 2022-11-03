@@ -8,9 +8,6 @@ public class MeshBehavior : MonoBehaviour {
 	public Slider MeshLocSlider;
 	public Slider ScaleSlider;
 
-	public Slider AlphaSlider;
-	public Slider BetaSlider;
-
 	private Mesh _mesh;
 	private Vector3[] _vertices;
 	private Vector2[] _uv;
@@ -34,8 +31,8 @@ public class MeshBehavior : MonoBehaviour {
 
 	private const float _defaultZ = 0f;
 
-	private float _alpha;
-	private float _beta;
+	private float _alpha = 1f;
+	private float _beta = 0.5f;
 
 	void Start() {
 		_mesh = new Mesh();
@@ -46,10 +43,6 @@ public class MeshBehavior : MonoBehaviour {
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
 
 		_depthMult = _defaultDepthMult;
-
-		/* Set the default values for alpha & beta */
-		_alpha = AlphaSlider.value;
-		_beta = BetaSlider.value;
 	}
 
 	void Update() {
@@ -176,8 +169,24 @@ public class MeshBehavior : MonoBehaviour {
 			_material.mainTexture = texture;
 	}
 
+	/* 3 functions below are copy-pasted (for now) */
+
 	public void SetDepthMult(float rat, bool shouldUpdate) {
 		_depthMult = _defaultDepthMult * rat;
+
+		if (shouldUpdate)
+			UpdateDepth();
+	}
+
+	public void SetAlpha(float rat, bool shouldUpdate) {
+		_alpha = rat;
+
+		if (shouldUpdate)
+			UpdateDepth();
+	}
+
+	public void SetBeta(float rat, bool shouldUpdate) {
+		_beta = rat;
 
 		if (shouldUpdate)
 			UpdateDepth();
@@ -193,11 +202,4 @@ public class MeshBehavior : MonoBehaviour {
 		transform.localScale = new Vector3(scale, scale, transform.localScale.z);
 	}
 
-	public void SetAlpha() {
-		_alpha = AlphaSlider.value;
-	}
-
-	public void SetBeta() {
-		_beta = BetaSlider.value;
-	}
 }

@@ -2626,7 +2626,7 @@ PrefabInstance:
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 2019246257}
+      objectReference: {fileID: 2128267913}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
@@ -2637,7 +2637,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: MeshBehavior, Assembly-CSharp
+      value: MainBehavior, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -3265,7 +3265,7 @@ PrefabInstance:
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 2019246257}
+      objectReference: {fileID: 2128267913}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
@@ -3276,7 +3276,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
-      value: MeshBehavior, Assembly-CSharp
+      value: MainBehavior, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -5524,8 +5524,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MeshLocSlider: {fileID: 387962982}
   ScaleSlider: {fileID: 1858899201}
-  AlphaSlider: {fileID: 353530454}
-  BetaSlider: {fileID: 644946366}
 --- !u!1 &2071150759
 GameObject:
   m_ObjectHideFlags: 0
@@ -5684,6 +5682,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DepthMultSlider: {fileID: 984972794}
+  AlphaSlider: {fileID: 353530454}
+  BetaSlider: {fileID: 644946366}
   FilepathInputField: {fileID: 696514300}
   FilepathResultText: {fileID: 697740476}
   StatusText: {fileID: 224956837}

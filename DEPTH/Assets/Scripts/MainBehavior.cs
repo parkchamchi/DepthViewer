@@ -12,7 +12,10 @@ using TMPro;
 
 public class MainBehavior : MonoBehaviour {
 
+	/* These sliders should be here to check if we need to update depth for images. */
 	public Slider DepthMultSlider;
+	public Slider AlphaSlider;
+	public Slider BetaSlider;
 
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
@@ -443,12 +446,30 @@ public class MainBehavior : MonoBehaviour {
 		UI.SetActive(!UI.activeSelf);
 	}
 
+	/* 3 functions below are copy-paseted (for now) */
+
 	public void SetDepthMult() {
 		float rat = DepthMultSlider.value;
 		/* Depth has to be updated when the image is being shown */
 		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
 		_meshBehavior.SetDepthMult(rat, shouldUpdate);
+	}
+
+	public void SetAlpha() {
+		float rat = AlphaSlider.value;
+		/* Depth has to be updated when the image is being shown */
+		bool shouldUpdate = (_currentFileType == FileTypes.Img);
+
+		_meshBehavior.SetAlpha(rat, shouldUpdate);
+	}
+
+	public void SetBeta() {
+		float rat = BetaSlider.value;
+		/* Depth has to be updated when the image is being shown */
+		bool shouldUpdate = (_currentFileType == FileTypes.Img);
+
+		_meshBehavior.SetBeta(rat, shouldUpdate);
 	}
 
 	public void ToggleFullscreen() {
