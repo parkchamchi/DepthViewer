@@ -2,7 +2,7 @@
 ![vvvvvv3d](./examples/vvvvvv3d.jpg) \
 Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
-[Web Demo](https://parkchamchi.github.io/DepthViewer/)
+[WEB DEMO](https://parkchamchi.github.io/DepthViewer/)
 
 ## Examples
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
@@ -47,6 +47,10 @@ Other formats have not been tested.
 - Fix codecs
 - Open depth map image of .jpg or .png (.depthviewer file itself too)
 - Stablize
+
+### WIP
+- Recording VR 3D video.
+- Render the desktop (or part of it)
 
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
