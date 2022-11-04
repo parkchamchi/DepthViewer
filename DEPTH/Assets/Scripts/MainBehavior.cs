@@ -52,6 +52,7 @@ public class MainBehavior : MonoBehaviour {
 	private MeshBehavior _meshBehavior;
 	private DepthModelBehavior _depthModelBehavior;
 	private DepthONNX _donnx;
+	private VRRecordBehavior _vrRecordBehavior;
 
 	private int _x, _y;
 	int _orig_width, _orig_height;
@@ -77,6 +78,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
+		_vrRecordBehavior = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -121,6 +123,12 @@ public class MainBehavior : MonoBehaviour {
 
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
+
+		/* TMP */ 
+		if (Input.GetKeyDown("space")) {
+			_vrRecordBehavior.Capture(Application.persistentDataPath + "/tmp.png");
+		}
+
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -384,12 +392,17 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void SaveDepth(bool shouldReload=false) {
-		if (_processedFrames == null || _processedFrames.Count <= 0) return;
-		//if (_orig_width*_orig_height*_x*_y == 0) return;
+		//if (_processedFrames == null || _processedFrames.Count <= 0) return;
+		/*
+		It appears that if the zip archive is opened as update, it is illegal to read entry.length even if no modification is done.
+		So no matter _processed is empty, depthfile has to be Reopen()'d if shouldReload == true.
+		*/
+		if (_processedFrames == null) return;
 
 		/* Wait */
 		StatusText.text = "Saving.";
 		Task.WaitAll(_processedFrames.ToArray());
+		_processedFrames.Clear();
 
 		if (shouldReload) {
 			StatusText.text = "Reloading the depthsfile...";

@@ -56,7 +56,9 @@ public static class DepthFileUtils {
 			model_type: model used. (see DepthONNX.ModelType)
 		*/
 
-		if (x*y*orig_width*orig_height == 0) return;
+		//if (x*y*orig_width*orig_height == 0) return; //256*256*512*384 == 0...
+		if (x == 0 || y == 0 || orig_width == 0 || orig_height == 0) return;
+
 
 		orig_basename = Path.GetFileName(orig_basename);
 
