@@ -24,8 +24,7 @@ public class MeshBehavior : MonoBehaviour {
 
 	private float _ratio = -1;
 
-	private const float _defaultDepthMult = 50f;
-	private float _depthMult;
+	private float _depthMult = 50f;
 
 	private float _rotateSpeed = 75f;
 
@@ -41,8 +40,6 @@ public class MeshBehavior : MonoBehaviour {
 		GetComponent<MeshFilter>().mesh = _mesh;
 
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
-
-		_depthMult = _defaultDepthMult;
 	}
 
 	void Update() {
@@ -172,7 +169,7 @@ public class MeshBehavior : MonoBehaviour {
 	/* 3 functions below are copy-pasted (for now) */
 
 	public void SetDepthMult(float rat, bool shouldUpdate) {
-		_depthMult = _defaultDepthMult * rat;
+		_depthMult = rat;
 
 		if (shouldUpdate)
 			UpdateDepth();

@@ -14,6 +14,8 @@ public static class DepthFileUtils {
 	public const string DepthExt = ".depthviewer";
 
 	private static ZipArchive _archive;
+	private static ZipArchiveMode _archiveMode;
+	private static string _archive_path;
 
 	//Values are arbitrarily set relative numbers
 	//So that the highest quality of depth file would be loaded
@@ -33,6 +35,15 @@ public static class DepthFileUtils {
 	public static void Dispose() {
 		if (_archive != null)
 			_archive.Dispose();
+	}
+
+	public static void Reopen() {
+		/* This function is needed because ZipArchive.Length does not work it it was modified (why?) */
+
+		if (_archive == null) return;
+
+		_archive.Dispose();
+		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
 	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val) {
@@ -72,7 +83,10 @@ public static class DepthFileUtils {
 
 		string output_filepath = GetDepthFileName(orig_basename, model_type_val, hashval);
 		if (_archive != null) _archive.Dispose();
-		_archive = ZipFile.Open(output_filepath, ZipArchiveMode.Update);
+
+		_archiveMode = ZipArchiveMode.Update;
+		_archive_path = output_filepath;
+		_archive = ZipFile.Open(_archive_path, _archiveMode);
 
 		UpdateDepthFileMetadata(metadata);
 	}
@@ -171,29 +185,34 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static float[][] ReadDepthFile(string path, out int x, out int y, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
+	public static long ReadDepthFile(string path, out int x, out int y, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
+
+			returns: framecount, -1 if it could not be read.
 		*/
+
+		long framecount = -1;
 		
 		x = y = 0;
 		metadata = null;
 
-		ZipArchiveMode zipmode = (readOnlyMode) ? ZipArchiveMode.Read : ZipArchiveMode.Update;
+		_archiveMode = (readOnlyMode) ? ZipArchiveMode.Read : ZipArchiveMode.Update;
 
 		if (!path.EndsWith(DepthExt)) {
 			Debug.LogError("File " + path + " is not a valid format.");
-			return null;
+			return framecount;
 		}
-
 		if (!File.Exists(path)) {
 			Debug.LogError("File " + path + " does not exist.");
-			return null;
+			return framecount;
 		}
 
 		if (_archive != null) _archive.Dispose();
-		_archive = ZipFile.Open(path, zipmode);
+		_archive_path = path;
+		_archive = ZipFile.Open(_archive_path, _archiveMode);
+
 		//Read the metadata
 		string metadataStr;
 		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
@@ -204,10 +223,9 @@ public static class DepthFileUtils {
 		x = int.Parse(metadata["width"]);
 		y = int.Parse(metadata["height"]);
 
-		int framecount = int.Parse(metadata["framecount"]);
-		float[][] depths_frames = new float[framecount][]; //is this necessary?
+		framecount = int.Parse(metadata["framecount"]);
 
-		return depths_frames;
+		return framecount;
 	}
 
 	public static float[] ReadFromArchive(long frame) {
