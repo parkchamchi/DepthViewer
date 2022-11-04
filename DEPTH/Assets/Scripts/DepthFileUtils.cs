@@ -38,7 +38,7 @@ public static class DepthFileUtils {
 	}
 
 	public static void Reopen() {
-		/* This function is needed because ZipArchive.Length does not work it it was modified (why?) */
+		/* This function is needed because ZipArchive.Length does not work if it was modified (why?) */
 
 		if (_archive == null) return;
 
@@ -78,6 +78,7 @@ public static class DepthFileUtils {
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
 			timestamp: DateTimeOffset.Now.ToUnixTimeSeconds().ToString(),
+			program: "DepthViewer",
 			version: Version
 		);
 
@@ -149,7 +150,7 @@ public static class DepthFileUtils {
 	}
 
 	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val,
-		string original_name, string original_width, string original_height, string timestamp, string version) {
+		string original_name, string original_width, string original_height, string timestamp, string program, string version) {
 		/*
 		A line per a field, delimited by the initial '='
 		*/
@@ -166,6 +167,7 @@ public static class DepthFileUtils {
 			+ $"original_width={original_width}\n"
 			+ $"original_height={original_height}\n"
 			+ $"timestamp={timestamp}\n"
+			+ $"program={program}\n"
 			+ $"version={version}\n";
 		
 		return metadata;

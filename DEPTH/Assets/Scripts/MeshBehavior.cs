@@ -132,19 +132,19 @@ public class MeshBehavior : MonoBehaviour {
 	private void UpdateDepth() {
 		/* Also called when a image is being shown and depthmult is updated */
 		/*
-		`depths` are normalized to [0, ..., 1]
+		`_depths` are normalized to [0, ..., 1]
 		MiDaS returns inverse depth, so let k be
 		1 / (a*x + b)
 		where a > 0, b > 0.
 		Now k's are [1/b, ... , 1/(a+b)]
-		And normalize such that z be
+		Normalize such that z be
 		(k * (a + b) - 1) * b / a
 		This gives us [1, ..., 0], where 1 is the closest.
 		*/
 
 		if (_vertices == null || _depths == null) return;
 
-		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta is assured to be positive
+		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
 			float z = (1 / (_alpha * _depths[i] + _beta)); //inverse
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
 			_vertices[i].z = z * _depthMult;

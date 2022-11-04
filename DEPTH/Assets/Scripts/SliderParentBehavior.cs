@@ -15,9 +15,6 @@ public class SliderParentBehavior : MonoBehaviour {
 	}
 
 	public void ChangeValueText() {
-		/*if (_slider.value == System.Single.Epsilon)
-			_valueText.text = ">0";
-		else*/
-			_valueText.text = _slider.value.ToString();
+		_valueText.text = _slider.value.ToString();
 	}
 }

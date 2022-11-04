@@ -422,14 +422,14 @@ public class MainBehavior : MonoBehaviour {
 		const string pythonPath = @"python"; //todo: change
 		const string pythonTarget = @"./depthpy/depth.py";
 
-		string isVideo = (_currentFileType == FileTypes.Vid) ? " -v " : " ";
+		string isImage = (_currentFileType == FileTypes.Img) ? " -i " : " ";
 
 		int modelTypeVal = (int) modelType;
 		string modelTypeString = modelType.ToString();
 
 		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
 
-		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isVideo} -t {modelTypeString} --zip_in_memory");
+		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
 	public void HideUI() {
@@ -440,7 +440,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetDepthMult() {
 		float rat = DepthMultSlider.value;
-		/* Depth has to be updated when the image is being shown */
+		/* Depth has to be updated when an image is being shown */
 		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
 		_meshBehavior.SetDepthMult(rat, shouldUpdate);
@@ -448,7 +448,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetAlpha() {
 		float rat = AlphaSlider.value;
-		/* Depth has to be updated when the image is being shown */
+		/* Depth has to be updated when an image is being shown */
 		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
 		_meshBehavior.SetAlpha(rat, shouldUpdate);
@@ -456,7 +456,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetBeta() {
 		float rat = BetaSlider.value;
-		/* Depth has to be updated when the image is being shown */
+		/* Depth has to be updated when an image is being shown */
 		bool shouldUpdate = (_currentFileType == FileTypes.Img);
 
 		_meshBehavior.SetBeta(rat, shouldUpdate);

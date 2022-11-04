@@ -11,6 +11,7 @@ import zipfile
 import io
 import time
 import hashlib
+import traceback
 
 import numpy as np
 import cv2
@@ -52,7 +53,7 @@ class Runner():
 
 		self.framecount = 1 #for video
 
-	def run(self, inpath, outpath, isvideo, model_type="dpt_hybrid", optimize=True, zip_in_memory=True, update=True) -> None:
+	def run(self, inpath, outpath, isimage, model_type="dpt_hybrid", optimize=True, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
 		Args:
@@ -73,10 +74,10 @@ class Runner():
 			return
 
 		#Get the generator
-		if isvideo:
-			inputs = self.read_video(inpath)
-		else:
+		if isimage:
 			inputs = self.read_image(inpath)
+		else:
+			inputs = self.read_video(inpath)
 
 		# load network
 		if model_type == "MidasV3DptLarge": # DPT-Large
@@ -190,6 +191,8 @@ class Runner():
 			#save width, height & the original size
 			#Write the metadata
 			if i == 0 and not has_metadata:
+				print("Saving the metadata.")
+
 				height, width = out.shape[:2]
 				original_height, original_width = img.shape[:2]
 				
@@ -208,8 +211,10 @@ class Runner():
 				framecount = self.framecount
 				timestamp = int(time.time())
 				version = VERSION
+				program = "depthpy"
 
-				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_type_val=model_type_val, original_name=original_name, original_width=original_width, original_height=original_height, timestamp=timestamp, version=version)
+				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_type_val=model_type_val, 
+					original_name=original_name, original_width=original_width, original_height=original_height, timestamp=timestamp, program=program, version=version)
 				zout.writestr("METADATA.txt", metadata, compresslevel=0)
 
 			i += 1
@@ -219,8 +224,20 @@ class Runner():
 		
 		if zip_in_memory:
 			#Write the ZipFile from RAM & close the BytesIO buffer.
-			with open(outpath, "wb") as fout:
-				fout.write(mem_buffer.getbuffer())
+			while True:
+				try:
+					with open(outpath, "wb") as fout:
+						fout.write(mem_buffer.getbuffer())
+				except Exception as exc:
+					traceback.print_exc()
+					if input("PRESS 'r' TO RETRY: ").lower().startswith('r'):
+						continue
+					else:
+						mem_buffer.close()
+						raise exc #rethrow
+				else:
+					break
+		
 			mem_buffer.close()
 
 	def normalize(self, image):
@@ -250,7 +267,7 @@ class Runner():
 
 		return b"P5\n" + "{} {} {}\n".format(width, height, 255).encode("ascii") + image.tobytes()
 
-	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, timestamp, version) -> str:
+	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, timestamp, program, version) -> str:
 
 		
 		metadata = (
@@ -266,6 +283,7 @@ original_name={original_name}
 original_width={original_width}
 original_height={original_height}
 timestamp={timestamp}
+program={program}
 version={version}
 """)
 		return metadata
@@ -353,8 +371,8 @@ if __name__ == "__main__":
 		help="Output path & filename",
 	)
 
-	parser.add_argument("-v", "--video",
-		help="Assume an video input.",
+	parser.add_argument("-i", "--image",
+		help="Assume an image input.",
 		action="store_true"
 	)
 
@@ -369,8 +387,8 @@ if __name__ == "__main__":
 		action="store_true"
 	)
 
-	parser.add_argument("-u", "--update",
-		help="If output file already exists, update it.",
+	parser.add_argument("--noupdate",
+		help="Replace existing file.",
 		action="store_true"
 	)
 
@@ -379,18 +397,20 @@ if __name__ == "__main__":
 	print(f"input: {args.input}")
 	print(f"output: {args.output}")
 
-	if args.update and not args.video and os.path.exists(input):
+	if not args.noupdate and args.image and os.path.exists(input):
 		print("Image: already exists.")
 		exit(0)
 
 	runner = Runner()
 
 	try:
-		outs = runner.run(inpath=args.input, outpath=args.output, isvideo=args.video, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=args.update)
+		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
 		print("Done.")
 	except Exception as exc:
 		print("EXCEPTION:")
-		print(exc)
+		traceback.print_exc()
 
-		input("press enter to continue\n")
+		print('*'*16)
+		print("PRESS ENTER TO CONTINUE.")
+		input()
