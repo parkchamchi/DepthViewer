@@ -26,9 +26,12 @@ public class MainBehavior : MonoBehaviour {
 	public TMP_Text OutputSaveText;
 
 	public GameObject UI;
+
 	public GameObject AboutScreen;
 	public TMP_Text AboutText;
 	public TextAsset AboutTextAsset;
+
+	public GameObject DepthFilePanel;
 
 	public enum FileTypes {
 		NotExists, 
@@ -87,6 +90,8 @@ public class MainBehavior : MonoBehaviour {
 
 		ToggleOutputSave(); //initializing _canUpdadeArchive
 
+		_processedFrames = new List<Task>();
+
 		/* Check the first arguement */
 		string[] args = System.Environment.GetCommandLineArgs();
 		if (args.Length > 1) {
@@ -101,20 +106,24 @@ public class MainBehavior : MonoBehaviour {
 
 		/* Set ExtensionFilter for StandalonFileBrowser */
 		//remove '.'
-		string[] exts = new string[SupportedImgExts.Length + SupportedVidExts.Length];
+		string[] exts = new string[SupportedImgExts.Length + SupportedVidExts.Length + SupportedDepthExts.Length];
 		int idx = 0;
 		for (int i = 0; i < SupportedImgExts.Length; i++)
 			exts[idx++] = SupportedImgExts[i].Substring(1, SupportedImgExts[i].Length-1);
 		for (int i = 0; i < SupportedVidExts.Length; i++)
 			exts[idx++] = SupportedVidExts[i].Substring(1, SupportedVidExts[i].Length-1);
+		for (int i = 0; i < SupportedDepthExts.Length; i++)
+			exts[idx++] = SupportedDepthExts[i].Substring(1, SupportedDepthExts[i].Length-1);
 
 		_extFilters = new [] {
-			new ExtensionFilter("Image/Video Files", exts),
+			new ExtensionFilter("Image/Video/Depth Files", exts),
 		};
 
 		/* Set about screen */
 		CloseAboutScreen(); //redundant
 		AboutText.text = AboutTextAsset.text;
+
+		DepthFilePanel.SetActive(false);
 	}
 
 	void Update() {
@@ -149,7 +158,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void OnLoopPointReached(VideoPlayer vp) {
-		SaveDepth(shouldReload: true);
+		SaveDepth(shouldReload: _shouldUpdateArchive);
 
 		/* Now read the saved depths */
 		if (_depthFilePath == null && _hasCreatedArchive) {
@@ -208,6 +217,8 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void Quit() {
+		ShowAboutScreen();
+
 		SaveDepth(); //save the current one
 		HaltVideo();
 		DepthFileUtils.Dispose();
@@ -266,7 +277,13 @@ public class MainBehavior : MonoBehaviour {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
 
-		if (ftype != FileTypes.Img && ftype != FileTypes.Vid) return;
+		if (_currentFileType == FileTypes.Depth) {
+			/* Selecting the texture for depthfile */
+			DepthFileInput(filepath, ftype);
+			return;
+		}
+
+		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth) return;
 
 		SaveDepth();
 		HaltVideo();
@@ -274,19 +291,31 @@ public class MainBehavior : MonoBehaviour {
 
 		_currentFileType = ftype;
 		_orig_filepath = filepath;
-		_hashval = Utils.GetHashval(filepath);
-		_processedFrames = new List<Task>();
+		_hashval = null;
+		_processedFrames.Clear();
 		_hasCreatedArchive = false;
 		_startFrame = _currentFrame = _framecount = 0;
 		_x = _y = _orig_width = _orig_height = 0;
+		DepthFilePanel.SetActive(false);
 		
 		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
 			OutputSaveText.text = "Will be saved.";
 		else
 			OutputSaveText.text = "Won't be saved.";
 
-		if (ftype == FileTypes.Img) FromImage(filepath);
-		if (ftype == FileTypes.Vid) FromVideo(filepath);
+		switch (ftype) {
+		case FileTypes.Img:
+			_hashval = Utils.GetHashval(filepath);
+			FromImage(filepath);
+			break;
+		case FileTypes.Vid:
+			_hashval = Utils.GetHashval(filepath);
+			FromVideo(filepath);
+			break;
+		case FileTypes.Depth:
+			FromDepthFile(filepath);
+			break;
+		}
 	}
 
 	public static FileTypes GetFileType(string filepath) {
@@ -391,6 +420,47 @@ public class MainBehavior : MonoBehaviour {
 		_currentFrame = -1;
 	}
 
+	private void FromDepthFile(string filepath) {
+		StatusText.text = "INPUT TEXTURE";
+	}
+
+	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
+		/*
+		`_orig_filepath` holds the path to the depthfile.
+		*/
+
+		/* Invalid filetypes */
+		if (ftype != FileTypes.Img && ftype != FileTypes.Vid) {
+			StatusText.text = "INVALID INPUT.";
+			_currentFileType = FileTypes.Unsupported;
+			return;
+		}
+
+		StatusText.text = "INPUT READ.";
+
+		_depthFilePath = _orig_filepath;
+		_orig_filepath = textureFilepath;
+
+		/* Read the depthfile */
+		_framecount = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
+		/*
+		Should Check:
+			hashval
+			framecount
+		*/
+
+		_hashval = _metadata["hashval"]; //use the metadata
+
+		if (_hashval != Utils.GetHashval(_orig_filepath)) {
+			Debug.Log("Hashval differs."); //has to show on the panel
+		}
+
+		DepthFilePanel.SetActive(true);
+
+		//...
+
+	}
+
 	private void SaveDepth(bool shouldReload=false) {
 		//if (_processedFrames == null || _processedFrames.Count <= 0) return;
 		/*
@@ -398,6 +468,7 @@ public class MainBehavior : MonoBehaviour {
 		So no matter _processed is empty, depthfile has to be Reopen()'d if shouldReload == true.
 		*/
 		if (_processedFrames == null) return;
+		if (_processedFrames.Count <= 0 && !shouldReload) return;
 
 		/* Wait */
 		StatusText.text = "Saving.";
