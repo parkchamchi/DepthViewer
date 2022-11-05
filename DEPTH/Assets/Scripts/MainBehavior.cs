@@ -32,6 +32,7 @@ public class MainBehavior : MonoBehaviour {
 	public TextAsset AboutTextAsset;
 
 	public GameObject DepthFilePanel;
+	public TMP_Text DepthFileCompareText;
 
 	public enum FileTypes {
 		NotExists, 
@@ -46,7 +47,7 @@ public class MainBehavior : MonoBehaviour {
 	};
 	public static readonly string[] SupportedVidExts = {
 		".mp4", //tested
-		".asf", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
+		".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
 	};
 	public static readonly string[] SupportedDepthExts = {DepthFileUtils.DepthExt};
 
@@ -76,6 +77,11 @@ public class MainBehavior : MonoBehaviour {
 	private List<Task> _processedFrames;
 
 	private ExtensionFilter[] _extFilters;
+
+	/* For depth input */
+	private bool _hashvalEquals;
+	private bool _framecountEquals;
+	private bool _isDepthFull;
 
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -148,6 +154,7 @@ public class MainBehavior : MonoBehaviour {
 		For _currentFrame, subtract this so that the first frame is always 0.
 		*/
 		_startFrame = frame;
+		_framecount = (long) vp.frameCount;
 
 		/* Set original width/height & framecount for first time */
 		_orig_width = (int) vp.width;
@@ -155,15 +162,24 @@ public class MainBehavior : MonoBehaviour {
 		
 		//Disable
 		vp.sendFrameReadyEvents = false;
+
+		if (_currentFileType == FileTypes.Depth) {
+			vp.Stop();
+			DepthFileAfterFirstFrame();
+		}
 	}
 
 	private void OnLoopPointReached(VideoPlayer vp) {
+		vp.Stop();
+
 		SaveDepth(shouldReload: _shouldUpdateArchive);
 
 		/* Now read the saved depths */
 		if (_depthFilePath == null && _hasCreatedArchive) {
 			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out _);
 		}
+
+		vp.Play();
 	}
 
 	private void UpdateVideoDepth() {
@@ -196,7 +212,7 @@ public class MainBehavior : MonoBehaviour {
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(depths.Length, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 				_hasCreatedArchive = true;
 			}
 
@@ -303,13 +319,17 @@ public class MainBehavior : MonoBehaviour {
 		else
 			OutputSaveText.text = "Won't be saved.";
 
+		if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
+			StatusText.text = "Hashing.";
+			_hashval = Utils.GetHashval(filepath);
+			StatusText.text = "Hashed.";
+		}
+
 		switch (ftype) {
 		case FileTypes.Img:
-			_hashval = Utils.GetHashval(filepath);
 			FromImage(filepath);
 			break;
 		case FileTypes.Vid:
-			_hashval = Utils.GetHashval(filepath);
 			FromVideo(filepath);
 			break;
 		case FileTypes.Depth:
@@ -362,6 +382,7 @@ public class MainBehavior : MonoBehaviour {
 			depths = DepthFileUtils.ReadFromArchive(0);
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
+			StatusText.text = "read from archive";
 		}
 
 		else {
@@ -377,7 +398,7 @@ public class MainBehavior : MonoBehaviour {
 				_hasCreatedArchive = true; //not needed
 			}
 
-			FilepathResultText.text = "Processed!";
+			StatusText.text = "processed";
 		}
 
 		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
@@ -422,6 +443,9 @@ public class MainBehavior : MonoBehaviour {
 
 	private void FromDepthFile(string filepath) {
 		StatusText.text = "INPUT TEXTURE";
+
+		_shouldUpdateArchive = false;
+		OutputSaveText.text = "";
 	}
 
 	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
@@ -442,23 +466,39 @@ public class MainBehavior : MonoBehaviour {
 		_orig_filepath = textureFilepath;
 
 		/* Read the depthfile */
-		_framecount = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
+		DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
+		_hashval = _metadata["hashval"]; //_hashval will use the metadata
+
 		/*
 		Should Check:
 			hashval
 			framecount
 		*/
 
-		_hashval = _metadata["hashval"]; //use the metadata
+		DepthFileCompareText.text = "";
 
-		if (_hashval != Utils.GetHashval(_orig_filepath)) {
-			Debug.Log("Hashval differs."); //has to show on the panel
-		}
+		/* Check hashval */
+		_hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
+		DepthFileCompareText.text += (_hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NO EQUAL.\n";
+	
+		/* Check framecount */
+		//Load the video
+		_vp.sendFrameReadyEvents = true;
+		_currentFrame = -1;
+		_vp.url = _orig_filepath; //This sets _framecount
+	}
+
+	private void DepthFileAfterFirstFrame() {
+		/* Called after the first frame is received, so that _framecount is set. */
+
+		/* Check framecount */
+		long framecount_metadata = long.Parse(_metadata["framecount"]);
+		long actual_framecount_input = (_framecount - _startFrame);
+
+		_framecountEquals = (actual_framecount_input == framecount_metadata);
+		DepthFileCompareText.text += (_framecountEquals) ? $"Framecount equals: ({_framecount})\n" : $"FRAMECOUNT DOES NOT EQUAL: (depth:input) : ({framecount_metadata}:{actual_framecount_input})\n";
 
 		DepthFilePanel.SetActive(true);
-
-		//...
-
 	}
 
 	private void SaveDepth(bool shouldReload=false) {
