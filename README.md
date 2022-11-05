@@ -35,7 +35,7 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 If you select a depthfile and an according image/video, a sequence of .png file will be generated in `Application.persistentDataPath`. \
 Go to the directory, and execute
 ```xml
-ffmpeg -framerate <FRAMERATE> -i %d.png <output.mp4> -vcodec libx264 -acodec aac
+ffmpeg -framerate <FRAMERATE> -i %d.png <output.mp4>
 ```
 Where `<FRAMERATE>` is the original FPS. 
 
