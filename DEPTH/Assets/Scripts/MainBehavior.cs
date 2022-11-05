@@ -81,6 +81,7 @@ public class MainBehavior : MonoBehaviour {
 	/* For depthfile input */
 	private bool _recording;
 	private bool _shouldCapture;
+	private string _recordPath;
 
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -328,6 +329,9 @@ public class MainBehavior : MonoBehaviour {
 		_startFrame = _currentFrame = _framecount = 0;
 		_x = _y = _orig_width = _orig_height = 0;
 		DepthFilePanel.SetActive(false);
+
+		_recording = false;
+		_shouldCapture = false;
 		
 		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
 			OutputSaveText.text = "Will be saved.";
@@ -377,7 +381,7 @@ public class MainBehavior : MonoBehaviour {
 
 		/* Couldn't load */
 		if (texture == null) {
-			FilepathResultText.text = "Failed to load image: " + filepath;
+			OnImageError(filepath);
 			return;
 		}
 
@@ -469,6 +473,7 @@ public class MainBehavior : MonoBehaviour {
 
 		_shouldUpdateArchive = false;
 		_recording = false;
+		
 		OutputSaveText.text = "";
 	}
 
@@ -506,12 +511,36 @@ public class MainBehavior : MonoBehaviour {
 		/* Check hashval */
 		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
 		DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
+
+		_recordPath = $"{Application.persistentDataPath}/recordings/{Utils.GetTimestamp()}";
+		Utils.CreateDirectory(_recordPath);
 	
-		/* Check framecount */
-		//Load the video
-		_vp.sendFrameReadyEvents = true;
-		_currentFrame = -1;
-		_vp.url = _orig_filepath; //This sets _framecount
+		if (ftype == FileTypes.Vid) {
+			/* Check framecount */
+			//Load the video
+			_vp.sendFrameReadyEvents = true;
+			_currentFrame = -1;
+			_vp.url = _orig_filepath; //This sets _framecount
+
+			return;
+		}
+		else {
+			/* Image input */
+			Texture texture = Utils.LoadImage(_orig_filepath);
+			if (texture == null) {
+				OnImageError(_orig_filepath);
+				return;
+			}
+
+			_orig_width = texture.width;
+			_orig_height = texture.height;
+			_framecount = 1;
+
+			float[] depths = DepthFileUtils.ReadFromArchive(0);
+			_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+
+			DepthFilePanel.SetActive(true);
+		}
 	}
 
 	private void DepthFileAfterFirstFrame() {
@@ -543,6 +572,17 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void DepthFileStartRecording() {
+		Debug.Log(_framecount);
+		if (_framecount <= 1) {
+			//Image --> capture and exit (scene is already set)
+			DepthFileCapture();
+			StatusText.text = "Captured!";
+
+			DepthFilePanel.SetActive(false);
+			_currentFileType = FileTypes.Unsupported;
+			return; //code below will not execused.
+		}
+
 		/* Record per frame */
 		_recording = true;
 		_shouldCapture = false;
@@ -562,7 +602,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void DepthFileCaptureFrame() {
-		_vrRecordBehavior.Capture(Application.persistentDataPath + $"/{_currentFrame}.tga");
+		DepthFileCapture();
 		_shouldCapture = false;
 
 		if (_currentFrame+1 >= _framecount) {
@@ -574,6 +614,10 @@ public class MainBehavior : MonoBehaviour {
 			_vp.frame++;
 	}
 
+	private void DepthFileCapture() {
+		_processedFrames.Add(_vrRecordBehavior.Capture($"{_recordPath}/{_currentFrame-_startFrame}.png"));
+	}
+
 	private void DepthFileEnded() {
 		_recording = false;
 		_shouldCapture = false;
@@ -581,6 +625,9 @@ public class MainBehavior : MonoBehaviour {
 		_vp.sendFrameReadyEvents = false;
 		_vp.Stop();
 		_vp.url = "";
+
+		Task.WaitAll(_processedFrames.ToArray());
+		_processedFrames.Clear();
 
 		_currentFileType = FileTypes.Unsupported;
 
@@ -596,8 +643,13 @@ public class MainBehavior : MonoBehaviour {
 
 		DepthFilePanel.SetActive(false);
 		OutputSaveText.text = "Not saving.";
-		_currentFileType = FileTypes.Vid;
-		_vp.Play();
+
+		if (_framecount > 1) {
+			_currentFileType = FileTypes.Vid;
+			_vp.Play();
+		}
+		else
+			_currentFileType = FileTypes.Img;
 	}
 
 	/************************************************************************************/
@@ -643,6 +695,14 @@ public class MainBehavior : MonoBehaviour {
 		FilepathResultText.text = "Failed to load video: " + message;
 		vp.Stop();
 		vp.url = "";
+
+		_currentFileType = FileTypes.Unsupported;
+	}
+
+	private void OnImageError(string filepath) {
+		FilepathResultText.text = "Failed to load image: " + filepath;
+
+		_currentFileType = FileTypes.Unsupported;
 	}
 
 	public void CallPythonHybrid() {

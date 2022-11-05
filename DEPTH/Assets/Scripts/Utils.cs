@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -41,5 +42,14 @@ public class Utils {
 			hashval += string.Format("{0:x2}", b);
 
 		return hashval;
+	}
+
+	public static string GetTimestamp() {
+		return DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
+	}
+
+	public static void CreateDirectory(string path) {
+		if (!Directory.Exists(path))
+			Directory.CreateDirectory(path);
 	}
 }

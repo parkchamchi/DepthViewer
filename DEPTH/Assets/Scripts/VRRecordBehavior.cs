@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 public class VRRecordBehavior : MonoBehaviour {
 	public Camera mainCamera;
@@ -9,7 +10,7 @@ public class VRRecordBehavior : MonoBehaviour {
 
 	public RenderTexture equirectRenderTexture;
 
-	public void Capture(string outputpath, bool png=false) {
+	public Task Capture(string outputpath, bool png=true) {
 		/*
 		png: save as PNG. TGA otherwise.
 
@@ -32,9 +33,9 @@ public class VRRecordBehavior : MonoBehaviour {
 		RenderTexture.active = null;
 		
 		byte[] bytes = (png) ? tex.EncodeToPNG() : tex.EncodeToTGA();
-		string path = outputpath;
-		System.IO.File.WriteAllBytes(path, bytes);
-
 		Destroy(tex);
+
+		string path = outputpath;
+		return Task.Run(() => System.IO.File.WriteAllBytes(path, bytes));
 	}
 }

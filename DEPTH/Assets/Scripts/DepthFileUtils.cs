@@ -32,8 +32,7 @@ public static class DepthFileUtils {
 
 	static DepthFileUtils() {
 		DefaultDepthDir = Application.persistentDataPath + "/depths";
-		if (!Directory.Exists(DefaultDepthDir))
-			Directory.CreateDirectory(DefaultDepthDir);
+		Utils.CreateDirectory(DefaultDepthDir);
 	}
 
 	public static void Dispose() {
@@ -83,7 +82,7 @@ public static class DepthFileUtils {
 			original_name: orig_basename,
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
-			timestamp: DateTimeOffset.Now.ToUnixTimeSeconds().ToString(),
+			timestamp: Utils.GetTimestamp(),
 			program: "DepthViewer",
 			version: Version
 		);
@@ -414,5 +413,4 @@ public static class DepthFileUtils {
 	public static bool IsSpace(int c) {
 		return IsSpace((char) c);
 	}
-
 }
