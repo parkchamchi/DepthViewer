@@ -210,15 +210,11 @@ public class MainBehavior : MonoBehaviour {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
-		Debug.Log(actualFrame);
-
 		float[] depths = null;
 		
 		//If depth file exists, try to read from it
 		if (_depthFilePath != null)
 			depths = DepthFileUtils.ReadFromArchive(actualFrame, out _x, out _y);
-
-		Debug.Log(depths == null);
 
 		if (depths != null) 
 			StatusText.text = "read from archive";
@@ -576,7 +572,6 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void DepthFileStartRecording() {
-		Debug.Log(_framecount);
 		if (_framecount <= 1) {
 			//Image --> capture and exit (scene is already set)
 			DepthFileCapture();

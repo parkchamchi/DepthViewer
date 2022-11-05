@@ -23,7 +23,7 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 
 ## Inputs
 - Right mouse key: hides the UI.
-- WASD: rotate the mesh. (direction bugs right now)
+- WASD: rotate the mesh.
 
 ## Notes
 - If VR HMD is detected, it will open with OpenXR.
@@ -31,13 +31,20 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 
-## Recording video
+## Recording 360 VR video
+If you select a depthfile and an according image/video, a sequence of .png file will be generated in `Application.persistentDataPath`. \
+Go to the directory, and execute
+```xml
+ffmpeg -framerate <FRAMERATE> -i %d.png <output.mp4> -vcodec libx264 -acodec aac
 ```
-ffmpeg -framerate <FRAMERATE> -i %d.png output.mp4
+Where `<FRAMERATE>` is the original FPS. 
+
+To add audio,
+```xml
+ffmpeg -i <source.mp4> -i <output.mp4> -c copy -map 1:v:0 -map 0:a:0 -shortest <output_w_audio.mp4>
 ```
-```
-ffmpeg -i <source.mp4> -i <ourput.mp4> -c copy -map 1:v:0 -map 0:a:0 -shortest <output_w_audio.mp4>
-```
+
+Alternatively, you may use Unity Recorder.
 
 ## Tested formats:
 ### Images
@@ -53,12 +60,10 @@ Other formats have not been tested.
 - Overhaul UI & Control
 - Add more options
 - Fix codecs
-- Open depth map image of .jpg or .png (.depthviewer file itself too)
 - Stablize
 
 ### WIP
-- Recording VR 3D video.
-- Render the desktop (or part of it)
+- Rendering the desktop (or part of it)
 
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)

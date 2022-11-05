@@ -14,7 +14,7 @@ public class VRRecordBehavior : MonoBehaviour {
 		/*
 		png: save as PNG. TGA otherwise.
 
-		300 frames, written on disk:
+		300 frames, 4096x4096, written on disk:
 			TGA: 78s, 64MB per frame
 			PNG: 140s, 307KB per frame
 		*/
