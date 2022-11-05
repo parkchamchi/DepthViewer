@@ -117,6 +117,11 @@ public static class DepthFileUtils {
 	public static void UpdateDepthFile(float[] depths, long frame, int x, int y) {
 		if (x*y == 0 || depths == null) return;
 
+		if (frame >= _framecount) {
+			Debug.LogWarning($"frame {frame} exceeds _framecount {_framecount}");
+			return;
+		}
+
 		string filename = $"{frame}.pgm";
 
 		//Write the new depth
@@ -280,13 +285,21 @@ public static class DepthFileUtils {
 		}
 
 		long count = 0;
+		/*
 		foreach (ZipArchiveEntry entry in _archive.Entries) {
 			if (entry.Name.EndsWith(".pgm"))
+				count++;
+		*/
+
+		for (int i = 0; i < _framecount; i++) {
+			ZipArchiveEntry entry = _archive.GetEntry($"{i}.pgm");
+			if (entry != null)
 				count++;
 		}
 
 		_count = count;
 		_isFull = (count >= _framecount);
+
 		return _isFull;
 	}
 

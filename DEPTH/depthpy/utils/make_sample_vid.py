@@ -4,12 +4,12 @@ from PIL import Image, ImageDraw
 
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
 size = (640, 480)
-fps = 30
-outpath = "D:/videos/tmp.avi"
+fps = 1
+seconds = 5
+outpath = f"D:/videos/tmp_{fps}x{seconds}.avi"
 out = cv2.VideoWriter(outpath, fourcc, fps, size)
-seconds = 10
 
-for i in range(fps * seconds): #10 secs -> 300 frames
+for i in range(fps * seconds):
 	img = Image.new("RGB", size)
 	draw = ImageDraw.Draw(img)
 	draw.text((size[0]/2, size[1]/2), f"{i}")

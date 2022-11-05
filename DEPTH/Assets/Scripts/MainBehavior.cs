@@ -78,10 +78,9 @@ public class MainBehavior : MonoBehaviour {
 
 	private ExtensionFilter[] _extFilters;
 
-	/* For depth input */
-	private bool _hashvalEquals;
-	private bool _framecountEquals;
-	private bool _isDepthFull;
+	/* For depthfile input */
+	private bool _recording;
+	private bool _shouldCapture;
 
 	void Start() {
 		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -133,17 +132,15 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	void Update() {
-		if (_currentFileType == FileTypes.Vid && _vp != null)
-			UpdateVideoDepth();
-
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
 
-		/* TMP */ 
-		if (Input.GetKeyDown("space")) {
-			_vrRecordBehavior.Capture(Application.persistentDataPath + "/tmp.png");
-		}
+		if (_currentFileType == FileTypes.Vid && _vp != null)
+			UpdateVideoDepth();	
 
+		else if (_currentFileType == FileTypes.Depth && _recording && _shouldCapture) {
+			DepthFileCaptureFrame();
+		}
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -153,6 +150,15 @@ public class MainBehavior : MonoBehaviour {
 		which is usually 0, but some video files start with 1 (or more).
 		For _currentFrame, subtract this so that the first frame is always 0.
 		*/
+		/*
+		Also called when _recording, after _startFrame is set.
+		*/
+
+		if (_currentFileType == FileTypes.Depth && _recording) {
+			DepthFileFrameReady();
+			return;
+		}
+
 		_startFrame = frame;
 		_framecount = (long) vp.frameCount;
 
@@ -172,6 +178,12 @@ public class MainBehavior : MonoBehaviour {
 	private void OnLoopPointReached(VideoPlayer vp) {
 		vp.Stop();
 
+		/* Does not work (why?)
+		if (_currentFileType == FileTypes.Depth && _recording) {
+			DepthFileEnded();
+			return;
+		}*/
+
 		SaveDepth(shouldReload: _shouldUpdateArchive);
 
 		/* Now read the saved depths */
@@ -183,7 +195,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void UpdateVideoDepth() {
-		if (_currentFileType != FileTypes.Vid) return;
+		if (_currentFileType != FileTypes.Vid && _currentFileType != FileTypes.Depth) return;
 	
 		long frame = _vp.frame;
 		if (frame == _currentFrame) 
@@ -222,6 +234,9 @@ public class MainBehavior : MonoBehaviour {
 
 			StatusText.text = "processed";
 		}
+
+		if (_currentFileType == FileTypes.Depth)
+			StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
 		
 		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
@@ -453,6 +468,7 @@ public class MainBehavior : MonoBehaviour {
 		StatusText.text = "INPUT TEXTURE";
 
 		_shouldUpdateArchive = false;
+		_recording = false;
 		OutputSaveText.text = "";
 	}
 
@@ -464,6 +480,7 @@ public class MainBehavior : MonoBehaviour {
 		/* Invalid filetypes */
 		if (ftype != FileTypes.Img && ftype != FileTypes.Vid) {
 			StatusText.text = "INVALID INPUT.";
+			DepthFilePanel.SetActive(false);
 			_currentFileType = FileTypes.Unsupported;
 			return;
 		}
@@ -481,13 +498,14 @@ public class MainBehavior : MonoBehaviour {
 		Should Check:
 			hashval
 			framecount
+			isfull
 		*/
 
 		DepthFileCompareText.text = "";
 
 		/* Check hashval */
-		_hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
-		DepthFileCompareText.text += (_hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NO EQUAL.\n";
+		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
+		DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
 	
 		/* Check framecount */
 		//Load the video
@@ -502,13 +520,84 @@ public class MainBehavior : MonoBehaviour {
 		/* Check framecount */
 		long framecount_metadata = long.Parse(_metadata["framecount"]);
 		long actual_framecount_input = (_framecount - _startFrame);
+		long framecountDelta = (actual_framecount_input - framecount_metadata);
 
-		_framecountEquals = (actual_framecount_input == framecount_metadata);
-		DepthFileCompareText.text += (_framecountEquals) ? $"Framecount equals: ({_framecount})\n" : $"FRAMECOUNT DOES NOT EQUAL: (depth:input) : ({framecount_metadata}:{actual_framecount_input})\n";
+		if (framecountDelta == 0) {
+			DepthFileCompareText.text += $"Framecount equals: ({_framecount})\n";
+		}
+		else if (framecountDelta < 0) { //depthfile has more frames -> leave it be
+			DepthFileCompareText.text += $"FRAMECOUNT DOES NOT EQUAL: (depth > input) : ({framecount_metadata}:{actual_framecount_input})\n";
+		}
+		else {
+			DepthFileCompareText.text += $"FRAMECOUNT DOES NOT EQUAL: (depth < input) : ({framecount_metadata}:{actual_framecount_input})\n";
+			DepthFileCompareText.text += $"-> #{framecountDelta} FRAMES WILL BE TRIMMED.\n";
+			
+			_framecount -= framecountDelta;
+		}
 
 		/* Check if the depth file is full */
+		bool isDepthFull = DepthFileUtils.IsFull();
+		DepthFileCompareText.text += (isDepthFull) ? "Depthfile is full.\n" : "DEPTHFILE IS NOT FULL.\n";
 
 		DepthFilePanel.SetActive(true);
+	}
+
+	public void DepthFileStartRecording() {
+		/* Record per frame */
+		_recording = true;
+		_shouldCapture = false;
+
+		DepthFilePanel.SetActive(false);
+
+		_vp.sendFrameReadyEvents = true;
+		_vp.Play();
+	}
+
+	private void DepthFileFrameReady() {
+		_vp.Pause();
+		UpdateVideoDepth();
+
+		/* Let the mesh update */
+		_shouldCapture = true;
+	}
+
+	private void DepthFileCaptureFrame() {
+		_vrRecordBehavior.Capture(Application.persistentDataPath + $"/{_currentFrame}.tga");
+		_shouldCapture = false;
+
+		if (_currentFrame+1 >= _framecount) {
+			/* Manually end it, since loopPointReached does not work and it loops for some reason */
+			DepthFileEnded();
+		}
+		else
+			//_vp.Play();
+			_vp.frame++;
+	}
+
+	private void DepthFileEnded() {
+		_recording = false;
+		_shouldCapture = false;
+
+		_vp.sendFrameReadyEvents = false;
+		_vp.Stop();
+		_vp.url = "";
+
+		_currentFileType = FileTypes.Unsupported;
+
+		StatusText.text = "DONE.";
+	}
+
+	/* Switch to video */
+	public void DepthFileShow() {
+		if (_currentFileType != FileTypes.Depth) {
+			Debug.LogError("_currentFileType != FileTypes.Depth");
+			return;
+		}
+
+		DepthFilePanel.SetActive(false);
+		OutputSaveText.text = "Not saving.";
+		_currentFileType = FileTypes.Vid;
+		_vp.Play();
 	}
 
 	/************************************************************************************/
@@ -529,7 +618,7 @@ public class MainBehavior : MonoBehaviour {
 		if (_processedFrames.Count <= 0 && !shouldReload) return;
 
 		/* Wait */
-		StatusText.text = "Saving.";
+		StatusText.text = "Saving."; //Does not work (should be called in update)
 		Task.WaitAll(_processedFrames.ToArray());
 		_processedFrames.Clear();
 
