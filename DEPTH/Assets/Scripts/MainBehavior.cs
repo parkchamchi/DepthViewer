@@ -59,7 +59,7 @@ public class MainBehavior : MonoBehaviour {
 	private VRRecordBehavior _vrRecordBehavior;
 
 	private int _x, _y;
-	int _orig_width, _orig_height;
+	private int _orig_width, _orig_height;
 
 	private string _orig_filepath;
 	private string _hashval;
@@ -378,11 +378,13 @@ public class MainBehavior : MonoBehaviour {
 		//Check if the file was processed
 		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
-			_framecount = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
+			DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _framecount, out _metadata, readOnlyMode: true);
 			depths = DepthFileUtils.ReadFromArchive(0);
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 			StatusText.text = "read from archive";
+
+			OutputSaveText.text = "Full."; //Image depth file is implicitly full.
 		}
 
 		else {
@@ -418,7 +420,9 @@ public class MainBehavior : MonoBehaviour {
 				OutputSaveText.text = "Not saving.";
 			}
 
-			_framecount = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: !_shouldUpdateArchive);
+			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _framecount, out _metadata, readOnlyMode: !_shouldUpdateArchive);
+			if (isFull)
+				OutputSaveText.text = "Full.";
 
 			//Set startframe also
 			//It is set to negative if it couldn't be determined - in that case we should check it
@@ -440,6 +444,10 @@ public class MainBehavior : MonoBehaviour {
 
 		_currentFrame = -1;
 	}
+
+	/************************************************************************************/
+	/* Depth file input
+	/************************************************************************************/
 
 	private void FromDepthFile(string filepath) {
 		StatusText.text = "INPUT TEXTURE";
@@ -466,7 +474,7 @@ public class MainBehavior : MonoBehaviour {
 		_orig_filepath = textureFilepath;
 
 		/* Read the depthfile */
-		DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _metadata, readOnlyMode: true);
+		DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _, out _metadata, readOnlyMode: true); //let _framecount be read from the texture input
 		_hashval = _metadata["hashval"]; //_hashval will use the metadata
 
 		/*
@@ -498,8 +506,14 @@ public class MainBehavior : MonoBehaviour {
 		_framecountEquals = (actual_framecount_input == framecount_metadata);
 		DepthFileCompareText.text += (_framecountEquals) ? $"Framecount equals: ({_framecount})\n" : $"FRAMECOUNT DOES NOT EQUAL: (depth:input) : ({framecount_metadata}:{actual_framecount_input})\n";
 
+		/* Check if the depth file is full */
+
 		DepthFilePanel.SetActive(true);
 	}
+
+	/************************************************************************************/
+	/* End - Depth file input
+	/************************************************************************************/
 
 	private void SaveDepth(bool shouldReload=false) {
 		//if (_processedFrames == null || _processedFrames.Count <= 0) return;
@@ -507,13 +521,24 @@ public class MainBehavior : MonoBehaviour {
 		It appears that if the zip archive is opened as update, it is illegal to read entry.length even if no modification is done.
 		So no matter _processed is empty, depthfile has to be Reopen()'d if shouldReload == true.
 		*/
-		if (_processedFrames == null) return;
+		if (_processedFrames == null) {
+			Debug.LogError("SaveDepth() called when _processedFrames == null");
+			return;
+		}
+
 		if (_processedFrames.Count <= 0 && !shouldReload) return;
 
 		/* Wait */
 		StatusText.text = "Saving.";
 		Task.WaitAll(_processedFrames.ToArray());
 		_processedFrames.Clear();
+
+		/* Check if it is full */
+		bool isFull = DepthFileUtils.IsFull();
+		if (isFull) {
+			_shouldUpdateArchive = false;
+			OutputSaveText.text = "Now full.";
+		}
 
 		if (shouldReload) {
 			StatusText.text = "Reloading the depthsfile...";
