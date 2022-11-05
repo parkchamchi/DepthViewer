@@ -31,6 +31,14 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 
+## Recording video
+```
+ffmpeg -framerate <FRAMERATE> -i %d.png output.mp4
+```
+```
+ffmpeg -i <source.mp4> -i <ourput.mp4> -c copy -map 1:v:0 -map 0:a:0 -shortest <output_w_audio.mp4>
+```
+
 ## Tested formats:
 ### Images
 - .jpg

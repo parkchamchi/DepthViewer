@@ -210,11 +210,15 @@ public class MainBehavior : MonoBehaviour {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
+		Debug.Log(actualFrame);
+
 		float[] depths = null;
 		
 		//If depth file exists, try to read from it
 		if (_depthFilePath != null)
-			depths = DepthFileUtils.ReadFromArchive(actualFrame);
+			depths = DepthFileUtils.ReadFromArchive(actualFrame, out _x, out _y);
+
+		Debug.Log(depths == null);
 
 		if (depths != null) 
 			StatusText.text = "read from archive";
@@ -397,8 +401,8 @@ public class MainBehavior : MonoBehaviour {
 		//Check if the file was processed
 		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
 		if (_depthFilePath != null) {
-			DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _framecount, out _metadata, readOnlyMode: true);
-			depths = DepthFileUtils.ReadFromArchive(0);
+			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, readOnlyMode: true);
+			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 
 			FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 			StatusText.text = "read from archive";
@@ -439,7 +443,7 @@ public class MainBehavior : MonoBehaviour {
 				OutputSaveText.text = "Not saving.";
 			}
 
-			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _framecount, out _metadata, readOnlyMode: !_shouldUpdateArchive);
+			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, readOnlyMode: !_shouldUpdateArchive);
 			if (isFull)
 				OutputSaveText.text = "Full.";
 
@@ -496,7 +500,7 @@ public class MainBehavior : MonoBehaviour {
 		_orig_filepath = textureFilepath;
 
 		/* Read the depthfile */
-		DepthFileUtils.ReadDepthFile(_depthFilePath, out _x, out _y, out _, out _metadata, readOnlyMode: true); //let _framecount be read from the texture input
+		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out _metadata, readOnlyMode: true); //let _framecount be read from the texture input
 		_hashval = _metadata["hashval"]; //_hashval will use the metadata
 
 		/*
@@ -536,7 +540,7 @@ public class MainBehavior : MonoBehaviour {
 			_orig_height = texture.height;
 			_framecount = 1;
 
-			float[] depths = DepthFileUtils.ReadFromArchive(0);
+			float[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 			_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 			DepthFilePanel.SetActive(true);

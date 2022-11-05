@@ -216,7 +216,7 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static bool ReadDepthFile(string path, out int x, out int y, out long framecount, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
+	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
@@ -226,7 +226,7 @@ public static class DepthFileUtils {
 
 		framecount = -1;
 		
-		x = y = 0;
+		//x = y = 0;
 		metadata = null;
 
 		if (!path.EndsWith(DepthExt)) {
@@ -251,8 +251,8 @@ public static class DepthFileUtils {
 			metadataStr = br.ReadToEnd();
 		metadata = ReadMetadata(metadataStr);
 		
-		x = int.Parse(metadata["width"]);
-		y = int.Parse(metadata["height"]);
+		//x = int.Parse(metadata["width"]);
+		//y = int.Parse(metadata["height"]);
 
 		framecount = _framecount = int.Parse(metadata["framecount"]);
 
@@ -302,7 +302,9 @@ public static class DepthFileUtils {
 		return _isFull;
 	}
 
-	public static float[] ReadFromArchive(long frame) {
+	public static float[] ReadFromArchive(long frame, out int x, out int y) {
+		x = y = 0;
+
 		if (_archive == null) {
 			Debug.LogError("Archive is null!");
 			return null;
@@ -318,7 +320,8 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		return ReadPGM(pgm);
+		float[] depths = ReadPGM(pgm, out x, out y);
+		return depths;
 	}
 
 	public static Dictionary<string, string> ReadMetadata(string metadataStr) {
@@ -340,9 +343,9 @@ public static class DepthFileUtils {
 		return metadata;
 	}
 
-	public static float[] ReadPGM(byte[] pgm) {
+	/*public static float[] ReadPGM(byte[] pgm) {
 		return ReadPGM(pgm, out _, out _);
-	}
+	}*/
 
 	public static float[] ReadPGM(byte[] pgm, out int x, out int y) {
 		int idx = 0;
