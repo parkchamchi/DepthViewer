@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 public class MeshBehavior : MonoBehaviour {
 
-	public Slider MeshLocSlider;
-	public Slider ScaleSlider;
-
 	private Mesh _mesh;
 	private Vector3[] _vertices;
 	private Vector2[] _uv;
@@ -24,14 +21,69 @@ public class MeshBehavior : MonoBehaviour {
 
 	private float _ratio = -1;
 
-	private float _depthMult = 50f;
-
 	private float _rotateSpeed = 75f;
 
-	private const float _defaultZ = 0f;
+	private float _defaultZ;
 
-	private float _alpha = 1f;
-	private float _beta = 0.5f;
+	private bool _shouldUpdateDepth = false;
+	public bool ShouldUpdateDepth {set {_shouldUpdateDepth = value;}} //Depth has to be updated when an image is being shown
+
+	public const float DefaultAlpha = 1f;
+	private float _alpha = DefaultAlpha;
+	public float Alpha {
+		set {
+			if (value <= 0) {
+				Debug.LogError($"Got negative alpha {value}.");
+				return;
+			}
+			_alpha = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+		}
+	}
+
+	public const float DefaultBeta = 0.5f;
+	private float _beta = DefaultBeta;
+	public float Beta {
+		set {
+			if (value <= 0) {
+				Debug.LogError($"Got negative beta {value}.");
+				return;
+			}
+			_beta = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+		}
+	}
+
+	public const float DefaultDepthMult = 50f;
+	private float _depthMult = DefaultDepthMult;
+	public float DepthMult {
+		set {
+			_depthMult = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+		}
+	}
+
+	public const float DefaultMeshLoc = 0f;
+	public float MeshLoc {
+		set {
+			transform.position = new Vector3(0, 0, _defaultZ - value);
+		}
+	}
+
+	public const float DefaultScale = 1f;
+	public float Scale {
+		set {
+			transform.localScale = new Vector3(value, value, transform.localScale.z);
+		}
+	}
+
+	/*private void ToDefault() {
+		Alpha = DefaultAlpha;
+		Beta = DefaultBeta;
+		DepthMult = DefaultDepthMult;
+		MeshLoc = DefaultMeshLoc;
+		Scale = DefaultScale;
+	}*/
 
 	void Start() {
 		_mesh = new Mesh();
@@ -40,6 +92,8 @@ public class MeshBehavior : MonoBehaviour {
 		GetComponent<MeshFilter>().mesh = _mesh;
 
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
+
+		_defaultZ = transform.position.z;
 	}
 
 	void Update() {
@@ -165,38 +219,4 @@ public class MeshBehavior : MonoBehaviour {
 		if (texture)
 			_material.mainTexture = texture;
 	}
-
-	/* 3 functions below are copy-pasted (for now) */
-
-	public void SetDepthMult(float rat, bool shouldUpdate) {
-		_depthMult = rat;
-
-		if (shouldUpdate)
-			UpdateDepth();
-	}
-
-	public void SetAlpha(float rat, bool shouldUpdate) {
-		_alpha = rat;
-
-		if (shouldUpdate)
-			UpdateDepth();
-	}
-
-	public void SetBeta(float rat, bool shouldUpdate) {
-		_beta = rat;
-
-		if (shouldUpdate)
-			UpdateDepth();
-	}
-
-	public void SetZ() {
-		float offset = MeshLocSlider.value;
-		transform.position = new Vector3(0, 0, _defaultZ - offset);
-	}
-
-	public void SetScale() {
-		float scale = ScaleSlider.value;
-		transform.localScale = new Vector3(scale, scale, transform.localScale.z);
-	}
-
 }

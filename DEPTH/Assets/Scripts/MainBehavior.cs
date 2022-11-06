@@ -12,10 +12,11 @@ using TMPro;
 
 public class MainBehavior : MonoBehaviour {
 
-	/* These sliders should be here to check if we need to update depth for images. */
 	public Slider DepthMultSlider;
 	public Slider AlphaSlider;
 	public Slider BetaSlider;
+	public Slider MeshLocSlider;
+	public Slider ScaleSlider;
 
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
@@ -53,10 +54,10 @@ public class MainBehavior : MonoBehaviour {
 
 	private FileTypes _currentFileType = FileTypes.NotExists;
 
-	private MeshBehavior _meshBehavior;
-	private DepthModelBehavior _depthModelBehavior;
+	private MeshBehavior _meshBehav;
+	private DepthModelBehavior _depthModelBehav;
 	private DepthONNX _donnx;
-	private VRRecordBehavior _vrRecordBehavior;
+	private VRRecordBehavior _vrRecordBehav;
 
 	private int _x, _y;
 	private int _orig_width, _orig_height;
@@ -84,10 +85,10 @@ public class MainBehavior : MonoBehaviour {
 	private string _recordPath;
 
 	void Start() {
-		_meshBehavior = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
-		_depthModelBehavior = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
+		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
+		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
-		_vrRecordBehavior = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
+		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -239,7 +240,7 @@ public class MainBehavior : MonoBehaviour {
 		if (_currentFileType == FileTypes.Depth)
 			StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
 		
-		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	public void HaltVideo() {
@@ -262,8 +263,8 @@ public class MainBehavior : MonoBehaviour {
 			_donnx.Dispose();
 		_donnx = null;
 
-		if (_meshBehavior != null)
-			Destroy(_meshBehavior);
+		if (_meshBehav != null)
+			Destroy(_meshBehav);
 
 		Debug.Log("Disposed.");
 
@@ -332,6 +333,8 @@ public class MainBehavior : MonoBehaviour {
 
 		_recording = false;
 		_shouldCapture = false;
+
+		_meshBehav.ShouldUpdateDepth = false; //only true in images
 		
 		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
 			OutputSaveText.text = "Will be saved.";
@@ -385,6 +388,8 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
+		_meshBehav.ShouldUpdateDepth = true;
+
 		_orig_width = texture.width;
 		_orig_height = texture.height;
 
@@ -422,7 +427,7 @@ public class MainBehavior : MonoBehaviour {
 			StatusText.text = "processed";
 		}
 
-		_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	private void FromVideo(string filepath) {
@@ -537,7 +542,7 @@ public class MainBehavior : MonoBehaviour {
 			_framecount = 1;
 
 			float[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
-			_meshBehavior.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+			_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 			DepthFilePanel.SetActive(true);
 		}
@@ -614,7 +619,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void DepthFileCapture(string format="jpg") {
-		_processedFrames.Add(_vrRecordBehavior.Capture($"{_recordPath}/{_currentFrame-_startFrame}.{format}", format));
+		_processedFrames.Add(_vrRecordBehav.Capture($"{_recordPath}/{_currentFrame-_startFrame}.{format}", format));
 	}
 
 	private void DepthFileEnded() {
@@ -687,7 +692,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void GetBuiltInModel() {
-		_donnx = _depthModelBehavior.GetBuiltIn();
+		_donnx = _depthModelBehav.GetBuiltIn();
 	}
 	
 	private void OnVideoError(VideoPlayer vp, string message) {
@@ -733,30 +738,27 @@ public class MainBehavior : MonoBehaviour {
 		UI.SetActive(!UI.activeSelf);
 	}
 
-	/* 3 functions below are copy-paseted (for now) */
+	public void SetDepthMult() =>
+		_meshBehav.DepthMult = DepthMultSlider.value;
 
-	public void SetDepthMult() {
-		float rat = DepthMultSlider.value;
-		/* Depth has to be updated when an image is being shown */
-		bool shouldUpdate = (_currentFileType == FileTypes.Img);
+	public void SetAlpha() =>
+		_meshBehav.Alpha = AlphaSlider.value;
 
-		_meshBehavior.SetDepthMult(rat, shouldUpdate);
-	}
+	public void SetBeta() =>
+		_meshBehav.Beta = BetaSlider.value;
 
-	public void SetAlpha() {
-		float rat = AlphaSlider.value;
-		/* Depth has to be updated when an image is being shown */
-		bool shouldUpdate = (_currentFileType == FileTypes.Img);
+	public void SetMeshLoc() =>
+		_meshBehav.MeshLoc = MeshLocSlider.value;
 
-		_meshBehavior.SetAlpha(rat, shouldUpdate);
-	}
+	public void SetScale() =>
+		_meshBehav.Scale = ScaleSlider.value;
 
-	public void SetBeta() {
-		float rat = BetaSlider.value;
-		/* Depth has to be updated when an image is being shown */
-		bool shouldUpdate = (_currentFileType == FileTypes.Img);
-
-		_meshBehavior.SetBeta(rat, shouldUpdate);
+	public void ToDefault() {
+		DepthMultSlider.value = MeshBehavior.DefaultDepthMult;
+		AlphaSlider.value = MeshBehavior.DefaultAlpha;
+		BetaSlider.value = MeshBehavior.DefaultBeta;
+		MeshLocSlider.value = MeshBehavior.DefaultMeshLoc;
+		ScaleSlider.value = MeshBehavior.DefaultScale;
 	}
 
 	public void ToggleFullscreen() {
