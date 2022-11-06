@@ -249,7 +249,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void Quit() {
-		ShowAboutScreen();
+		//ShowAboutScreen();
 
 		SaveDepth(); //save the current one
 		HaltVideo();
@@ -613,8 +613,8 @@ public class MainBehavior : MonoBehaviour {
 			_vp.frame++;
 	}
 
-	private void DepthFileCapture() {
-		_processedFrames.Add(_vrRecordBehavior.Capture($"{_recordPath}/{_currentFrame-_startFrame}.png"));
+	private void DepthFileCapture(string format="jpg") {
+		_processedFrames.Add(_vrRecordBehavior.Capture($"{_recordPath}/{_currentFrame-_startFrame}.{format}", format));
 	}
 
 	private void DepthFileEnded() {

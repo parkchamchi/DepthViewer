@@ -10,13 +10,18 @@ public class VRRecordBehavior : MonoBehaviour {
 
 	public RenderTexture equirectRenderTexture;
 
-	public Task Capture(string outputpath, bool png=true) {
+	public Task Capture(string outputpath, string format="png") {
 		/*
 		png: save as PNG. TGA otherwise.
 
-		300 frames, 4096x4096, written on disk:
+		300 frames, 4096x4096, written on disk, sample video (as in depthpy/utils/make_sample_vid.py):
 			TGA: 78s, 64MB per frame
 			PNG: 140s, 307KB per frame
+
+		464 frames, 2048x2048, written on disk, actual video:
+			JPG: 27s, 75KB per frame
+			PNG: 64s, 320KB per frame
+			TGA: 27s, 16MB per frame
 		*/
 
 		mainCamera.stereoSeparation = 0.065f;
@@ -32,10 +37,25 @@ public class VRRecordBehavior : MonoBehaviour {
 		tex.ReadPixels(new Rect(0, 0, equirectRenderTexture.width, equirectRenderTexture.height), 0, 0);
 		RenderTexture.active = null;
 		
-		byte[] bytes = (png) ? tex.EncodeToPNG() : tex.EncodeToTGA();
+		//UnityException: EncodeToPNG can only be called from the main thread. :(
+		byte[] bytes = null;
+		switch (format) {
+		case "tga":
+			bytes = tex.EncodeToTGA();
+			break;
+		case "jpg":
+			bytes = tex.EncodeToJPG();
+			break;
+		default: //can't fall through?
+			Debug.Log($"Got invalid format {format}. Falling back to PNG.");
+			goto case "png";
+		case "png":
+			bytes = tex.EncodeToPNG();
+			break;
+		}
+
 		Destroy(tex);
 
-		string path = outputpath;
-		return Task.Run(() => System.IO.File.WriteAllBytes(path, bytes));
+		return Task.Run(() => System.IO.File.WriteAllBytes(outputpath, bytes));
 	}
 }

@@ -15,6 +15,7 @@ public class SliderParentBehavior : MonoBehaviour {
 	}
 
 	public void ChangeValueText() {
-		_valueText.text = _slider.value.ToString();
+		//_valueText.text = $"{_slider.value:f2}";
+		_valueText.text = _slider.value.ToString("0.##");
 	}
 }
