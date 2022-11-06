@@ -537,6 +537,8 @@ public class MainBehavior : MonoBehaviour {
 				return;
 			}
 
+			_meshBehav.ShouldUpdateDepth = true;
+
 			_orig_width = texture.width;
 			_orig_height = texture.height;
 			_framecount = 1;
