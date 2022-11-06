@@ -35,11 +35,14 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
 
+	public TMP_Text DesktopRenderToggleButtonText;
+
 	public enum FileTypes {
 		NotExists, 
 		Dir,
 		Img, Vid,
 		Depth,
+		Desktop,
 		Unsupported
 	};
 
@@ -58,6 +61,7 @@ public class MainBehavior : MonoBehaviour {
 	private DepthModelBehavior _depthModelBehav;
 	private DepthONNX _donnx;
 	private VRRecordBehavior _vrRecordBehav;
+	private DesktopRenderBehavior _desktopRenderBehav;
 
 	private int _x, _y;
 	private int _orig_width, _orig_height;
@@ -89,6 +93,7 @@ public class MainBehavior : MonoBehaviour {
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
+		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -140,9 +145,11 @@ public class MainBehavior : MonoBehaviour {
 		if (_currentFileType == FileTypes.Vid && _vp != null)
 			UpdateVideoDepth();	
 
-		else if (_currentFileType == FileTypes.Depth && _recording && _shouldCapture) {
+		else if (_currentFileType == FileTypes.Depth && _recording && _shouldCapture)
 			DepthFileCaptureFrame();
-		}
+
+		else if (_currentFileType == FileTypes.Desktop)
+			DesktopRenderingUpdate();
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -301,6 +308,35 @@ public class MainBehavior : MonoBehaviour {
 		FilepathResultText.text = output;
 	}
 
+	void Cleanup() {
+		/* Called by SelectFile(), DesktopRenderingStart() */
+
+		SaveDepth();
+		HaltVideo();
+		DepthFileUtils.Dispose();
+
+		_orig_filepath = null;
+		_currentFileType = FileTypes.Unsupported;
+
+		_hashval = null;
+		_processedFrames.Clear();
+		
+		_startFrame = _currentFrame = _framecount = 0;
+		_x = _y = _orig_width = _orig_height = 0;
+		DepthFilePanel.SetActive(false);
+
+		_shouldUpdateArchive = false;
+		_hasCreatedArchive = false;
+		OutputSaveText.text = "";
+
+		_recording = false;
+		_shouldCapture = false;
+
+		DesktopRenderToggleButtonText.text = "Run";
+
+		_meshBehav.ShouldUpdateDepth = false; //only true in images
+	}
+
 	public void SelectFile() {
 		/*
 			Check if the depth file exists & load it if if exists.
@@ -318,24 +354,11 @@ public class MainBehavior : MonoBehaviour {
 
 		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth) return;
 
-		SaveDepth();
-		HaltVideo();
-		DepthFileUtils.Dispose();
+		Cleanup();
 
 		_currentFileType = ftype;
 		_orig_filepath = filepath;
-		_hashval = null;
-		_processedFrames.Clear();
-		_hasCreatedArchive = false;
-		_startFrame = _currentFrame = _framecount = 0;
-		_x = _y = _orig_width = _orig_height = 0;
-		DepthFilePanel.SetActive(false);
 
-		_recording = false;
-		_shouldCapture = false;
-
-		_meshBehav.ShouldUpdateDepth = false; //only true in images
-		
 		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
 			OutputSaveText.text = "Will be saved.";
 		else
@@ -661,6 +684,36 @@ public class MainBehavior : MonoBehaviour {
 	/************************************************************************************/
 	/* End - Depth file input
 	/************************************************************************************/
+
+	public void DesktopRenderingToggle() {
+		if (!_desktopRenderBehav.Supported) {
+			Debug.LogError("StartDesktopRendering() called when !_desktopRenderBehav.Supported");
+			return;
+		}
+
+		bool isRunning = (_currentFileType == FileTypes.Desktop);
+
+		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
+
+		if (!isRunning) {
+			/* Start */
+			_currentFileType = FileTypes.Desktop;
+			DesktopRenderToggleButtonText.text = "Stop";
+		}
+	}
+
+	private void DesktopRenderingUpdate() {
+		Texture texture = _desktopRenderBehav.Get(out _orig_width, out _orig_height);
+		if (texture == null) {
+			Debug.LogError("Couldn't get the desktop screen");
+			return;
+		}
+
+		if (_donnx == null) return;
+
+		float[] depths = _donnx.Run(texture, out _x, out _y);
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+	}
 
 	private void SaveDepth(bool shouldReload=false) {
 		//if (_processedFrames == null || _processedFrames.Count <= 0) return;
