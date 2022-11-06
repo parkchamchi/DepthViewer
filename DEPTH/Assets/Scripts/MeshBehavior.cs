@@ -219,4 +219,7 @@ public class MeshBehavior : MonoBehaviour {
 		if (texture)
 			_material.mainTexture = texture;
 	}
+
+	public void ResetRotation() =>
+		transform.rotation = Quaternion.identity;
 }

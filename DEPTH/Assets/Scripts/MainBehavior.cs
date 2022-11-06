@@ -759,6 +759,8 @@ public class MainBehavior : MonoBehaviour {
 		BetaSlider.value = MeshBehavior.DefaultBeta;
 		MeshLocSlider.value = MeshBehavior.DefaultMeshLoc;
 		ScaleSlider.value = MeshBehavior.DefaultScale;
+
+		_meshBehav.ResetRotation();
 	}
 
 	public void ToggleFullscreen() {
