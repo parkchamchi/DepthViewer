@@ -30,6 +30,7 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - All outputs will be cached to Application.persistentDataPath (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
+- Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
 
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .png file will be generated in `Application.persistentDataPath`. \
