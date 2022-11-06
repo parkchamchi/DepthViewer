@@ -10,7 +10,7 @@ public class VRRecordBehavior : MonoBehaviour {
 
 	public RenderTexture equirectRenderTexture;
 
-	public Task Capture(string outputpath, string format="png") {
+	public Task Capture(string outputpath, string format="jpg") {
 		/*
 		png: save as PNG. TGA otherwise.
 
@@ -46,11 +46,15 @@ public class VRRecordBehavior : MonoBehaviour {
 		case "jpg":
 			bytes = tex.EncodeToJPG();
 			break;
-		default: //can't fall through?
+		/*default: //can't fall through?
 			Debug.Log($"Got invalid format {format}. Falling back to PNG.");
-			goto case "png";
+			goto case "png";*/
 		case "png":
 			bytes = tex.EncodeToPNG();
+			break;
+		default:
+			Debug.Log($"Got invalid format {format}. Falling back to JPG.");
+			bytes = tex.EncodeToJPG();
 			break;
 		}
 

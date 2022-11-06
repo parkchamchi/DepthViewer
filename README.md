@@ -5,6 +5,10 @@ Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D 
 [WEB DEMO](https://parkchamchi.github.io/DepthViewer/)
 
 ## Examples
+
+### NOTE
+Examples below, as is the WebGL Demo, are outdated and inaccurate. Please check my [Youtube channel](https://www.youtube.com/channel/UC5Y-dNipzBQOgA-r5PeAOjw) where I upload examples.
+
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
 | --- | --- | --- | --- |
 | ![landscape_orig](./examples/landscape_orig.jpg) | ![landscape_small](./examples/landscape_small.jpg) | ![landscape_large](./examples/landscape_large.jpg) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
@@ -44,8 +48,6 @@ To add audio,
 ```xml
 ffmpeg -i <source.mp4> -i <output.mp4> -c copy -map 1:v:0 -map 0:a:0 -shortest <output_w_audio.mp4>
 ```
-
-Alternatively, you may use Unity Recorder.
 
 ## Tested formats:
 ### Images
