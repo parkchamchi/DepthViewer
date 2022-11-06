@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
 using UnityEngine;
 
 public class DesktopRenderBehavior : MonoBehaviour {
@@ -7,12 +10,10 @@ public class DesktopRenderBehavior : MonoBehaviour {
 	public GameObject MainButton;
 	public GameObject MainPanel;
 
+	public Texture2D PlaceholderTexture;
+
 	private bool _supported;
 	public bool Supported {get {return _supported;}}
-
-	/* TMP */
-	private Texture2D[] _placeholders;
-	private int _placeholderIdx;
 
 	void Start() {
 		/* Only supports Windows */
@@ -24,15 +25,21 @@ public class DesktopRenderBehavior : MonoBehaviour {
 
 		MainButton.SetActive(_supported);
 		MainPanel.SetActive(false);
-
-		/* TMP */
-		_placeholders = new Texture2D[2] {Utils.LoadImage("d:/saul.jpg"), Utils.LoadImage("d:/todd.jpg")};
-		_placeholderIdx = 0;
 	}
 
+	public void TogglePanel() {
+		MainPanel.SetActive(!MainPanel.activeSelf);
+	}
+
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+
+	//[DllImport("user32.dll")]
+    //private static extern IntPtr GetDesktopWindow();
+
 	public Texture2D Get(out int width, out int height) {
-		_placeholderIdx = (++_placeholderIdx % _placeholders.Length);
-		Texture2D texture =  _placeholders[_placeholderIdx];
+		//IntPtr hwnd = GetDesktopWindow();
+
+		Texture2D texture = PlaceholderTexture;
 
 		width = texture.width;
 		height = texture.height;
@@ -40,7 +47,7 @@ public class DesktopRenderBehavior : MonoBehaviour {
 		return texture;
 	}
 
-	public void TogglePanel() {
-		MainPanel.SetActive(!MainPanel.activeSelf);
-	}
+#endif
+
+	
 }

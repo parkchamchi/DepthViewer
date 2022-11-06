@@ -263,7 +263,7 @@ GameObject:
   - component: {fileID: 51537819}
   - component: {fileID: 51537818}
   m_Layer: 0
-  m_Name: ToggleButton
+  m_Name: DesktopRenderToggleButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -333,7 +333,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 51537819}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2128267913}
+        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
+        m_MethodName: DesktopRenderingToggle
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &51537819
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6405,7 +6417,7 @@ GameObject:
   - component: {fileID: 1748256639}
   - component: {fileID: 1748256638}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: DesktopRenderToggleButtonText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6972,6 +6984,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MainButton: {fileID: 1535601163}
   MainPanel: {fileID: 1883224405}
+  PlaceholderTexture: {fileID: 2800000, guid: 6c6895a425ac5bd42ac88ae619f8869d, type: 3}
 --- !u!1 &2071150759
 GameObject:
   m_ObjectHideFlags: 0
@@ -7280,6 +7293,7 @@ MonoBehaviour:
   AboutTextAsset: {fileID: 4900000, guid: 899a1633639650948b93dd88f89a913b, type: 3}
   DepthFilePanel: {fileID: 497387996}
   DepthFileCompareText: {fileID: 1729033237}
+  DesktopRenderToggleButtonText: {fileID: 1748256638}
 --- !u!4 &2128267914
 Transform:
   m_ObjectHideFlags: 0

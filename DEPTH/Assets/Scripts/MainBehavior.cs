@@ -263,6 +263,8 @@ public class MainBehavior : MonoBehaviour {
 		HaltVideo();
 		DepthFileUtils.Dispose();
 
+		_currentFileType = FileTypes.Unsupported;
+
 		if (_vp != null)
 			Destroy(_vp);
 
