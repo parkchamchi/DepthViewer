@@ -31,7 +31,7 @@ public class Utils {
 		byte[] hashbytes;
 
 		using (SHA256 sha256 = SHA256.Create()) {
-			using (FileStream fs = File.Open(filepath, FileMode.Open, FileAccess.Read)) {
+			using (FileStream fs = File.Open(filepath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 				fs.Position = 0;
 				hashbytes = sha256.ComputeHash(fs);
 			}
