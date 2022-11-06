@@ -53,7 +53,7 @@ class Runner():
 
 		self.framecount = 1 #for video
 
-	def run(self, inpath, outpath, isimage, model_type="dpt_hybrid", optimize=True, zip_in_memory=True, update=True) -> None:
+	def run(self, inpath, outpath, isimage, model_type="MidasV3DptLarge", optimize=True, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
 		Args:
@@ -377,7 +377,7 @@ if __name__ == "__main__":
 	)
 
 	parser.add_argument('-t', '--model_type',
-		default="dpt_large",
+		default="MidasV3DptLarge",
 		help="model type",
 		choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MiDasV21", "MidasV21Small"]
 	)
@@ -397,7 +397,7 @@ if __name__ == "__main__":
 	print(f"input: {args.input}")
 	print(f"output: {args.output}")
 
-	if not args.noupdate and args.image and os.path.exists(input):
+	if not args.noupdate and args.image and os.path.exists(args.output):
 		print("Image: already exists.")
 		exit(0)
 
