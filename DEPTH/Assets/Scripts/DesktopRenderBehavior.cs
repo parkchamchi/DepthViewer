@@ -7,14 +7,14 @@ using System.IO;
 using Winforms = System.Windows.Forms;
 using Sysdraw = System.Drawing;
 
-//using Sysdiag = System.Diagnostics; //Process
 using System.Runtime.InteropServices; //Dllimport
-using System.Text;
+using System.Text; //StringBuilder
 
 using HWND = System.IntPtr;
 #endif
 
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class DesktopRenderBehavior : MonoBehaviour {
@@ -23,7 +23,13 @@ public class DesktopRenderBehavior : MonoBehaviour {
 	public GameObject MainPanel;
 
 	public TMP_InputField ProcessesInputField;
-	public TMP_InputField ProcessNumInputField;
+
+	public Slider ProcessNumSlider;
+
+	public Slider UpSlider;
+	public Slider LeftSlider;
+	public Slider RightSlider;
+	public Slider DownSlider;
 
 	public Texture2D PlaceholderTexture;
 	private Texture2D _texture;
@@ -83,8 +89,8 @@ public class DesktopRenderBehavior : MonoBehaviour {
 			public int bottom;
 		}
 
-		[DllImport("user32.dll")]
-  		public static extern IntPtr GetWindowRect(IntPtr hWnd, ref User32.Rect rect);
+		[DllImport("USER32.DLL")]
+  		public static extern HWND GetWindowRect(HWND hWnd, ref User32.Rect rect);
 
 		[DllImport("USER32.DLL")]
 		public static extern bool EnumWindows(EnumWindowsProc enumFunc, int lParam);
@@ -99,17 +105,12 @@ public class DesktopRenderBehavior : MonoBehaviour {
 		public static extern bool IsWindowVisible(HWND hWnd);
 
 		[DllImport("USER32.DLL")]
-		public static extern IntPtr GetShellWindow();
+		public static extern HWND GetShellWindow();
 	}
 
 	public void StartRendering() {
-		string inputString = ProcessNumInputField.text;
-		if (inputString == null || inputString == "") return;
-
-		int processnum = int.Parse(inputString);
-
-		if (processnum >= 0 && processnum < _windows.Count)
-			_hwnd = _windows[processnum].Key;
+		int processNum = (int) ProcessNumSlider.value;
+		_hwnd = _windows[processNum].Key;
 	}
 
 	private Texture2D GetTexture() {
@@ -122,6 +123,22 @@ public class DesktopRenderBehavior : MonoBehaviour {
 
 		int width = rect.right - rect.left;
   		int height = rect.bottom - rect.top;
+
+		float mup = UpSlider.value;
+		float mleft = LeftSlider.value;
+		float mright = RightSlider.value;
+		float mdown = DownSlider.value;
+
+		rect.top += (int) ((height / 2f) * (1 - (mup / 100)));
+		rect.left += (int) ((width / 2f) * (1 - (mleft / 100)));
+		rect.right -= (int) ((width / 2f) * (1 - (mright / 100)));
+		rect.bottom -= (int) ((height / 2f) * (1 - (mdown / 100)));
+
+		width = rect.right - rect.left;
+  		height = rect.bottom - rect.top;
+
+		if (width * height == 0)
+			return PlaceholderTexture;
 		
 		using (Sysdraw.Bitmap bitmap = new Sysdraw.Bitmap(width, height)) {
 			using (Sysdraw.Graphics graphic = Sysdraw.Graphics.FromImage(bitmap)) {
@@ -142,11 +159,8 @@ public class DesktopRenderBehavior : MonoBehaviour {
 
 	private void SetPanel() {
 		// https://stackoverflow.com/questions/7268302/get-the-titles-of-all-open-windows
-		//Returns a dictionary that contains the handle and title of all the open windows.
-		//A dictionary that contains the handle and title of all the open windows.
 
 		HWND shellWindow = User32.GetShellWindow();
-		//Dictionary<HWND, string> windows = new Dictionary<HWND, string>();
 		_windows = new List<KeyValuePair<HWND, string>>(); //make a list so that it can be enumerated
 
 		User32.EnumWindows(delegate(HWND hWnd, int lParam) {
@@ -165,18 +179,17 @@ public class DesktopRenderBehavior : MonoBehaviour {
 		}, 0);
 
 		ProcessesInputField.text = "";
-		//foreach(KeyValuePair<IntPtr, string> window in windows) {
 		for (int i = 0; i < _windows.Count; i++) {
 			var window = _windows[i];
 
-			IntPtr handle = window.Key;
+			HWND handle = window.Key;
 			string title = window.Value;
 
 			ProcessesInputField.text += ($"#{i}: {handle}: {title}\n");
-
-			if (title.EndsWith("Firefox"))
-				_hwnd = handle;
 		}
+
+		ProcessNumSlider.minValue = 0;
+		ProcessNumSlider.maxValue = _windows.Count - 1;
 	}
 
 #else

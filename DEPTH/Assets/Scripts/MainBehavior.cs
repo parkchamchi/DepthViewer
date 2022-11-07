@@ -35,8 +35,6 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
 
-	public TMP_Text DesktopRenderToggleButtonText;
-
 	public enum FileTypes {
 		NotExists, 
 		Dir,
@@ -333,8 +331,6 @@ public class MainBehavior : MonoBehaviour {
 
 		_recording = false;
 		_shouldCapture = false;
-
-		DesktopRenderToggleButtonText.text = "Run";
 
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
 	}
@@ -687,22 +683,16 @@ public class MainBehavior : MonoBehaviour {
 	/* End - Depth file input
 	/************************************************************************************/
 
-	public void DesktopRenderingToggle() {
+	public void DesktopRenderingStart() {
 		if (!_desktopRenderBehav.Supported) {
 			Debug.LogError("StartDesktopRendering() called when !_desktopRenderBehav.Supported");
 			return;
 		}
 
-		bool isRunning = (_currentFileType == FileTypes.Desktop);
-
 		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
 
-		if (!isRunning) {
-			/* Start */
-			_currentFileType = FileTypes.Desktop;
-			DesktopRenderToggleButtonText.text = "Stop";
-			_desktopRenderBehav.StartRendering();
-		}
+		_currentFileType = FileTypes.Desktop;
+		_desktopRenderBehav.StartRendering();
 	}
 
 	private void DesktopRenderingUpdate() {
