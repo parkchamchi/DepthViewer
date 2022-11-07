@@ -45,6 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 0}
-  cubeMapRenderTextureLeft: {fileID: 8400000, guid: 0d184dff7d79491448aea05051b08d3f, type: 2}
-  cubeMapRenderTextureRight: {fileID: 8400000, guid: 89d10e51b42ade4429978965cd630c50, type: 2}
-  equirectRenderTexture: {fileID: 8400000, guid: e38abfb4d07e87c4ea9ae278dda29a87, type: 2}
+  cubemapRTLeft2048: {fileID: 8400000, guid: 0d184dff7d79491448aea05051b08d3f, type: 2}
+  cubemapRTRight2048: {fileID: 8400000, guid: 89d10e51b42ade4429978965cd630c50, type: 2}
+  equirectRT2048: {fileID: 8400000, guid: e38abfb4d07e87c4ea9ae278dda29a87, type: 2}
+  cubemapRTLeft4096: {fileID: 8400000, guid: 11aa72e208631c443b38239eb9259864, type: 2}
+  cubemapRTRight4096: {fileID: 8400000, guid: 0ec8b0b3d10922b44bab29feeea2bd2c, type: 2}
+  equirectRT4096: {fileID: 8400000, guid: 932f95880cac9464e8eacdd055cfad2d, type: 2}

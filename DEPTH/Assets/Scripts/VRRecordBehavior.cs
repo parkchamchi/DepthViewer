@@ -5,10 +5,41 @@ using System.Threading.Tasks;
 public class VRRecordBehavior : MonoBehaviour {
 	public Camera mainCamera;
 
-	public RenderTexture cubeMapRenderTextureLeft;
-	public RenderTexture cubeMapRenderTextureRight;
+	public RenderTexture cubemapRTLeft2048;
+	public RenderTexture cubemapRTRight2048;
+	public RenderTexture equirectRT2048;
 
-	public RenderTexture equirectRenderTexture;
+	public RenderTexture cubemapRTLeft4096;
+	public RenderTexture cubemapRTRight4096;
+	public RenderTexture equirectRT4096;
+
+	private RenderTexture _cmRTL;
+	private RenderTexture _cmRTR;
+	private RenderTexture _equiRT;
+
+	private int _size;
+	public int Size {
+		set {
+			switch (value) {
+			case 2048:
+				_cmRTL = cubemapRTLeft2048;
+				_cmRTR = cubemapRTRight2048;
+				_equiRT = equirectRT2048;
+				break;
+			case 4096:
+				_cmRTL = cubemapRTLeft4096;
+				_cmRTR = cubemapRTRight4096;
+				_equiRT = equirectRT4096;
+				break;
+			default: //can't fall through
+				Debug.LogError($"Unsupported size: {value}. Falling back to 2048.");
+				_cmRTL = cubemapRTLeft2048;
+				_cmRTR = cubemapRTRight2048;
+				_equiRT = equirectRT2048;
+				break;
+			}
+		}
+	}
 
 	public Task Capture(string outputpath, string format="jpg") {
 		/*
@@ -26,15 +57,15 @@ public class VRRecordBehavior : MonoBehaviour {
 
 		mainCamera.stereoSeparation = 0.065f;
 
-		mainCamera.RenderToCubemap(cubeMapRenderTextureLeft, 63, Camera.MonoOrStereoscopicEye.Left);
-		mainCamera.RenderToCubemap(cubeMapRenderTextureRight, 63, Camera.MonoOrStereoscopicEye.Right);
+		mainCamera.RenderToCubemap(_cmRTL, 63, Camera.MonoOrStereoscopicEye.Left);
+		mainCamera.RenderToCubemap(_cmRTR, 63, Camera.MonoOrStereoscopicEye.Right);
 		
-		cubeMapRenderTextureLeft.ConvertToEquirect(equirectRenderTexture, Camera.MonoOrStereoscopicEye.Left);
-		cubeMapRenderTextureRight.ConvertToEquirect(equirectRenderTexture, Camera.MonoOrStereoscopicEye.Right);
+		_cmRTL.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Left);
+		_cmRTR.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Right);
 
-		Texture2D tex = new Texture2D(equirectRenderTexture.width, equirectRenderTexture.height);
-		RenderTexture.active = equirectRenderTexture;
-		tex.ReadPixels(new Rect(0, 0, equirectRenderTexture.width, equirectRenderTexture.height), 0, 0);
+		Texture2D tex = new Texture2D(_equiRT.width, _equiRT.height);
+		RenderTexture.active = _equiRT;
+		tex.ReadPixels(new Rect(0, 0, _equiRT.width, _equiRT.height), 0, 0);
 		RenderTexture.active = null;
 		
 		//UnityException: EncodeToPNG can only be called from the main thread. :(

@@ -328,6 +328,7 @@ public class MainBehavior : MonoBehaviour {
 		_shouldUpdateArchive = false;
 		_hasCreatedArchive = false;
 		OutputSaveText.text = "";
+		StatusText.text = "";
 
 		_recording = false;
 		_shouldCapture = false;
@@ -599,7 +600,9 @@ public class MainBehavior : MonoBehaviour {
 		DepthFilePanel.SetActive(true);
 	}
 
-	public void DepthFileStartRecording() {
+	public void DepthFileStartRecording(int size=2048) {
+		_vrRecordBehav.Size = size;
+
 		if (_framecount <= 1) {
 			//Image --> capture and exit (scene is already set)
 			DepthFileCapture();
@@ -613,7 +616,7 @@ public class MainBehavior : MonoBehaviour {
 		/* Record per frame */
 		_recording = true;
 		_shouldCapture = false;
-
+		
 		DepthFilePanel.SetActive(false);
 
 		_vp.sendFrameReadyEvents = true;
