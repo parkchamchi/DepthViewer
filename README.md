@@ -7,7 +7,7 @@ Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D 
 ## Examples
 
 ### NOTE
-Examples below, as is the WebGL Demo, are outdated and inaccurate. Please check my [Youtube channel](https://www.youtube.com/channel/UC5Y-dNipzBQOgA-r5PeAOjw) where I upload examples.
+Examples below, as is the WebGL Demo, are outdated and inaccurate. Please check my [Youtube channel](https://www.youtube.com/channel/UC5Y-dNipzBQOgA-r5PeAOjw) where I upload examples as 360 VR videos.
 
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
 | --- | --- | --- | --- |

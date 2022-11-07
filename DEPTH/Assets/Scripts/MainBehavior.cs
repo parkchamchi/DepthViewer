@@ -701,6 +701,7 @@ public class MainBehavior : MonoBehaviour {
 			/* Start */
 			_currentFileType = FileTypes.Desktop;
 			DesktopRenderToggleButtonText.text = "Stop";
+			_desktopRenderBehav.StartRendering();
 		}
 	}
 
