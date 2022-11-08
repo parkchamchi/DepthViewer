@@ -24,6 +24,7 @@ public class MainBehavior : MonoBehaviour {
 	public TMP_Text StatusText;
 
 	public Toggle OutputSaveToggle;
+	public Toggle SearchCacheToggle;
 	public TMP_Text OutputSaveText;
 
 	public GameObject UI;
@@ -74,6 +75,7 @@ public class MainBehavior : MonoBehaviour {
 	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
 
+	private bool _searchCache;
 	private bool _canUpdateArchive; //User option, toggled in UI; variable below overrides this
 	private bool _shouldUpdateArchive;
 	private bool _hasCreatedArchive;
@@ -99,6 +101,7 @@ public class MainBehavior : MonoBehaviour {
 		_vp.loopPointReached += OnLoopPointReached;
 
 		ToggleOutputSave(); //initializing _canUpdadeArchive
+		ToggleSearchCache(); //init. _searchCache
 
 		_processedFrames = new List<Task>();
 
@@ -319,6 +322,7 @@ public class MainBehavior : MonoBehaviour {
 		_currentFileType = FileTypes.Unsupported;
 
 		_hashval = null;
+		_depthFilePath = null;
 		_processedFrames.Clear();
 		
 		_startFrame = _currentFrame = _framecount = 0;
@@ -363,10 +367,12 @@ public class MainBehavior : MonoBehaviour {
 		else
 			OutputSaveText.text = "Won't be saved.";
 
-		if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
-			StatusText.text = "Hashing.";
-			_hashval = Utils.GetHashval(filepath);
-			StatusText.text = "Hashed.";
+		if (_searchCache || _shouldUpdateArchive) {
+			if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
+				StatusText.text = "Hashing.";
+				_hashval = Utils.GetHashval(filepath);
+				StatusText.text = "Hashed.";
+			}
 		}
 
 		switch (ftype) {
@@ -418,11 +424,15 @@ public class MainBehavior : MonoBehaviour {
 		//For metadata
 		_startFrame = 0;
 
-		int modelTypeVal;
+		int modelTypeVal = -1;
 		float[] depths;
 
 		//Check if the file was processed
-		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		if (_searchCache)
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		else
+			_depthFilePath = null; //redundant, set in Cleanup()
+
 		if (_depthFilePath != null) {
 			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, readOnlyMode: true);
 			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
@@ -455,10 +465,14 @@ public class MainBehavior : MonoBehaviour {
 	private void FromVideo(string filepath) {
 		/* _orig_width, _orig_height, & framecount should be set when the frame is recieved!*/
 
-		int modelTypeVal;
+		int modelTypeVal = -1;
 
 		/* Check if the processed file exists */
-		_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		if (_searchCache)
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+		else
+			_depthFilePath = null; //redundant, set in Cleanup()
+
 		if (_depthFilePath != null) {
 			//Should not save if the loaded depth's modeltypeval is higher than the program is using
 			if (modelTypeVal != _donnx.ModelTypeVal) {//for now just use !=
@@ -536,7 +550,7 @@ public class MainBehavior : MonoBehaviour {
 		DepthFileCompareText.text = "";
 
 		/* Check hashval */
-		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
+		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath)); //TODO: will cause trouble in WebGL
 		DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
 
 		_recordPath = $"{Application.persistentDataPath}/recordings/{Utils.GetTimestamp()}";
@@ -821,9 +835,11 @@ public class MainBehavior : MonoBehaviour {
 			Screen.fullScreenMode = FullScreenMode.Windowed;
 	}
 
-	public void ToggleOutputSave() {
+	public void ToggleOutputSave() =>
 		_canUpdateArchive = OutputSaveToggle.isOn;
-	}
+
+	public void ToggleSearchCache() =>
+		_searchCache = SearchCacheToggle.isOn;
 
 	public void OpenOutputFolder() {
 		Application.OpenURL(Application.persistentDataPath);

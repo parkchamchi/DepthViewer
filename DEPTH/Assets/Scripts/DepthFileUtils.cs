@@ -164,6 +164,8 @@ public static class DepthFileUtils {
 		maxModelTypeVal = -1;
 		string finalFile = null;
 
+		if (hashval == null) return null;
+
 		foreach (string filename in Directory.GetFiles(DefaultDepthDir))
 			if (filename.EndsWith($"{hashval}{DepthExt}")) {
 				string[] tokens = Path.GetFileName(filename).Split('.');
