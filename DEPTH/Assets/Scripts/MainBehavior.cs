@@ -157,6 +157,8 @@ public class MainBehavior : MonoBehaviour {
 		SetWebGLExts();
 		_canUpdateArchive = false;
 		_searchCache = false;
+
+		IsVideoToggle.gameObject.SetActive(true);
 #endif
 	}
 

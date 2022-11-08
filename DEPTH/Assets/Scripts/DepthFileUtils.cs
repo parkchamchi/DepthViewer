@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 public static class DepthFileUtils {
-	public const string Version = "v0.5.1-beta";
+	public const string Version = "v0.5.2-beta";
 	public static readonly string DefaultDepthDir;
 	public const string DepthExt = ".depthviewer";
 
