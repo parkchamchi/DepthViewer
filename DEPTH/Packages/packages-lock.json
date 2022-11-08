@@ -1,5 +1,23 @@
 {
   "dependencies": {
+    "com.de-panther.webxr": {
+      "version": "0.15.0-preview",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.xr.management": "3.2.13"
+      },
+      "url": "https://package.openupm.com"
+    },
+    "com.de-panther.webxr-interactions": {
+      "version": "0.15.0-preview",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.de-panther.webxr": "0.15.0-preview"
+      },
+      "url": "https://package.openupm.com"
+    },
     "com.unity.barracuda": {
       "version": "3.0.0",
       "depth": 0,

@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "com.de-panther.webxr": "0.15.0-preview",
+    "com.de-panther.webxr-interactions": "0.15.0-preview",
     "com.unity.barracuda": "3.0.0",
     "com.unity.collab-proxy": "1.17.2",
     "com.unity.feature.development": "1.0.1",
@@ -44,5 +46,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.de-panther"
+      ]
+    }
+  ]
 }
