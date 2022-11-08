@@ -67,7 +67,7 @@ Other formats have not been tested.
 - Stablize
 
 ### WIP
-- Rendering the desktop (or part of it)
+- Android version
 
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
