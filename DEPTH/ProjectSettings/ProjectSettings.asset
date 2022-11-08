@@ -209,9 +209,10 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 11400000, guid: 634f1c410d772ac499257c2284b6a5c6, type: 2}
-  - {fileID: 6227939838647479871, guid: 2d8db17f21b03c041b67bb79ddccd7d3, type: 2}
-  - {fileID: 3902082270959539722, guid: 2ad1c0d64e222824ebfb217270cec8e2, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -689,7 +690,7 @@ PlayerSettings:
   webGLDebugSymbols: 0
   webGLEmscriptenArgs: 
   webGLModulesDirectory: 
-  webGLTemplate: PROJECT:WebXRFullView2020
+  webGLTemplate: PROJECT:WebXR2020
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
   webGLCompressionFormat: 2
