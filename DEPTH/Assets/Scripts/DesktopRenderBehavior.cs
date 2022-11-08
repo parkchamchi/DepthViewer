@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && !UNITY_WEBGL
+#if UNITY_STANDALONE_WIN || (UNITY_EDITOR_WIN && !UNITY_WEBGL && !UNITY_ANDROID)
 using Winforms = System.Windows.Forms;
 using Sysdraw = System.Drawing;
 
@@ -77,7 +77,7 @@ public class DesktopRenderBehavior : MonoBehaviour {
 		return texture;
 	}
 
-#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && !UNITY_WEBGL
+#if UNITY_STANDALONE_WIN || (UNITY_EDITOR_WIN && !UNITY_WEBGL && !UNITY_ANDROID)
 
 	private List<KeyValuePair<HWND, string>> _windows;
 	private HWND _hwnd;
