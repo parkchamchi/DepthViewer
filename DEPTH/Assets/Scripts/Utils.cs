@@ -15,6 +15,10 @@ public class Utils {
 		}
 		byte[] byteArr = File.ReadAllBytes(path);
 
+		return LoadImage(byteArr);
+	}
+
+	public static Texture2D LoadImage(byte[] byteArr) {
 		Texture2D texture = new Texture2D(0, 0);
 		bool isLoaded = texture.LoadImage(byteArr);
 

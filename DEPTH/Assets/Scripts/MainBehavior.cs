@@ -10,6 +10,11 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 using TMPro;
 
+#if UNITY_WEBGL
+using System.Runtime.InteropServices; //Dllimport
+using UnityEngine.Networking; //UnityWebRequest
+#endif
+
 public class MainBehavior : MonoBehaviour {
 
 	public Slider DepthMultSlider;
@@ -35,6 +40,8 @@ public class MainBehavior : MonoBehaviour {
 
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
+
+	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 
 	public enum FileTypes {
 		NotExists, 
@@ -88,6 +95,13 @@ public class MainBehavior : MonoBehaviour {
 	private bool _shouldCapture;
 	private string _recordPath;
 
+#if UNITY_WEBGL
+	private string _webglImageExts; /* ".jpg .png ..." */
+	private string _webglVideoExts;
+
+	private bool _isVideo;
+#endif
+
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
@@ -137,6 +151,12 @@ public class MainBehavior : MonoBehaviour {
 		AboutText.text = AboutTextAsset.text;
 
 		DepthFilePanel.SetActive(false);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+		SetWebGLExts();
+		_canUpdateArchive = false;
+		_searchCache = false;
+#endif
 	}
 
 	void Update() {
@@ -258,7 +278,9 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void Quit() {
-		//ShowAboutScreen();
+#if UNITY_WEBGL
+		ShowAboutScreen();
+#endif
 
 		SaveDepth(); //save the current one
 		HaltVideo();
@@ -415,6 +437,13 @@ public class MainBehavior : MonoBehaviour {
 			OnImageError(filepath);
 			return;
 		}
+	}
+
+	private void FromImage(Texture texture) {
+		if (texture == null) {
+			OnImageError("");
+			return;
+		}
 
 		_meshBehav.ShouldUpdateDepth = true;
 
@@ -550,9 +579,10 @@ public class MainBehavior : MonoBehaviour {
 		DepthFileCompareText.text = "";
 
 		/* Check hashval */
-		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath)); //TODO: will cause trouble in WebGL
+#if !UNITY_WEBGL
+		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
 		DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
-
+#endif
 		_recordPath = $"{Application.persistentDataPath}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
 	
@@ -845,7 +875,11 @@ public class MainBehavior : MonoBehaviour {
 		Application.OpenURL(Application.persistentDataPath);
 	}
 
+/* Implementations of BrowseFiles() */
+#if UNITY_STANDALONE || UNITY_EDITOR
+
 	public void BrowseFiles() {
+
 		string[] paths = StandaloneFileBrowser.OpenFilePanel("Open File", "", _extFilters, false);
 		if (paths.Length < 1)
 			return;
@@ -854,6 +888,72 @@ public class MainBehavior : MonoBehaviour {
 		FilepathInputField.text = path;
 		SelectFile();
 	}
+
+#elif UNITY_WEBGL && !UNITY_EDITOR
+
+	[DllImport("__Internal")]
+	private static extern void UploadFile(string gameObjectName, string methodName, string filter, bool multiple);
+
+	private void SetWebGLExts() {
+		_webglImageExts = "";
+			foreach (string ext in SupportedImgExts)
+				_webglImageExts += (ext + " ");
+			_webglImageExts = _webglImageExts.Substring(1, _webglImageExts.Length - 1);
+
+		_webglVideoExts = "";
+		foreach (string ext in SupportedVidExts)
+			_webglVideoExts += (ext + " ");
+		_webglVideoExts = _webglVideoExts.Substring(1, _webglVideoExts.Length - 1);
+	}
+
+	public void BrowseFiles() {
+		_isVideo = IsVideoToggle.isOn;
+		string exts = (_isVideo) ? _webglVideoExts : _webglImageExts;
+
+		UploadFile(gameObject.name, "OnFileUpload", exts, false);
+	}
+
+	public void OnFileUpload(string url) {
+		Cleanup();
+		_orig_filepath = url; //not needed
+
+		if (_isVideo) {
+			_currentFileType = FileTypes.Vid;
+			FromVideo(url);
+		}
+		else {
+			_currentFileType = FileTypes.Img;
+			StartCoroutine(GetRequest(new System.Uri(url).AbsoluteUri));
+		}
+	}
+
+	IEnumerator GetRequest(string uri) {
+		using (UnityWebRequest webRequest = UnityWebRequest.Get(uri)) {
+			// Request and wait for the desired page.
+			yield return webRequest.SendWebRequest();
+
+			string[] pages = uri.Split('/');
+			int page = pages.Length - 1;
+
+			switch (webRequest.result) {
+				case UnityWebRequest.Result.ConnectionError:
+				case UnityWebRequest.Result.DataProcessingError:
+					StatusText.text = ("Error: " + webRequest.error);
+					break;
+				case UnityWebRequest.Result.ProtocolError:
+					StatusText.text = ("HTTP Error: " + webRequest.error);
+					break;
+				case UnityWebRequest.Result.Success:
+					StatusText.text = ("Received");
+
+					Texture2D texture = Utils.LoadImage(webRequest.downloadHandler.data);
+					FromImage(texture);
+					break;
+			}
+		}
+	}
+
+#endif
 
 	public void ShowAboutScreen() {
 		AboutScreen.SetActive(true);

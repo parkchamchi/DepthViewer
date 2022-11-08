@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && !UNITY_WEBGL
 using Winforms = System.Windows.Forms;
 using Sysdraw = System.Drawing;
 
@@ -36,9 +36,8 @@ public class DesktopRenderBehavior : MonoBehaviour {
 
 	private bool _supported;
 	public bool Supported {get {return _supported;}}
-
-	private List<KeyValuePair<HWND, string>> _windows;
-	private HWND _hwnd;
+	
+	
 
 	void Start() {
 		/* Only supports Windows */
@@ -78,7 +77,10 @@ public class DesktopRenderBehavior : MonoBehaviour {
 		return texture;
 	}
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN) && !UNITY_WEBGL
+
+	private List<KeyValuePair<HWND, string>> _windows;
+	private HWND _hwnd;
 
 	private class User32 {
 		[StructLayout(LayoutKind.Sequential)]
