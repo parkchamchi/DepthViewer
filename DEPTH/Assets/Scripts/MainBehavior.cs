@@ -98,6 +98,7 @@ public class MainBehavior : MonoBehaviour {
 #if UNITY_WEBGL
 	private string _webglImageExts; /* ".jpg .png ..." */
 	private string _webglVideoExts;
+	private string _webglDepthExts;
 
 	private bool _isVideo;
 #endif
@@ -437,6 +438,8 @@ public class MainBehavior : MonoBehaviour {
 			OnImageError(filepath);
 			return;
 		}
+
+		FromImage(texture);
 	}
 
 	private void FromImage(Texture texture) {
@@ -904,6 +907,11 @@ public class MainBehavior : MonoBehaviour {
 		foreach (string ext in SupportedVidExts)
 			_webglVideoExts += (ext + " ");
 		_webglVideoExts = _webglVideoExts.Substring(1, _webglVideoExts.Length - 1);
+
+		_webglDepthExts = "";
+		foreach (string ext in SupportedDepthExts)
+			_webglDepthExts += (ext + " ");
+		_webglDepthExts = _webglDepthExts.Substring(1, _webglDepthExts.Length - 1);
 	}
 
 	public void BrowseFiles() {
