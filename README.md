@@ -37,6 +37,8 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 - Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
 
+- Steam & Play Store release soon :)
+
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .jpg file will be generated in `Application.persistentDataPath`. \
 Go to the directory, and execute
