@@ -34,9 +34,9 @@ For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/M
 - If VR HMD is detected, it will open with OpenXR.
 - All outputs will be cached to `Application.persistentDataPath` (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
 - Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
+- Rendering the desktop is only supported in Windows for now.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 - Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
-
 - Steam & Play Store release soon :)
 
 ## Recording 360 VR video
@@ -69,7 +69,7 @@ Other formats have not been tested.
 - Stablize
 
 ### WIP
-- Android version
+- Calling DPT models real-time (opening a python server?)
 
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
