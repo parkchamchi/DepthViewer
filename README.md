@@ -71,6 +71,7 @@ Other formats have not been tested.
 
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
+- Used [Unity Simple File Browser](https://github.com/yasirkula/UnitySimpleFileBrowser) (MIT License)
 - Used [WebXR Export](https://github.com/De-Panther/unity-webxr-export) (Apache License 2.0)
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)

@@ -13,6 +13,8 @@ using TMPro;
 #if UNITY_WEBGL
 using System.Runtime.InteropServices; //Dllimport
 using UnityEngine.Networking; //UnityWebRequest
+#elif UNITY_ANDROID
+using SimpleFileBrowser;
 #endif
 
 public class MainBehavior : MonoBehaviour {
@@ -588,6 +590,11 @@ public class MainBehavior : MonoBehaviour {
 		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
 		DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
 #endif
+
+		/* Show modeltypeval */
+		string modelTypeVal = _metadata["model_type_val"];
+		DepthFileCompareText.text += $"Model type val: {modelTypeVal}\n";
+
 		_recordPath = $"{Application.persistentDataPath}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
 	
@@ -890,6 +897,19 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		string path = paths[0];
 
+		FilepathInputField.text = path;
+		SelectFile();
+	}
+	
+#elif UNITY_ANDROID
+
+	//public static bool ShowSaveDialog(OnSuccess onSuccess, OnCancel onCancel, FileBrowser.PickMode pickMode, bool allowMultiSelection = false, string initialPath = null, string initialFilename = null, string title = "Save", string saveButtonText = "Save" );
+
+	public void BrowseFiles() =>
+		FileBrowser.ShowLoadDialog(OnFileUpload, null, FileBrowser.PickMode.Files);
+
+	public void OnFileUpload(string[] paths) {
+		string path = paths[0];
 		FilepathInputField.text = path;
 		SelectFile();
 	}
