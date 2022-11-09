@@ -193,7 +193,7 @@ public class MeshBehavior : MonoBehaviour {
 		Now k's are [1/b, ... , 1/(a+b)]
 		Normalize such that z be
 		(k * (a + b) - 1) * b / a
-		This gives us [1, ..., 0], where 1 is the closest.
+		This gives us [1, ..., 0], where 0 is the closest.
 		*/
 
 		if (_vertices == null || _depths == null) return;

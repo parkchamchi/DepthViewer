@@ -117,7 +117,7 @@ public class MainBehavior : MonoBehaviour {
 		_vp.errorReceived += OnVideoError;
 		_vp.loopPointReached += OnLoopPointReached;
 
-		ToggleOutputSave(); //initializing _canUpdadeArchive
+		ToggleOutputSave(); //initializing _canUpdateArchive
 		ToggleSearchCache(); //init. _searchCache
 
 		_processedFrames = new List<Task>();
@@ -156,11 +156,18 @@ public class MainBehavior : MonoBehaviour {
 		DepthFilePanel.SetActive(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-		SetWebGLExts();
 		_canUpdateArchive = false;
 		_searchCache = false;
 
+		/* File browsing for WebGL */
+		SetWebGLExts();
 		IsVideoToggle.gameObject.SetActive(true);
+
+#elif UNITY_ANDROID && !UNITY_EDITOR
+
+		FileBrowser.SetFilters(false, new FileBrowser.Filter("Image/Video/Depth Files", exts));
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        Screen.brightness = 1.0f;
 #endif
 	}
 
@@ -877,11 +884,21 @@ public class MainBehavior : MonoBehaviour {
 			Screen.fullScreenMode = FullScreenMode.Windowed;
 	}
 
-	public void ToggleOutputSave() =>
+	public void ToggleOutputSave() {
 		_canUpdateArchive = OutputSaveToggle.isOn;
+		
+		if (_canUpdateArchive) { //turn on _searchCache too
+			SearchCacheToggle.isOn = true;
+			SearchCacheToggle.interactable = false;
+		}
+		else {
+			SearchCacheToggle.interactable = true;
+		}
+	}
 
-	public void ToggleSearchCache() =>
+	public void ToggleSearchCache() {
 		_searchCache = SearchCacheToggle.isOn;
+	}
 
 	public void OpenOutputFolder() {
 		Application.OpenURL(Application.persistentDataPath);
