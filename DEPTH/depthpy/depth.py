@@ -23,7 +23,7 @@ from midas.midas_net import MidasNet
 from midas.midas_net_custom import MidasNet_small
 from midas.transforms import Resize, NormalizeImage, PrepareForNet
 
-VERSION = "v0.5.3-beta"
+VERSION = "v0.5.4-beta"
 
 class Runner():
 	
