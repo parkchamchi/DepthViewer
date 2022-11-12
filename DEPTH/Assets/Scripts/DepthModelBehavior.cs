@@ -63,7 +63,7 @@ public class DepthONNX : IDisposable {
 	public readonly int ModelTypeVal;
 
 	private RenderTexture _input;
-	private float[] _output;
+	private byte[] _output;
 	private int _width, _height;
 	private IWorker _engine;
 	private Model _model;
@@ -91,7 +91,7 @@ public class DepthONNX : IDisposable {
 		AllocateObjects();
 	}
 
-	public float[] Run(Texture inputTexture, out int x, out int y) {
+	public byte[] Run(Texture inputTexture, out int x, out int y) {
 		x = _width;
 		y = _height;
 
@@ -105,7 +105,8 @@ public class DepthONNX : IDisposable {
 
 		RunModel(_input);
 		
-		return (float[]) _output.Clone();
+		//return (float[]) _output.Clone(); //TODO: no reason to .Clone() anymore. also quantitize to (byte) x*255
+		return _output;
 	}
 
 	private void OnDestroy() => DeallocateObjects();
@@ -131,7 +132,7 @@ public class DepthONNX : IDisposable {
 			_height = _model.inputs[0].shape[2];
 		#endif
 
-		_output = new float[_width*_height];
+		_output = new byte[_width*_height];
 	}
 
 	/// Allocates the necessary RenderTexture objects.
@@ -183,6 +184,6 @@ public class DepthONNX : IDisposable {
 
 		//Rotate 90 degrees & Normalize
 		for (int i = 0; i < output.Length; i++) 
-			_output[(i%_width)*_width + (i/_width)] = (output[i] - min) / (max - min); //col*_width + row
+			_output[(i%_width)*_width + (i/_width)] = (byte) ((output[i] - min) / (max - min) * (255)); //col*_width + row
 	}
 }
