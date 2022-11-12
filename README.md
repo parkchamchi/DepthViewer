@@ -7,8 +7,6 @@ Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D 
 
 ## Examples
 
-### NOTE
-
 | Original input (resized) | v2.1 small (built in) | Src |
 | --- | --- | --- |
 | ![landscape_orig](./examples/landscape_orig.jpg) | ![landscape_small](./examples/landscape_100.jpg) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
