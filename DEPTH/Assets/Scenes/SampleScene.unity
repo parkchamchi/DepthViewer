@@ -10116,7 +10116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1391802855
 Transform:
   m_ObjectHideFlags: 0
@@ -15714,6 +15714,7 @@ MonoBehaviour:
   DepthFilePanel: {fileID: 497387996}
   DepthFileCompareText: {fileID: 1729033237}
   IsVideoToggle: {fileID: 86809324}
+  CallPythonObjectParent: {fileID: 1391802854}
 --- !u!4 &2128267914
 Transform:
   m_ObjectHideFlags: 0

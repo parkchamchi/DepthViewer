@@ -61,6 +61,7 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
+	public GameObject CallPythonObjectParent; //Only visible when the hashval is set
 	private string _pythonPath = "python";
 	public string PythonPath {set {_pythonPath = value;}}
 
@@ -384,6 +385,9 @@ public class MainBehavior : MonoBehaviour {
 		_x = _y = _orig_width = _orig_height = 0;
 		DepthFilePanel.SetActive(false);
 
+		if (CallPythonObjectParent != null)
+			CallPythonObjectParent.SetActive(false);
+
 		_shouldUpdateArchive = false;
 		_hasCreatedArchive = false;
 		OutputSaveText.text = "";
@@ -427,6 +431,9 @@ public class MainBehavior : MonoBehaviour {
 				StatusText.text = "Hashing.";
 				_hashval = Utils.GetHashval(filepath);
 				StatusText.text = "Hashed.";
+
+				if (CallPythonObjectParent != null)
+					CallPythonObjectParent.SetActive(true);
 			}
 		}
 

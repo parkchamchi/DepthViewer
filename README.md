@@ -8,14 +8,15 @@ Using [MiDaS Deep Learning Model](https://github.com/isl-org/MiDaS), renders 2D 
 ## Examples
 
 ### NOTE
-Examples below are outdated and inaccurate. Please check my [Youtube channel](https://www.youtube.com/channel/UC5Y-dNipzBQOgA-r5PeAOjw) where I upload examples as 360 VR videos.
+
+| Original input (resized) | v2.1 small (built in) | Src |
+| --- | --- | --- |
+| ![landscape_orig](./examples/landscape_orig.jpg) | ![landscape_small](./examples/landscape_100.jpg) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
+| ![mounts_orig](./examples/mounts_orig.jpg) | ![boat_small](./examples/mounts_100.jpg) | [#](https://pixnio.com/media/lake-dark-blue-glacier-mountain-peak-landscape) |
 
 | Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
 | --- | --- | --- | --- |
-| ![landscape_orig](./examples/landscape_orig.jpg) | ![landscape_small](./examples/landscape_small.jpg) | ![landscape_large](./examples/landscape_large.jpg) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
-| ![boat_orig](./examples/boat_orig.jpg) | ![boat_small](./examples/boat_small.jpg) | ![boat_large](./examples/boat_large.jpg) | [#](https://commons.wikimedia.org/wiki/File:Escale_%C3%A0_S%C3%A8te_2022_D.jpg) |
-| ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_small.gif) | ![cat_large](./examples/cat_large.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_kneading_blanket.gk.webm) |
-Note: Angles are not identical.
+| ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_100.gif) | ![cat_large](./examples/cat_400.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_kneading_blanket.gk.webm) |
 
 ## Models
 The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/releases/tag/v2_1), which is ideal for real-time rendering.
@@ -23,7 +24,7 @@ The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/
 ### Calling python (optional)
 The [MiDaS v3 DPT models](https://github.com/isl-org/MiDaS), which is exceptionally accurate, hasn't been released as ONNX model that can be used with Unity's Barracuda.
 The `Call Python` buttons will call python subprocess and process it with pytorch. 
-For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS should be installed manually, for that check [MiDaS github page](https://github.com/isl-org/MiDaS). 
+For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS and `depth.py` should be installed manually, for that check [MiDaS github page](https://github.com/isl-org/MiDaS). 
 For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/MiDaS#setup) has to be in `depthpy/weights` directory.
 
 ## Inputs
