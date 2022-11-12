@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class OptionsBehavior : MonoBehaviour {
-	public GameObject Panel;
+	public GameObject ScrollView;
 
 	void Start() {
-		Panel.SetActive(false);
+		ScrollView.SetActive(false);
 	}
 
 	public void TogglePanel() {
-		Panel.SetActive(!Panel.activeSelf);
+		ScrollView.SetActive(!ScrollView.activeSelf);
 	}
 }

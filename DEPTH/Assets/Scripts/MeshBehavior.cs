@@ -33,7 +33,7 @@ public class MeshBehavior : MonoBehaviour {
 	public float Alpha {
 		set {
 			if (value <= 0) {
-				Debug.LogError($"Got negative alpha {value}.");
+				//Debug.LogError($"Got negative alpha {value}.");
 				return;
 			}
 			_alpha = value;
@@ -46,7 +46,7 @@ public class MeshBehavior : MonoBehaviour {
 	public float Beta {
 		set {
 			if (value <= 0) {
-				Debug.LogError($"Got negative beta {value}.");
+				//Debug.LogError($"Got negative beta {value}.");
 				return;
 			}
 			_beta = value;
