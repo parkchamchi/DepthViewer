@@ -829,6 +829,18 @@ public class MainBehavior : MonoBehaviour {
 	public void GetBuiltInModel() {
 		_donnx = _depthModelBehav.GetBuiltIn();
 	}
+
+	public void PausePlayVideo() {
+		if (_currentFileType != FileTypes.Vid) return;
+		if (_vp == null) return;
+
+		if (_vp.isPaused) {
+			_vp.Play();
+		}
+		else {
+			_vp.Pause();
+		}
+	}
 	
 	private void OnVideoError(VideoPlayer vp, string message) {
 		FilepathResultText.text = "Failed to load video: " + message;
