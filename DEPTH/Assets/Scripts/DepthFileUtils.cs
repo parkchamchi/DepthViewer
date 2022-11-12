@@ -10,8 +10,21 @@ using UnityEngine;
 
 public static class DepthFileUtils {
 	public const string Version = "v0.5.3-beta";
-	public static readonly string DefaultDepthDir;
+	
 	public const string DepthExt = ".depthviewer";
+
+	private static string _depthdir;
+	public static string DepthDir {
+		set {
+			_depthdir = value;
+			Utils.CreateDirectory(_depthdir);
+		}
+		get {
+			return _depthdir;
+		}
+	}
+
+	private static readonly string _defaultDepthDir;
 
 	private static ZipArchive _archive;
 	private static ZipArchiveMode _archiveMode;
@@ -28,11 +41,6 @@ public static class DepthFileUtils {
 		MiDasV21 = 200,
 		MidasV3DptHybrid = 300,
 		MidasV3DptLarge = 400,
-	}
-
-	static DepthFileUtils() {
-		DefaultDepthDir = Application.persistentDataPath + "/depths";
-		Utils.CreateDirectory(DefaultDepthDir);
 	}
 
 	public static void Dispose() {
@@ -108,7 +116,7 @@ public static class DepthFileUtils {
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
 			output_filepath = $"{model_type_val}.{hashval}{DepthExt}";
 
-		output_filepath = DefaultDepthDir + '/' + output_filepath;
+		output_filepath = _depthdir + '/' + output_filepath;
 
 		return output_filepath;
 	}
@@ -166,7 +174,7 @@ public static class DepthFileUtils {
 
 		if (hashval == null) return null;
 
-		foreach (string filename in Directory.GetFiles(DefaultDepthDir))
+		foreach (string filename in Directory.GetFiles(_depthdir))
 			if (filename.EndsWith($"{hashval}{DepthExt}")) {
 				string[] tokens = Path.GetFileName(filename).Split('.');
 				int modelTypeVal = int.Parse(tokens[tokens.Length-3]);

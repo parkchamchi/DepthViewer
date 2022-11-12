@@ -1186,7 +1186,7 @@ GameObject:
   - component: {fileID: 1489334033260391274}
   - component: {fileID: 2903073829774980351}
   m_Layer: 0
-  m_Name: StatusText
+  m_Name: ParamMinMaxStatusText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

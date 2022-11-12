@@ -45,6 +45,25 @@ public class MainBehavior : MonoBehaviour {
 
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 
+	private string _savedir;
+	public string SaveDir {
+		set {
+			if (!Directory.Exists(value)) {
+				Debug.LogError("Invalid directory: " + value);
+				return;
+			}
+			
+			_savedir = value;
+			DepthFileUtils.DepthDir = $"{_savedir}/depths";
+		}
+		get {
+			return _savedir;
+		}
+	}
+
+	private string _pythonPath = "python";
+	public string PythonPath {set {_pythonPath = value;}}
+
 	public enum FileTypes {
 		NotExists, 
 		Dir,
@@ -111,6 +130,8 @@ public class MainBehavior : MonoBehaviour {
 		GetBuiltInModel();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
+
+		SaveDir = Application.persistentDataPath;
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		_vp.frameReady += OnFrameReady;
@@ -602,7 +623,7 @@ public class MainBehavior : MonoBehaviour {
 		string modelTypeVal = _metadata["model_type_val"];
 		DepthFileCompareText.text += $"Model type val: {modelTypeVal}\n";
 
-		_recordPath = $"{Application.persistentDataPath}/recordings/{Utils.GetTimestamp()}";
+		_recordPath = $"{SaveDir}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
 	
 		if (ftype == FileTypes.Vid) {
@@ -835,7 +856,6 @@ public class MainBehavior : MonoBehaviour {
 		if (_currentFileType != FileTypes.Img && _currentFileType != FileTypes.Vid)
 			return;
 
-		const string pythonPath = @"python"; //todo: change
 		const string pythonTarget = @"./depthpy/depth.py";
 
 		string isImage = (_currentFileType == FileTypes.Img) ? " -i " : " ";
@@ -845,7 +865,7 @@ public class MainBehavior : MonoBehaviour {
 
 		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
 
-		System.Diagnostics.Process.Start(pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
+		System.Diagnostics.Process.Start(_pythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
 	public void HideUI() {
@@ -901,7 +921,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void OpenOutputFolder() {
-		Application.OpenURL(Application.persistentDataPath);
+		Application.OpenURL(_savedir);
 	}
 
 /* Implementations of BrowseFiles() */
@@ -1001,6 +1021,15 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 #endif
+
+	public void SetVideoSpeed(float mult) {
+		if (_vp == null) {
+			Debug.LogError("SetVideoSpeed() called when _vp == null");
+			return;
+		}
+
+		_vp.playbackSpeed = mult;
+	}
 
 	public void ShowAboutScreen() {
 		AboutScreen.SetActive(true);
