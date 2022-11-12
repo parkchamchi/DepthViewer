@@ -105,7 +105,8 @@ public class DepthONNX : IDisposable {
 
 		RunModel(_input);
 		
-		return (float[]) _output.Clone();
+		//return (float[]) _output.Clone();
+		return _output;
 	}
 
 	private void OnDestroy() => DeallocateObjects();
