@@ -273,7 +273,7 @@ public class MainBehavior : MonoBehaviour {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
-		byte[] depths = null;
+		float[] depths = null;
 		
 		//If depth file exists, try to read from it
 		if (_depthFilePath != null)
@@ -496,7 +496,7 @@ public class MainBehavior : MonoBehaviour {
 		_startFrame = 0;
 
 		int modelTypeVal = -1;
-		byte[] depths;
+		float[] depths;
 
 		//Check if the file was processed
 		if (_searchCache)
@@ -656,7 +656,7 @@ public class MainBehavior : MonoBehaviour {
 			_orig_height = texture.height;
 			_framecount = 1;
 
-			byte[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
+			float[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 			_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 			DepthFilePanel.SetActive(true);
@@ -798,7 +798,7 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_donnx == null) return;
 
-		byte[] depths = _donnx.Run(texture, out _x, out _y);
+		float[] depths = _donnx.Run(texture, out _x, out _y);
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 

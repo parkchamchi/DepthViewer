@@ -121,7 +121,7 @@ public static class DepthFileUtils {
 		return output_filepath;
 	}
 
-	public static void UpdateDepthFile(byte[] depths, long frame, int x, int y) {
+	public static void UpdateDepthFile(float[] depths, long frame, int x, int y) {
 		if (x*y == 0 || depths == null) return;
 
 		if (frame >= _framecount) {
@@ -212,12 +212,16 @@ public static class DepthFileUtils {
 		return metadata;
 	}
 
-	public static byte[] WritePGM(byte[] depths, int x, int y) {
+	public static byte[] WritePGM(float[] depths, int x, int y) {
 		byte[] header = Encoding.ASCII.GetBytes($"P5\n{x} {y} 255\n");
 
-		byte[] pgm = new byte[header.Length + depths.Length];
+		byte[] content = new byte[depths.Length];
+		for (int i = 0; i < content.Length; i++)
+			content[i] = (byte) (depths[i] * 255);
+
+		byte[] pgm = new byte[header.Length + content.Length];
 		header.CopyTo(pgm, 0);
-		depths.CopyTo(pgm, header.Length);
+		content.CopyTo(pgm, header.Length);
 
 		return pgm;
 	}
@@ -308,7 +312,7 @@ public static class DepthFileUtils {
 		return _isFull;
 	}
 
-	public static byte[] ReadFromArchive(long frame, out int x, out int y) {
+	public static float[] ReadFromArchive(long frame, out int x, out int y) {
 		x = y = 0;
 
 		if (_archive == null) {
@@ -326,7 +330,7 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		byte[] depths = ReadPGM(pgm, out x, out y);
+		float[] depths = ReadPGM(pgm, out x, out y);
 		return depths;
 	}
 
@@ -353,7 +357,7 @@ public static class DepthFileUtils {
 		return ReadPGM(pgm, out _, out _);
 	}*/
 
-	public static byte[] ReadPGM(byte[] pgm, out int x, out int y) {
+	public static float[] ReadPGM(byte[] pgm, out int x, out int y) {
 		int idx = 0;
 		int width = 0, height = 0, maxval = 0;
 		x = y = 0;
@@ -391,10 +395,6 @@ public static class DepthFileUtils {
 			maxval *= 10;
 			maxval += pgm[idx] - '0';
 		}
-		if (maxval != 255) {
-			Debug.Log($"Invalid maxval {maxval}");
-			return null;
-		}
 		
 		//Skip a single whitespace
 		if (!IsSpace(pgm[idx++])) {
@@ -405,10 +405,9 @@ public static class DepthFileUtils {
 		if (width*height != pgm.Length-idx)
 			Debug.LogWarningFormat("PGM: {0}x{1} = {2} does not match remaining {3} bytes", width, height, width*height, pgm.Length-idx);
 
-		byte[] depths = new byte[width*height];
-		for (int j = 0; j < depths.Length; j++) //TODO: there should be a better way for this
-			depths[j] = pgm[idx++];
-		//pgm.CopyTo(depths, idx);
+		float[] depths = new float[width*height];
+		for (int j = 0; j < depths.Length; j++)
+			depths[j] = (float) pgm[idx++] / maxval;
 
 		x = width;
 		y = height;

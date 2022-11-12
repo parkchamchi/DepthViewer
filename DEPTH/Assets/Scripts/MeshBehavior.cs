@@ -11,7 +11,7 @@ public class MeshBehavior : MonoBehaviour {
 	private	int[] _triangles;
 	private Material _material;
 
-	private byte[] _depths; //for UpdateDepth()
+	private float[] _depths; //for UpdateDepth()
 
 	private float _width = 320; //canvas size
 	private float _height = 180;
@@ -172,13 +172,13 @@ public class MeshBehavior : MonoBehaviour {
 		_ratio = ratio;
 	}
 
-	private void SetDepth(byte[] depths) {
+	private void SetDepth(float[] depths) {
 		if (depths.Length != _x*_y) {
 			Debug.LogError("depths.Length " + depths.Length + " does not match _x*_y " + _x*_y + " .");
 			return;
 		}
 
-		_depths = depths; //depth should not change elsewhere! (for images)
+		_depths = depths; //depth should not change elsewhere! (especially for images)
 
 		UpdateDepth();
 	}
@@ -186,8 +186,7 @@ public class MeshBehavior : MonoBehaviour {
 	private void UpdateDepth() {
 		/* Also called when a image is being shown and depthmult is updated */
 		/*
-		`_depths` are normalized to [0, ..., 255]
-		Divdide it by 255 -> [0, ..., 1]
+		`_depths` are normalized to [0, ..., 1]
 		MiDaS returns inverse depth, so let k be
 		1 / (a*x + b)
 		where a > 0, b > 0.
@@ -200,15 +199,14 @@ public class MeshBehavior : MonoBehaviour {
 		if (_vertices == null || _depths == null) return;
 
 		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
-			float z = (float) _depths[i] / 255; //normalize to [0, ..., 1]
-			z = (1 / (_alpha * z + _beta)); //inverse
+			float z = (1 / (_alpha * _depths[i] + _beta)); //inverse
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
 			_vertices[i].z = z * _depthMult;
 		}
 		_mesh.vertices = _vertices;
 	}
 
-	public void SetScene(byte[] depths, int x, int y, float ratio, Texture texture=null) {
+	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
 		if (x*y != depths.Length) {
 			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
 			return;
