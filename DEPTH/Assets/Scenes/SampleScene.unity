@@ -8264,6 +8264,8 @@ GameObject:
   - component: {fileID: 1127676004}
   - component: {fileID: 1127676006}
   - component: {fileID: 1127676005}
+  - component: {fileID: 1127676008}
+  - component: {fileID: 1127676007}
   m_Layer: 0
   m_Name: PythonSettings
   m_TagString: Untagged
@@ -8331,6 +8333,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1127676003}
   m_CullTransparentMesh: 1
+--- !u!114 &1127676007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1127676003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b41cf20ba847104faa4f8520bca10c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1127676008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1127676003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78a172d2980add648a3687630b998212, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!20 &1136667809 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 20092747195267750, guid: 54a613ba6e982e84db04156af08d6a89, type: 3}
@@ -15199,6 +15225,7 @@ GameObject:
   - component: {fileID: 2067309504}
   - component: {fileID: 2067309506}
   - component: {fileID: 2067309505}
+  - component: {fileID: 2067309507}
   m_Layer: 0
   m_Name: DirectorySettings
   m_TagString: Untagged
@@ -15266,6 +15293,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2067309503}
   m_CullTransparentMesh: 1
+--- !u!114 &2067309507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2067309503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78a172d2980add648a3687630b998212, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2071150759
 GameObject:
   m_ObjectHideFlags: 0
