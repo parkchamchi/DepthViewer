@@ -23,7 +23,10 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Text MeshXStatusText;
 
 	public TMP_InputField MeshYInputField;
-	public TMP_Text MeshYStatusText;	
+	public TMP_Text MeshYStatusText;
+
+	public TMP_InputField LightInputField;
+	public TMP_Text LightStatusText;
 
 	private MainBehavior _mainBehav;
 
@@ -80,7 +83,7 @@ public class OptionsBehavior : MonoBehaviour {
 		try {
 			val = float.Parse(MeshXInputField.text);
 		} catch (System.FormatException) {
-			MeshXInputField.text = "!";
+			MeshXStatusText.text = "!";
 			return;
 		}
 
@@ -94,11 +97,25 @@ public class OptionsBehavior : MonoBehaviour {
 		try {
 			val = float.Parse(MeshYInputField.text);
 		} catch (System.FormatException) {
-			MeshYInputField.text = "!";
+			MeshYStatusText.text = "!";
 			return;
 		}
 
 		_mainBehav.SetMeshY(val);
-		MeshXStatusText.text = "O";
+		MeshYStatusText.text = "O";
+	}
+
+	public void SetLightIntesity() {
+		float val;
+
+		try {
+			val = float.Parse(LightInputField.text);
+		} catch (System.FormatException) {
+			LightStatusText.text = "!";
+			return;
+		}
+
+		_mainBehav.SetLightIntensity(val);
+		LightStatusText.text = "O";
 	}
 }

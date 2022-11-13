@@ -35,9 +35,9 @@ For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for M
 `python depth.py -h` <br>
 and see if it prints the manual without any error.
 6. Get `dpt_hybrid` and `dpt_large` models from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
-7. Place any image in the `depthpy` directory, rename it `test.jpg` (or `test.png`) and run <br>
+7. Place any image in the `depthpy` directory, rename it to `test.jpg` (or `test.png`) and run <br>
 `python depth.py test.jpg out.zip -i` <br>
-See if it generates a output. Also check if `depth.py` is using CUDA by checking `devive: cuda` line.
+See if it generates an output. Also check if `depth.py` is using CUDA by checking `devive: cuda` line.
 
 ## Inputs
 - Right mouse key: hides the UI.

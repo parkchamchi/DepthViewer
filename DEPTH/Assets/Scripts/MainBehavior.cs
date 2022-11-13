@@ -47,6 +47,8 @@ public class MainBehavior : MonoBehaviour {
 
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 
+	public Light MainLight;
+
 	private string _savedir;
 	public string SaveDir {
 		set {
@@ -1059,6 +1061,9 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetMeshY(float val) =>
 		_meshBehav.MeshY = val;
+
+	public void SetLightIntensity(float val) =>
+		MainLight.intensity = val;
 
 	public void RecenterVR() {
 		/* Does not work */
