@@ -907,6 +907,8 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.Scale = ScaleSlider.value;
 
 	public void ToDefault() {
+		//Will not reset MeshX, MeshY
+
 		DepthMultSlider.value = MeshBehavior.DefaultDepthMult;
 		AlphaSlider.value = MeshBehavior.DefaultAlpha;
 		BetaSlider.value = MeshBehavior.DefaultBeta;
@@ -1049,6 +1051,12 @@ public class MainBehavior : MonoBehaviour {
 
 		_vp.playbackSpeed = mult;
 	}
+
+	public void SetMeshX(float val) =>
+		_meshBehav.MeshX = val;
+
+	public void SetMeshY(float val) =>
+		_meshBehav.MeshY = val;
 
 	public void ShowAboutScreen() {
 		AboutScreen.SetActive(true);

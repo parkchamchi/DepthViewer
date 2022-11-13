@@ -24,6 +24,8 @@ public class MeshBehavior : MonoBehaviour {
 	private float _rotateSpeed = 75f;
 
 	private float _defaultZ;
+	private float _defaultX;
+	private float _defaultY;
 
 	private bool _shouldUpdateDepth = false;
 	public bool ShouldUpdateDepth {set {_shouldUpdateDepth = value;}} //Depth has to be updated when an image is being shown
@@ -65,9 +67,17 @@ public class MeshBehavior : MonoBehaviour {
 
 	public const float DefaultMeshLoc = 0f;
 	public float MeshLoc {
-		set {
-			transform.position = new Vector3(0, 0, _defaultZ - value);
-		}
+		set {transform.position = new Vector3(transform.position.x, transform.position.y, _defaultZ - value);}
+	}
+
+	public const float DefaultMeshX = 0f;
+	public float MeshX {
+		set {transform.position = new Vector3(_defaultX - value, transform.position.y, transform.position.z);}
+	}
+
+	public const float DefaultMeshY = 0f;
+	public float MeshY {
+		set {transform.position = new Vector3(transform.position.x, _defaultY - value, transform.position.z);}
 	}
 
 	public const float DefaultScale = 1f;
@@ -78,6 +88,8 @@ public class MeshBehavior : MonoBehaviour {
 	}
 
 	/*private void ToDefault() {
+		//Does not reset MeshX, MeshY
+
 		Alpha = DefaultAlpha;
 		Beta = DefaultBeta;
 		DepthMult = DefaultDepthMult;
@@ -94,6 +106,8 @@ public class MeshBehavior : MonoBehaviour {
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
 
 		_defaultZ = transform.position.z;
+		_defaultX = transform.position.x;
+		_defaultY = transform.position.y;
 	}
 
 	void Update() {

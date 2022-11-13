@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using TMPro;
 
 public class OptionsBehavior : MonoBehaviour {
+	//TODO: codes below are quite redundant, make a seperate script to attach to each options & make them emit events or something
+
 	public GameObject ScrollView;
 
 	public TMP_InputField SpeedMultInputField;
@@ -16,6 +18,12 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Text OutputDirStatusText;
 
 	public TMP_InputField PythonPathInputField;
+
+	public TMP_InputField MeshXInputField;
+	public TMP_Text MeshXStatusText;
+
+	public TMP_InputField MeshYInputField;
+	public TMP_Text MeshYStatusText;	
 
 	private MainBehavior _mainBehav;
 
@@ -28,6 +36,7 @@ public class OptionsBehavior : MonoBehaviour {
 	public void TogglePanel() {
 		ScrollView.SetActive(!ScrollView.activeSelf);
 	}
+
 
 	public void SetVideoSpeed() {
 		float mult;
@@ -63,5 +72,33 @@ public class OptionsBehavior : MonoBehaviour {
 	public void SetPythonPath() {
 		string pythonpath = PythonPathInputField.text;
 		_mainBehav.PythonPath = pythonpath;
+	}
+
+	public void SetMeshX() {
+		float val;
+
+		try {
+			val = float.Parse(MeshXInputField.text);
+		} catch (System.FormatException) {
+			MeshXInputField.text = "!";
+			return;
+		}
+
+		_mainBehav.SetMeshX(val);
+		MeshXStatusText.text = "O";
+	}
+
+	public void SetMeshY() {
+		float val;
+
+		try {
+			val = float.Parse(MeshYInputField.text);
+		} catch (System.FormatException) {
+			MeshYInputField.text = "!";
+			return;
+		}
+
+		_mainBehav.SetMeshY(val);
+		MeshXStatusText.text = "O";
 	}
 }
