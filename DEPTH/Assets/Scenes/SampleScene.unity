@@ -15093,7 +15093,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4522654491681577886, guid: 6c17d8266d51ebe4790a0b51498a65eb, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 2.4708
+      value: 2.4707947
       objectReference: {fileID: 0}
     - target: {fileID: 4522654491681577886, guid: 6c17d8266d51ebe4790a0b51498a65eb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -16853,7 +16853,7 @@ MonoBehaviour:
   DepthFilePanel: {fileID: 497387996}
   DepthFileCompareText: {fileID: 1729033237}
   IsVideoToggle: {fileID: 86809324}
-  MainLight: {fileID: 0}
+  MainLight: {fileID: 705507994}
   CallPythonObjectParent: {fileID: 1391802854}
 --- !u!4 &2128267914
 Transform:
