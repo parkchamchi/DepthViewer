@@ -22,8 +22,22 @@ The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/
 ### Calling python (optional)
 The [MiDaS v3 DPT models](https://github.com/isl-org/MiDaS), which is exceptionally accurate, hasn't been released as ONNX model that can be used with Unity's Barracuda.
 The `Call Python` buttons will call python subprocess and process it with pytorch. 
-For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS and `depth.py` should be installed manually, for that check [MiDaS github page](https://github.com/isl-org/MiDaS). 
-For this [dpt_hybrid and dpt_large .pt model files](https://github.com/isl-org/MiDaS#setup) has to be in `depthpy/weights` directory.
+For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS and `depth.py` should be installed manually, for that also check the [MiDaS github page](https://github.com/isl-org/MiDaS). 
+
+1. Install Python3. The version I use is `3.9.6`. By default the program calls `python`, assuming it is on PATH. This can be changed in the options menu.
+2. Install OpenCV and Numpy. <br>
+`pip install opencv-python numpy`
+3. Install Pytorch that matches your environment from [here](https://pytorch.org/get-started/locally/). For me (win64 cuda11.7) it is <br>
+`pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu117`
+4. Install [timm](https://pypi.org/project/timm/) for MiDaS. <br>
+`pip install timm`
+5. Go to the directory `depthpy` and run <br>
+`python depth.py -h` <br>
+and see if it prints the manual without any error.
+6. Get `dpt_hybrid` and `dpt_large` models from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
+7. Place any image in the `depthpy` directory, rename it `test.jpg` (or `test.png`) and run <br>
+`python depth.py test.jpg out.zip -i` <br>
+See if it generates a output. Also check if `depth.py` is using CUDA by checking `devive: cuda` line.
 
 ## Inputs
 - Right mouse key: hides the UI.
