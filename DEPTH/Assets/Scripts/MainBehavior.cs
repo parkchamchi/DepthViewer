@@ -8,6 +8,8 @@ using SFB;
 using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using UnityEngine.XR;
+using UnityEngine.XR.Management;
 using TMPro;
 
 #if UNITY_WEBGL
@@ -1057,6 +1059,16 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetMeshY(float val) =>
 		_meshBehav.MeshY = val;
+
+	public void RecenterVR() {
+		/* Does not work */
+		//UnityEngine.XR.InputTracking.Recenter();
+		var xrss = XRGeneralSettings.Instance?.Manager?.activeLoader?.GetLoadedSubsystem<XRInputSubsystem>();
+		if (xrss == null) return;
+
+		xrss.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device);
+		xrss.TryRecenter();
+	}
 
 	public void ShowAboutScreen() {
 		AboutScreen.SetActive(true);
