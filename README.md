@@ -55,7 +55,7 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Rendering the desktop is only supported in Windows for now.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 - Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
-- Steam & Play Store release soon :)
+- [Now on Play Store!](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer) Steam Release soon!!!!!!!!
 
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .jpg file will be generated in `Application.persistentDataPath`. \
