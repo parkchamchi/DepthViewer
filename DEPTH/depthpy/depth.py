@@ -333,7 +333,7 @@ version={version}
 			yield self.as_input(frame)
 
 		cap.release()
-		cv2.destroyAllWindows()
+		#cv2.destroyAllWindows()
 
 		if buffer:
 			buffer.close()
@@ -361,49 +361,49 @@ version={version}
 #######################
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-
-	parser.add_argument('input',
-		help='input file'
-	)
-
-	parser.add_argument("output",
-		help="Output path & filename",
-	)
-
-	parser.add_argument("-i", "--image",
-		help="Assume an image input.",
-		action="store_true"
-	)
-
-	parser.add_argument('-t', '--model_type',
-		default="MidasV3DptLarge",
-		help="model type",
-		choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MiDasV21", "MidasV21Small"]
-	)
-
-	parser.add_argument("--zip_in_memory",
-		help="Whether zip the file in RAM and dump on the disk only after it finishes.",
-		action="store_true"
-	)
-
-	parser.add_argument("--noupdate",
-		help="Replace existing file.",
-		action="store_true"
-	)
-
-	args = parser.parse_args()
-
-	print(f"input: {args.input}")
-	print(f"output: {args.output}")
-
-	if not args.noupdate and args.image and os.path.exists(args.output):
-		print("Image: already exists.")
-		exit(0)
-
-	runner = Runner()
-
 	try:
+		parser = argparse.ArgumentParser()
+
+		parser.add_argument('input',
+			help='input file'
+		)
+
+		parser.add_argument("output",
+			help="Output path & filename",
+		)
+
+		parser.add_argument("-i", "--image",
+			help="Assume an image input.",
+			action="store_true"
+		)
+
+		parser.add_argument('-t', '--model_type',
+			default="MidasV3DptLarge",
+			help="model type",
+			choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MiDasV21", "MidasV21Small"]
+		)
+
+		parser.add_argument("--zip_in_memory",
+			help="Whether zip the file in RAM and dump on the disk only after it finishes.",
+			action="store_true"
+		)
+
+		parser.add_argument("--noupdate",
+			help="Replace existing file.",
+			action="store_true"
+		)
+
+		args = parser.parse_args()
+
+		print(f"input: {args.input}")
+		print(f"output: {args.output}")
+
+		if not args.noupdate and args.image and os.path.exists(args.output):
+			print("Image: already exists.")
+			exit(0)
+
+		runner = Runner()
+
 		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
 		print("Done.")
