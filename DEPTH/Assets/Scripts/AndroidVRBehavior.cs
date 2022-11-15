@@ -39,8 +39,8 @@ public class AndroidVRBehavior : MonoBehaviour {
 	private float _defaultFOV; //fov of non-vr camera
 
 	private bool _isVrModeEnabled {
-        get {return XRGeneralSettings.Instance.Manager.isInitializationComplete;}
-    }
+		get {return XRGeneralSettings.Instance.Manager.isInitializationComplete;}
+	}
 
 	void Start() {
 		_mainCamera = Camera.main;
@@ -51,41 +51,41 @@ public class AndroidVRBehavior : MonoBehaviour {
 
 	void Update() {
 		if (_isVrModeEnabled) {
-            if (Api.IsCloseButtonPressed)
-                ExitVR();
+			if (Api.IsCloseButtonPressed)
+				ExitVR();
 
-            if (Api.IsGearButtonPressed)
-                Api.ScanDeviceParams();
+			if (Api.IsGearButtonPressed)
+				Api.ScanDeviceParams();
 
-            Api.UpdateScreenParams();
-        }
+			Api.UpdateScreenParams();
+		}
 	}
 
 	public void EnterVR() {
-        StartCoroutine(StartXR());
-        if (Api.HasNewDeviceParams()) {
-            Api.ReloadDeviceParams();
-        }
-    }
+		StartCoroutine(StartXR());
+		if (Api.HasNewDeviceParams()) {
+			Api.ReloadDeviceParams();
+		}
+	}
 
 	public void ExitVR() =>
 		StopXR();
 
 	private IEnumerator StartXR() {
-        Debug.Log("Initializing XR...");
-        yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+		Debug.Log("Initializing XR...");
+		yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
 
-        if (XRGeneralSettings.Instance.Manager.activeLoader == null) {
-            Debug.LogError("Initializing XR Failed.");
-        }
-        else {
-            Debug.Log("XR initialized.");
+		if (XRGeneralSettings.Instance.Manager.activeLoader == null) {
+			Debug.LogError("Initializing XR Failed.");
+		}
+		else {
+			Debug.Log("XR initialized.");
 
-            Debug.Log("Starting XR...");
-            XRGeneralSettings.Instance.Manager.StartSubsystems();
-            Debug.Log("XR started.");
-        }
-    }
+			Debug.Log("Starting XR...");
+			XRGeneralSettings.Instance.Manager.StartSubsystems();
+			Debug.Log("XR started.");
+		}
+	}
 
 	private void StopXR() {
 		Debug.Log("Stopping XR...");
