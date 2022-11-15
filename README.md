@@ -2,8 +2,11 @@
 ![vvvvvv3d](./examples/vvvvvv3d.jpg) \
 Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
-## WEB DEMO
-[WebGL Demo](https://parkchamchi.github.io/DepthViewer/)
+## Try Now
+- [WebGL Demo](https://parkchamchi.github.io/DepthViewer/)
+- [Releases](https://github.com/parkchamchi/DepthViewer/releases)
+- [Steam Page (Soon!)](https://store.steampowered.com/app/2218510/DepthViewer/)
+- [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
 
 ## Examples
 
@@ -55,7 +58,6 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Rendering the desktop is only supported in Windows for now.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 - Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
-- [Now on Play Store!](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer) Steam Release soon!!!!!!!!
 
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .jpg file will be generated in `Application.persistentDataPath`. \
