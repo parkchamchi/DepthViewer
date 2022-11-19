@@ -92,6 +92,10 @@ public class DepthONNX : IDisposable {
 	}
 
 	public float[] Run(Texture inputTexture, out int x, out int y) {
+		/*
+		Returns a private member (may change)
+		*/
+
 		x = _width;
 		y = _height;
 
@@ -105,7 +109,16 @@ public class DepthONNX : IDisposable {
 
 		RunModel(_input);
 		
-		return (float[]) _output.Clone();
+		//return (float[]) _output.Clone();
+		return _output;
+	}
+
+	public float[] RunAndClone(Texture inputTexture, out int x, out int y) {
+		/*
+		Returns a clone of the output
+		Not used
+		*/
+		return (float[]) RunAndClone(inputTexture, out x, out y).Clone();
 	}
 
 	private void OnDestroy() => DeallocateObjects();

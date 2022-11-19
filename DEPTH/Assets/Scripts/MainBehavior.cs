@@ -297,8 +297,10 @@ public class MainBehavior : MonoBehaviour {
 			}
 
 			//Save it
-			if (_shouldUpdateArchive)
+			if (_shouldUpdateArchive) {
+				depths = (float[]) depths.Clone();
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, actualFrame, _x, _y)));
+			}
 
 			StatusText.text = "processed";
 		}
@@ -527,6 +529,7 @@ public class MainBehavior : MonoBehaviour {
 			if (_shouldUpdateArchive) {
 				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 
+				depths = (float[]) depths.Clone();
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
 				_hasCreatedArchive = true; //not needed
 			}
