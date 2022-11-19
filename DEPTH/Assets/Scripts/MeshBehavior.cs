@@ -87,6 +87,36 @@ public class MeshBehavior : MonoBehaviour {
 		}
 	}
 
+	//Threshold and TargetVal is set elsewhere from the start
+	private bool _isThresholdSet;
+	private float _threshold;
+	public float Threshold {
+		set {
+			if (value < 0 || value > 1) {
+				Debug.LogError($"Got invalid Threshold value {value}");
+				return;
+			}
+			_threshold = value;
+			_isThresholdSet = (_threshold != 0) ? true : false;
+
+			if (_shouldUpdateDepth) UpdateDepth();
+		}
+	}
+
+	private float _targetVal;
+	public float TargetVal {
+		get {return _targetVal;}
+		set {
+			if (value < 0 || value > 1) {
+				Debug.LogError($"Got invalid TargetVal value {value}");
+				return;
+			}
+			_targetVal = value;
+
+			if (_shouldUpdateDepth) UpdateDepth();
+		}
+	}
+
 	/*private void ToDefault() {
 		//Does not reset MeshX, MeshY
 
@@ -209,11 +239,18 @@ public class MeshBehavior : MonoBehaviour {
 		(k * (a + b) - 1) * b / a
 		This gives us [1, ..., 0], where 0 is the closest.
 		*/
+		/*
+		If the Threshold [0, ..., 1] is set (that is, nonzero), set all values below it as the TargetVal.
+		*/
 
 		if (_vertices == null || _depths == null) return;
 
 		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
-			float z = (1 / (_alpha * _depths[i] + _beta)); //inverse
+			float z = _depths[i];
+			if (_isThresholdSet && (z < _threshold))
+				z = _targetVal;
+
+			z = (1 / (_alpha * z + _beta)); //inverse
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
 			_vertices[i].z = z * _depthMult;
 		}
