@@ -464,13 +464,13 @@ public class MainBehavior : MonoBehaviour {
 			return FileTypes.Dir;
 
 		foreach (string ext in SupportedImgExts)
-			if (filepath.EndsWith(ext)) return FileTypes.Img;
+			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Img;
 
 		foreach (string ext in SupportedVidExts)
-			if (filepath.EndsWith(ext)) return FileTypes.Vid;
+			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Vid;
 
 		foreach (string ext in SupportedDepthExts)
-			if (filepath.EndsWith(ext)) return FileTypes.Depth;
+			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Depth;
 
 		return FileTypes.Unsupported;
 	}
