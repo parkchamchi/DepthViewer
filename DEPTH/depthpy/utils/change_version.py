@@ -31,7 +31,7 @@ for filename in tochanges:
 	idx = content.index(prev)
 	print(content[idx:idx+len(prev)])
 
-	content.replace(prev, new)
+	content = content.replace(prev, new)
 	with open(filename, "wt") as fout:
 		fout.write(content)
 
