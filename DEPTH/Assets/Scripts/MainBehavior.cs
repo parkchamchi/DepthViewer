@@ -45,6 +45,10 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
 
+	public GameObject BrowseDirPanel;
+	public TMP_Text BrowseDirText;
+	public Toggle BrowseDirRandomToggle;
+
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 
 	public Light MainLight;
@@ -120,6 +124,11 @@ public class MainBehavior : MonoBehaviour {
 	private bool _recording;
 	private bool _shouldCapture;
 	private string _recordPath;
+
+	private string[] _dirFilenames; //set by BrowseDir()
+	private int _dirFileIdx;
+	private bool _dirRandom;
+	private System.Random _random;
 
 #if UNITY_WEBGL
 	private string _webglImageExts; /* ".jpg .png ..." */
@@ -201,7 +210,10 @@ public class MainBehavior : MonoBehaviour {
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
 
-		if (_currentFileType == FileTypes.Vid && _vp != null)
+		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0)
+			SetBrowseDir(Input.mouseScrollDelta.y < 0);
+
+		else if (_currentFileType == FileTypes.Vid && _vp != null)
 			UpdateVideoDepth();	
 
 		else if (_currentFileType == FileTypes.Depth && _recording && _shouldCapture)
@@ -1048,6 +1060,76 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
+#endif
+
+	public void ToggleBrowseDirPanel() {
+		BrowseDirPanel.SetActive(!BrowseDirPanel.activeSelf);
+	}
+
+	public void ToggleBrowseDirRandom() {
+		_dirRandom = BrowseDirRandomToggle.isOn;
+	}
+
+	public void ClearBrowseDir() {
+		_dirFilenames = null;
+		BrowseDirText.text = "";
+	}
+
+	private void SetBrowseDir(bool next=true) {
+		if (_dirFilenames == null) {
+			Debug.LogError("SetBrowseDir() called when _dirFilenames == null");
+			return;
+		}
+		if (_dirFilenames.Length == 0)
+			return;
+
+		if (!_dirRandom) {
+			_dirFileIdx += (next) ? +1 : -1;
+			_dirFileIdx = (_dirFileIdx % _dirFilenames.Length);
+			if (_dirFileIdx < 0) _dirFileIdx += _dirFilenames.Length;
+		}
+		else
+			_dirFileIdx = _random.Next(0, _dirFilenames.Length);
+
+		string newfilename = _dirFilenames[_dirFileIdx];
+		FilepathInputField.text = newfilename;
+		SelectFile();
+	}
+
+/* Implementations of BrowseDirs() */
+#if UNITY_STANDALONE || UNITY_EDITOR
+	public void BrowseDirs() {
+		string[] dirnames = StandaloneFileBrowser.OpenFolderPanel("Select a directory", null, false);
+		if (dirnames.Length < 1)
+			return;
+		string dirname = dirnames[0];
+		BrowseDirText.text = dirname;
+
+		string[] supportedExts = new string[SupportedImgExts.Length+SupportedVidExts.Length];
+		SupportedImgExts.CopyTo(supportedExts, 0);
+		SupportedVidExts.CopyTo(supportedExts, SupportedImgExts.Length);
+
+		List<string> filenames_list = new List<string>();
+		foreach (string filename in Directory.GetFiles(dirname)) {
+			foreach (string ext in supportedExts) {
+				if (filename.ToLower().EndsWith(ext)) {
+					filenames_list.Add(filename);
+					break;
+				}
+			}
+		}
+
+		_dirFilenames = filenames_list.ToArray();
+		_dirFileIdx = 0;
+
+		if (_random == null)
+			_random = new System.Random();
+	}
+#else
+	public void BrowseDirs() {
+		Debug.LogError("Not implemented.");
+		return;
+	}
 #endif
 
 	public void SetVideoSpeed(float mult) {
