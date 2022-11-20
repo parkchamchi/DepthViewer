@@ -202,7 +202,7 @@ public class MainBehavior : MonoBehaviour {
 
 		FileBrowser.SetFilters(false, new FileBrowser.Filter("Image/Video/Depth Files", exts));
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        Screen.brightness = 1.0f;
+		Screen.brightness = 1.0f;
 #endif
 	}
 
