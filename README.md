@@ -9,7 +9,7 @@ Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 
 - [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
 
 ## Demonstration Video
-[![DemoVideo](img.youtube.com/vi/3ZDIcntVvQM/0.jpg)](https://www.youtube.com/watch?v=3ZDIcntVvQM)
+[![DemoVideo](https://img.youtube.com/vi/3ZDIcntVvQM/0.jpg)](https://www.youtube.com/watch?v=3ZDIcntVvQM)
 
 ## Examples
 
