@@ -19496,6 +19496,7 @@ MonoBehaviour:
   BrowseDirPanel: {fileID: 746753798}
   BrowseDirText: {fileID: 402104186}
   BrowseDirRandomToggle: {fileID: 2064043009}
+  OptionsScrollView: {fileID: 47606369}
   IsVideoToggle: {fileID: 86809324}
   MainLight: {fileID: 705507994}
   CallPythonObjectParent: {fileID: 1391802854}

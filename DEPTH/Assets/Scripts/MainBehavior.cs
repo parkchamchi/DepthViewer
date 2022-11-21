@@ -49,6 +49,8 @@ public class MainBehavior : MonoBehaviour {
 	public TMP_Text BrowseDirText;
 	public Toggle BrowseDirRandomToggle;
 
+	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
+
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 
 	public Light MainLight;
@@ -210,7 +212,7 @@ public class MainBehavior : MonoBehaviour {
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
 
-		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0)
+		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
 			SetBrowseDir(Input.mouseScrollDelta.y < 0);
 
 		else if (_currentFileType == FileTypes.Vid && _vp != null)
