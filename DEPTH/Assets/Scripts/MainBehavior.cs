@@ -1121,11 +1121,16 @@ public class MainBehavior : MonoBehaviour {
 			}
 		}
 
+		if (filenames_list.Count == 0)
+			return;
+
 		_dirFilenames = filenames_list.ToArray();
 		_dirFileIdx = 0;
 
-		if (_random == null)
+		if (_random == null) //TODO: to Start()
 			_random = new System.Random();
+
+		SetBrowseDir();
 	}
 #else
 	public void BrowseDirs() {
