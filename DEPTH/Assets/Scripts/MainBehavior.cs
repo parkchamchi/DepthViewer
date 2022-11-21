@@ -1105,8 +1105,7 @@ public class MainBehavior : MonoBehaviour {
 		if (dirnames.Length < 1)
 			return;
 		string dirname = dirnames[0];
-		BrowseDirText.text = dirname;
-
+		
 		string[] supportedExts = new string[SupportedImgExts.Length+SupportedVidExts.Length];
 		SupportedImgExts.CopyTo(supportedExts, 0);
 		SupportedVidExts.CopyTo(supportedExts, SupportedImgExts.Length);
@@ -1124,6 +1123,7 @@ public class MainBehavior : MonoBehaviour {
 		if (filenames_list.Count == 0)
 			return;
 
+		BrowseDirText.text = dirname;
 		_dirFilenames = filenames_list.ToArray();
 		_dirFileIdx = 0;
 
