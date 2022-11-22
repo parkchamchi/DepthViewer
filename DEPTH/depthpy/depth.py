@@ -53,31 +53,10 @@ class Runner():
 
 		self.framecount = 1 #for video
 
-	def run(self, inpath, outpath, isimage, model_type="MidasV3DptLarge", optimize=True, zip_in_memory=True, update=True) -> None:
-		"""Run MonoDepthNN to compute depth maps.
-
-		Args:
-			inpath (str): input file.
-			outpath (str): output directory.
-			isvideo (bool): whether the input is a video.
-			zip_in_memory (bool): If True, ZIP file will be created in the RAM until it finishes writing.
-		"""
-
-		print("Destination: {}".format(outpath))
+	def load_model(self, model_type="MidasV3DptLarge", optimize=True):
 		print("Loading model {}...".format(model_type))
-		
 		model_weight_path = os.path.join(self.model_path, self.default_models[model_type][0])
 		model_type_val = self.default_models[model_type][1]
-
-		if not os.path.exists(inpath):
-			print("ERROR: Could not find {}".format(inpath))
-			return
-
-		#Get the generator
-		if isimage:
-			inputs = self.read_image(inpath)
-		else:
-			inputs = self.read_video(inpath)
 
 		# load network
 		if model_type == "MidasV3DptLarge": # DPT-Large
@@ -115,7 +94,7 @@ class Runner():
 		else:
 			print(f"model_type '{model_type}' not implemented, use: --model_type large")
 			assert False
-		
+
 		transform = Compose(
 			[
 				Resize(
@@ -135,13 +114,43 @@ class Runner():
 		print("Loaded the model.")
 
 		model.eval()
-		
+
 		if optimize==True:
 			if self.device == torch.device("cuda"):
 				model = model.to(memory_format=torch.channels_last)  
 				model = model.half()
 
 		model.to(self.device)
+
+		self.model = model
+		self.transform = transform
+		self.optimize = optimize
+
+		self.model_type = model_type
+		self.model_type_val = model_type_val
+
+	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
+		"""Run MonoDepthNN to compute depth maps.
+
+		Args:
+			inpath (str): input file.
+			outpath (str): output directory.
+			isvideo (bool): whether the input is a video.
+			zip_in_memory (bool): If True, ZIP file will be created in the RAM until it finishes writing.
+		"""
+
+		print(f"Source: {inpath}")
+		print(f"Destination: {outpath}")
+		
+		if not os.path.exists(inpath):
+			print(f"ERROR: Could not find {inpath}")
+			return
+
+		#Get the generator
+		if isimage:
+			inputs = self.read_image(inpath)
+		else:
+			inputs = self.read_video(inpath)
 
 		#Prepare the zipfile
 		if zip_in_memory:
@@ -173,15 +182,15 @@ class Runner():
 				continue
 			
 			# input
-			img_input = transform({"image": img})["image"]
+			img_input = self.transform({"image": img})["image"]
 
 			# compute
 			with torch.no_grad():
 				sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
-				if optimize==True and self.device == torch.device("cuda"):
+				if self.optimize==True and self.device == torch.device("cuda"):
 					sample = sample.to(memory_format=torch.channels_last)  
 					sample = sample.half()
-				prediction = model.forward(sample)
+				prediction = self.model.forward(sample)
 				prediction = prediction.squeeze().cpu().numpy()
 
 			# output
@@ -212,6 +221,9 @@ class Runner():
 				timestamp = int(time.time())
 				version = VERSION
 				program = "depthpy"
+
+				model_type = self.model_type
+				model_type_val = self.model_type_val
 
 				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_type_val=model_type_val, 
 					original_name=original_name, original_width=original_width, original_height=original_height, timestamp=timestamp, program=program, version=version)
@@ -269,23 +281,22 @@ class Runner():
 
 	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, timestamp, program, version) -> str:
 
-		
-		metadata = (
-f"""DEPTHVIEWER
-hashval={hashval}
-framecount={framecount}
-startframe={startframe}
-width={width}
-height={height}
-model_type={model_type}
-model_type_val={model_type_val}
-original_name={original_name}
-original_width={original_width}
-original_height={original_height}
-timestamp={timestamp}
-program={program}
-version={version}
-""")
+		metadata = '\n'.join([
+			f"DEPTHVIEWER",
+			f"hashval={hashval}",
+			f"framecount={framecount}",
+			f"startframe={startframe}",
+			f"width={width}",
+			f"height={height}",
+			f"model_type={model_type}",
+			f"model_type_val={model_type_val}",
+			f"original_name={original_name}",
+			f"original_width={original_width}",
+			f"original_height={original_height}",
+			f"timestamp={timestamp}",
+			f"program={program}",
+			f"version={version}",
+		])
 		return metadata
 
 	def read_image(self, path):
@@ -403,14 +414,15 @@ if __name__ == "__main__":
 			exit(0)
 
 		runner = Runner()
+		runner.load_model(model_type=args.model_type)
 
-		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, model_type=args.model_type, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
+		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
 		print("Done.")
 	except Exception as exc:
 		print("EXCEPTION:")
 		traceback.print_exc()
 
-		print('*'*16)
+		print('*'*32)
 		print("PRESS ENTER TO CONTINUE.")
 		input()
