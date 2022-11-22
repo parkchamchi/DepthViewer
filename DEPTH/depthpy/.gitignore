@@ -9,6 +9,7 @@ weights
 *.jpg
 misc
 *.mp4
+__pycache__
 */__pycache__/
 *.bak
 /tmp

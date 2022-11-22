@@ -53,7 +53,12 @@ class Runner():
 
 		self.framecount = 1 #for video
 
+		self.optimize = self.model_type = None
+
 	def load_model(self, model_type="MidasV3DptLarge", optimize=True):
+		if self.model_type == model_type and self.optimize == optimize:
+			return
+
 		print("Loading model {}...".format(model_type))
 		model_weight_path = os.path.join(self.model_path, self.default_models[model_type][0])
 		model_type_val = self.default_models[model_type][1]
@@ -129,6 +134,24 @@ class Runner():
 		self.model_type = model_type
 		self.model_type_val = model_type_val
 
+	def run_frame(self, img):
+		# input
+		img_input = self.transform({"image": img})["image"]
+
+		# compute
+		with torch.no_grad():
+			sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
+			if self.optimize==True and self.device == torch.device("cuda"):
+				sample = sample.to(memory_format=torch.channels_last)  
+				sample = sample.half()
+			prediction = self.model.forward(sample)
+			prediction = prediction.squeeze().cpu().numpy()
+
+		# output
+		out = self.normalize(prediction)
+		height, width = out.shape[:2]
+		return self.get_pgm(out), width, height #width and height can be ignored
+
 	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
@@ -181,28 +204,14 @@ class Runner():
 				i += 1
 				continue
 			
-			# input
-			img_input = self.transform({"image": img})["image"]
-
-			# compute
-			with torch.no_grad():
-				sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
-				if self.optimize==True and self.device == torch.device("cuda"):
-					sample = sample.to(memory_format=torch.channels_last)  
-					sample = sample.half()
-				prediction = self.model.forward(sample)
-				prediction = prediction.squeeze().cpu().numpy()
-
-			# output
-			out = self.normalize(prediction)
-			zout.writestr(pgmname, self.get_pgm(out))
+			pgm, width, height = self.run_frame(img)
+			zout.writestr(pgmname, pgm)
 
 			#save width, height & the original size
 			#Write the metadata
 			if i == 0 and not has_metadata:
 				print("Saving the metadata.")
 
-				height, width = out.shape[:2]
 				original_height, original_width = img.shape[:2]
 				
 				sha256 = hashlib.sha256()
@@ -358,6 +367,15 @@ class Runner():
 			img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) / 255.0
 
+		return img
+
+	def read_image_bytes(self, bytestr: bytes):
+		"""
+		`bytestr` is a bytestring of jpg file
+		"""
+		img = np.frombuffer(bytestr, np.uint8)
+		img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
+		img = self.as_input(img)
 		return img
 
 	def check_ascii_string(self, string):
