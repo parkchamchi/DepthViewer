@@ -26,9 +26,10 @@ print("#3. Locating the depthpy")
 depthpydir = os.path.join(builddir, "depthpy")
 os.mkdir(depthpydir)
 
-#move depth.py
-print("Copying depth.py")
-shutil.copyfile("../depth.py", os.path.join(depthpydir, "depth.py"))
+#move depth.py & depthserver.py
+for filename in ["depth.py", "depthserver.py"]:
+	print(f"Copying {filename}")
+	shutil.copyfile(os.path.join("..", filename), os.path.join(depthpydir, filename))
 
 #makedir midas
 print("Making the midas directory")
