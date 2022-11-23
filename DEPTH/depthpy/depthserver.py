@@ -16,7 +16,14 @@ def index():
 def depthpy_version():
 	return f"depth.py {depth.VERSION}"
 
-@app.route('/depthpy/pgm/<model_type>', methods=["POST"])
+@app.route("/depthpy/models/<model_type>")
+def model_available(model_type):
+	if runner.model_exists(model_type):
+		return "available"
+	else:
+		flask.abort(404)
+
+@app.route("/depthpy/models/<model_type>/pgm", methods=["POST"])
 def pgm(model_type):
 	runner.load_model(model_type)
 

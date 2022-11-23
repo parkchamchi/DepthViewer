@@ -55,6 +55,9 @@ class Runner():
 
 		self.optimize = self.model_type = None
 
+	def model_exists(self, model_type):
+		return model_type in self.default_models
+
 	def load_model(self, model_type="MidasV3DptLarge", optimize=True):
 		if self.model_type == model_type and self.optimize == optimize:
 			return
