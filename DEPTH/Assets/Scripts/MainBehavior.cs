@@ -97,7 +97,7 @@ public class MainBehavior : MonoBehaviour {
 
 	private MeshBehavior _meshBehav;
 	private DepthModelBehavior _depthModelBehav;
-	private DepthONNX _donnx;
+	private DepthModel _donnx;
 	private VRRecordBehavior _vrRecordBehav;
 	private DesktopRenderBehavior _desktopRenderBehav;
 
@@ -303,6 +303,10 @@ public class MainBehavior : MonoBehaviour {
 			//Run the model
 			if (_donnx == null) return;
 			depths = _donnx.Run(texture, out _x, out _y);
+			if (depths == null) {
+				StatusText.text = "depths == null";
+				return;
+			}
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
@@ -536,6 +540,10 @@ public class MainBehavior : MonoBehaviour {
 
 		else {
 			depths = _donnx.Run(texture, out _x, out _y);
+			if (depths == null) {
+				StatusText.text = "depths == null";
+				return;
+			}
 
 			/* Save */
 			_framecount = 1;
@@ -820,6 +828,10 @@ public class MainBehavior : MonoBehaviour {
 		if (_donnx == null) return;
 
 		float[] depths = _donnx.Run(texture, out _x, out _y);
+		if (depths == null) {
+			StatusText.text = "depths == null";
+			return;
+		}
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
@@ -854,9 +866,13 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
-	public void GetBuiltInModel() {
-		_donnx = _depthModelBehav.GetBuiltIn();
+	public void SetModel(DepthModel model) {
+		_donnx?.Dispose();
+		_donnx = model;
 	}
+
+	public void GetBuiltInModel() =>
+		SetModel(_depthModelBehav.GetBuiltIn());
 
 	public void PausePlayVideo() {
 		if (_currentFileType != FileTypes.Vid) return;

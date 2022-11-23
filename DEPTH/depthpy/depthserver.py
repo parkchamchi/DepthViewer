@@ -18,8 +18,9 @@ def depthpy_version():
 
 @app.route("/depthpy/models/<model_type>")
 def model_available(model_type):
-	if runner.model_exists(model_type):
-		return "available"
+	res = runner.model_exists(model_type)
+	if res:
+		return str(res)
 	else:
 		flask.abort(404)
 

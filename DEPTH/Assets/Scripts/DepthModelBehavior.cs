@@ -42,10 +42,10 @@ public class DepthModelBehavior : MonoBehaviour {
 	public NNModel BuiltIn;
 	public const int ModelTypeVal = (int) DepthFileUtils.ModelTypes.MidasV21Small; //see DepthFileUtils.MotelTypes
 
-	private static DepthONNX _donnx;
+	private static DepthModel _donnx;
 	private string _hashval;
 
-	public DepthONNX GetBuiltIn() {
+	public DepthModel GetBuiltIn() {
 
 		if (_donnx != null && _donnx.ModelTypeVal != ModelTypeVal) {
 			_donnx.Dispose();
@@ -59,8 +59,16 @@ public class DepthModelBehavior : MonoBehaviour {
 	}
 }
 
-public class DepthONNX : IDisposable {
-	public readonly int ModelTypeVal;
+public interface DepthModel : IDisposable {
+	int ModelTypeVal {get;}
+
+	float[] Run(Texture inputTexture, out int x, out int y); //value may change after the following calls
+	float[] RunAndClone(Texture inputTexture, out int x, out int y);
+}
+
+public class DepthONNX : DepthModel {
+	private int _modelTypeVal;
+	public int ModelTypeVal {get {return _modelTypeVal;}}
 
 	private RenderTexture _input;
 	private float[] _output;
@@ -70,7 +78,7 @@ public class DepthONNX : IDisposable {
 
 	public DepthONNX(NNModel nnm, int modelTypeVal) {
 		_model = ModelLoader.Load(nnm);
-		ModelTypeVal = modelTypeVal;
+		_modelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();
@@ -85,7 +93,7 @@ public class DepthONNX : IDisposable {
 
 		var onnx_conv = new ONNXModelConverter(true);
 		_model = onnx_conv.Convert(onnxpath);
-		ModelTypeVal = modelTypeVal;
+		_modelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();
