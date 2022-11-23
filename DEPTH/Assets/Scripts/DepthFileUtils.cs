@@ -57,7 +57,7 @@ public static class DepthFileUtils {
 		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
-	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val) {
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val, string model_type=null) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
@@ -73,11 +73,12 @@ public static class DepthFileUtils {
 
 		orig_basename = Path.GetFileName(orig_basename);
 
-		string model_type;
-		if (Enum.IsDefined(typeof (ModelTypes), model_type_val))
-			model_type = Enum.GetName(typeof (ModelTypes), model_type_val);
-		else //unlikely to happen
-			model_type = $"unknown_{model_type_val}";
+		if (model_type == null) {
+			if (Enum.IsDefined(typeof (ModelTypes), model_type_val))
+				model_type = Enum.GetName(typeof (ModelTypes), model_type_val);
+			else
+				model_type = $"unknown_{model_type_val}";
+		}
 
 		string metadata = WriteMetadata(
 			hashval: hashval,

@@ -87,9 +87,8 @@ public class MeshBehavior : MonoBehaviour {
 		}
 	}
 
-	//Threshold and TargetVal is set elsewhere from the start
-	private bool _isThresholdSet;
-	private float _threshold;
+	private bool _isThresholdSet = false;
+	private float _threshold = 0f;
 	public float Threshold {
 		set {
 			if (value < 0 || value > 1) {
@@ -103,7 +102,7 @@ public class MeshBehavior : MonoBehaviour {
 		}
 	}
 
-	private float _targetVal;
+	private float _targetVal = 0f;
 	public float TargetVal {
 		get {return _targetVal;}
 		set {
@@ -258,8 +257,20 @@ public class MeshBehavior : MonoBehaviour {
 	}
 
 	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
+		if (depths == null) {
+			Debug.LogError("SetScene(): depths == null");
+			return;
+		}
 		if (x*y != depths.Length) {
 			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
+			return;
+		}
+		if (depths.Length == 0) {
+			Debug.LogError("depth.Length == 0");
+			return;
+		}
+		if (ratio < 0) {
+			Debug.LogError("ratio < 0");
 			return;
 		}
 

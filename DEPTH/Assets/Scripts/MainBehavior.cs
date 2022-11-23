@@ -100,6 +100,7 @@ public class MainBehavior : MonoBehaviour {
 	private DepthModel _donnx;
 	private VRRecordBehavior _vrRecordBehav;
 	private DesktopRenderBehavior _desktopRenderBehav;
+	private ServerConnectBehavior _serverBehav;
 
 	private int _x, _y;
 	private int _orig_width, _orig_height;
@@ -119,6 +120,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _shouldUpdateArchive;
 	private bool _hasCreatedArchive;
 	private List<Task> _processedFrames;
+
+	private bool _waitingServer = false;
 
 	private ExtensionFilter[] _extFilters;
 
@@ -146,6 +149,7 @@ public class MainBehavior : MonoBehaviour {
 		GetBuiltInModel();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
+		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
 
 		SaveDir = Application.persistentDataPath;
 
@@ -303,10 +307,6 @@ public class MainBehavior : MonoBehaviour {
 			//Run the model
 			if (_donnx == null) return;
 			depths = _donnx.Run(texture, out _x, out _y);
-			if (depths == null) {
-				StatusText.text = "depths == null";
-				return;
-			}
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
@@ -421,6 +421,8 @@ public class MainBehavior : MonoBehaviour {
 		_shouldCapture = false;
 
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
+
+		_waitingServer = false;
 	}
 
 	public void SelectFile() {
@@ -428,6 +430,11 @@ public class MainBehavior : MonoBehaviour {
 			Check if the depth file exists & load it if if exists.
 			If new image/video was selected and the previous one was a video, save it.
 		*/
+
+		if (_waitingServer) {
+			StatusText.text = "Waiting for the server...";
+			return;
+		}
 
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
@@ -518,9 +525,10 @@ public class MainBehavior : MonoBehaviour {
 
 		//For metadata
 		_startFrame = 0;
+		_framecount = 1;
 
 		int modelTypeVal = -1;
-		float[] depths;
+		float[] depths = null;
 
 		//Check if the file was processed
 		if (_searchCache)
@@ -538,16 +546,38 @@ public class MainBehavior : MonoBehaviour {
 			OutputSaveText.text = "Full."; //Image depth file is implicitly full.
 		}
 
+		else if (_serverBehav.IsAvailable) {
+			/* This will be processed some frames later  */
+			_waitingServer = true;
+			_serverBehav.Run(texture, (float[] depths, int x, int y) => {
+				if (_waitingServer == false) //Cleanup()
+					return;
+				_waitingServer = false;
+
+				if (depths == null || x == 0 || y == 0) {
+					StatusText.text = "DepthServer error";
+					return;
+				}
+			
+				_meshBehav.SetScene(depths, x, y, (float) _orig_width/_orig_height, texture);
+
+				if (_shouldUpdateArchive) {
+					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, x, y, _serverBehav.ModelTypeVal, model_type: _serverBehav.ModelType);
+
+					//depths = (float[]) depths.Clone();
+					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, x, y)));
+					_hasCreatedArchive = true; //not needed
+				}
+
+				StatusText.text = "From DepthServer";
+			});
+			return;
+		}
+
 		else {
 			depths = _donnx.Run(texture, out _x, out _y);
-			if (depths == null) {
-				StatusText.text = "depths == null";
-				return;
-			}
 
 			/* Save */
-			_framecount = 1;
-
 			if (_shouldUpdateArchive) {
 				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
 
@@ -561,6 +591,9 @@ public class MainBehavior : MonoBehaviour {
 
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
+
+	public void HaltWaitingServer() =>
+		_waitingServer = false;
 
 	private void FromVideo(string filepath) {
 		/* _orig_width, _orig_height, & framecount should be set when the frame is recieved!*/
@@ -828,10 +861,6 @@ public class MainBehavior : MonoBehaviour {
 		if (_donnx == null) return;
 
 		float[] depths = _donnx.Run(texture, out _x, out _y);
-		if (depths == null) {
-			StatusText.text = "depths == null";
-			return;
-		}
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
@@ -1100,6 +1129,11 @@ public class MainBehavior : MonoBehaviour {
 		}
 		if (_dirFilenames.Length == 0)
 			return;
+
+		if (_waitingServer) {
+			StatusText.text = "Waiting the server.";
+			return;
+		}
 
 		if (!_dirRandom) {
 			_dirFileIdx += (next) ? +1 : -1;

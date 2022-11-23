@@ -3872,7 +3872,6 @@ GameObject:
   - component: {fileID: 352507474}
   - component: {fileID: 352507477}
   - component: {fileID: 352507476}
-  - component: {fileID: 352507478}
   m_Layer: 0
   m_Name: ServerSettings
   m_TagString: Untagged
@@ -3971,22 +3970,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b41cf20ba847104faa4f8520bca10c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &352507478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 352507472}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 900bd092bec899b408d0b50e90c25684, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  AddrIF: {fileID: 2037038553}
-  ModelTypeIF: {fileID: 957792806}
-  ServerStatusText: {fileID: 522345587}
-  ModelStatusText: {fileID: 264093286}
 --- !u!114 &353530454 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7186516613222316410, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
@@ -10788,7 +10771,7 @@ GameObject:
   - component: {fileID: 1067221851}
   - component: {fileID: 1067221852}
   m_Layer: 0
-  m_Name: DummyObject
+  m_Name: ServerConnect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10818,9 +10801,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1067221850}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a82f4e659eec98343bf61acdad609a4c, type: 3}
+  m_Script: {fileID: 11500000, guid: 900bd092bec899b408d0b50e90c25684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AddrIF: {fileID: 2037038553}
+  ModelTypeIF: {fileID: 957792806}
+  ServerStatusText: {fileID: 522345587}
+  ModelStatusText: {fileID: 264093286}
 --- !u!1 &1070281591
 GameObject:
   m_ObjectHideFlags: 0
@@ -16659,7 +16646,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 352507478}
+      - m_Target: {fileID: 1067221852}
         m_TargetAssemblyTypeName: ServerConnectBehavior, Assembly-CSharp
         m_MethodName: Disconnect
         m_Mode: 1
@@ -21634,7 +21621,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 352507478}
+      - m_Target: {fileID: 1067221852}
         m_TargetAssemblyTypeName: ServerConnectBehavior, Assembly-CSharp
         m_MethodName: Connect
         m_Mode: 1

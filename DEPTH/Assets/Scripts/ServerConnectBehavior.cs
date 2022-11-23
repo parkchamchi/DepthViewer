@@ -7,28 +7,50 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
 
-public class ServerConnectBehavior : MonoBehaviour {
+public interface CanRunCoroutine {
+	Coroutine StartUnityCoroutine(IEnumerator routine);
+}
+
+public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 	public TMP_InputField AddrIF;
 	public TMP_InputField ModelTypeIF;
 	public TMP_Text ServerStatusText;
 	public TMP_Text ModelStatusText;
 
-	private MainBehavior _mainBehav;
+	public string ModelType {
+		get {
+			if (_model == null) {
+				Debug.LogError("ServerConnectBehavior.ModelType called when _model == null");
+				return null;
+			}
 
-	void Start() {
-		_mainBehav = GameObject.Find("MainManager").GetComponent<MainBehavior>();
+			return _model.ModelType;
+		}
 	}
+
+	public int ModelTypeVal {
+		get {
+			if (_model == null) {
+				Debug.LogError("ServerConnectBehavior.ModelTypeVal called when _model == null");
+				return 0;
+			}
+
+			return _model.ModelTypeVal;
+		}
+	}
+
+	private DepthServerModel _model;
+	public bool IsAvailable {get {return (_model != null);}}
 
 	public void Connect() {
 		string addr = AddrIF.text;
 		string modelType = ModelTypeIF.text;
 
 		string url = $"{addr}/depthpy/models/{modelType}";
-		StartCoroutine(GetRequest(url));
+		StartCoroutine(GetRequest(url, modelType));
 	}
 
-	private IEnumerator GetRequest(string url) {
-
+	private IEnumerator GetRequest(string url, string modelType) {
 		using (UnityWebRequest req = UnityWebRequest.Get(url)) {
 			yield return req.SendWebRequest();
 
@@ -36,7 +58,7 @@ public class ServerConnectBehavior : MonoBehaviour {
 				ServerStatusText.text = "OK";
 				ModelStatusText.text = url;
 				int modelTypeVal = int.Parse(req.downloadHandler.text);
-				SetModel(url, modelTypeVal);
+				SetModel(url, modelType, modelTypeVal);
 			}
 			else {
 				ServerStatusText.text = "Failed to connect";
@@ -44,36 +66,56 @@ public class ServerConnectBehavior : MonoBehaviour {
 		}
 	}
 
-	private void SetModel(string url, int modelTypeVal) {
+	private void SetModel(string url, string modelType, int modelTypeVal) {
 		/* Called by GetRequest() */
-		_mainBehav.SetModel(new DepthServerModel(url, modelTypeVal));
+		_model = new DepthServerModel(url, modelType, modelTypeVal, this);
+	}
+
+	public void Run(Texture tex, DepthServerModel.DepthReadyCallback callback) {
+		if (_model == null) return;
+
+		_model.Run(tex, callback);
 	}
 
 	public void Disconnect() {
 		ServerStatusText.text = "Disconnected.";
 		ModelStatusText.text = "";
-		_mainBehav.GetBuiltInModel();
 	}
+
+	public Coroutine StartUnityCoroutine(IEnumerator routine) =>
+		StartCoroutine(routine);
 }
 
-public class DepthServerModel : DepthModel {
+/* Does not impelement DepthModel */
+public class DepthServerModel {
+	private string _modelType;
+	public string ModelType {get {return _modelType;}}
+
 	private int _modelTypeVal;
-	public int ModelTypeVal {get;}
+	public int ModelTypeVal {get {return _modelTypeVal;}}
+
+	public delegate void DepthReadyCallback(float[] depths, int x, int y);
 
 	private string _url;
-	private DummyBehavior _behav;
+	private CanRunCoroutine _behav;
+	private DepthReadyCallback _callback;
 
-	public DepthServerModel(string url, int modelTypeVal) {
+	public DepthServerModel(string url, string modeltype, int modelTypeVal, CanRunCoroutine behav) {
 		_url = url + "/pgm";
-		_modelTypeVal = modelTypeVal;
 
-		_behav = GameObject.Find("DummyObject").GetComponent<DummyBehavior>();
+		_modelTypeVal = modelTypeVal;
+		_modelType = modeltype;
+
+		_behav = behav;
 	}
 
-	public float[] Run(Texture inTex, out int x, out int y) {
+	public void Run(Texture inTex, DepthReadyCallback callback) {
+		//TODO: Room for optimization?
+		_callback = callback;
+
 		Texture2D tex = new Texture2D(inTex.width, inTex.height);
 		RenderTexture rt = new RenderTexture(inTex.width, inTex.height, 16);
-		Graphics.Blit(tex, rt);
+		Graphics.Blit(inTex, rt);
 
 		RenderTexture origRT = RenderTexture.active;
 		RenderTexture.active = rt;
@@ -84,20 +126,6 @@ public class DepthServerModel : DepthModel {
 		UnityEngine.Object.Destroy(tex);
 
 		_behav.StartUnityCoroutine(Post(jpg));
-		
-		if (true) {
-			x = y = 0;
-			return null;
-		}
-		
-		//byte[] data = (byte[]) data;
-		//float[] depths = DepthFileUtils.ReadPGM(data, out x, out y);
-
-		//return depths;
-	}
-
-	public float[] RunAndClone(Texture inTex, out int x, out int y) {
-		return (float[]) Run(inTex, out x, out y).Clone();
 	}
 
 	private IEnumerator Post(byte[] jpg) {
@@ -108,15 +136,16 @@ public class DepthServerModel : DepthModel {
 
 			yield return req.SendWebRequest();
 
-			if (req.result == UnityWebRequest.Result.Success) {
-				Debug.Log("success");
-				Debug.Log(req.downloadHandler);
+			if (req.result == UnityWebRequest.Result.Success && req.responseCode == 200) {
 				byte[] data = req.downloadHandler.data;
-				yield return data;
+				int x, y;
+				float[] depths = DepthFileUtils.ReadPGM(data, out x, out y);
+
+				_callback(depths, x, y);
 			}
 			else {
-				Debug.Log("fail");
-				yield return null;
+				//failure
+				_callback(null, 0, 0);
 			}
 		}
 	}
