@@ -64,6 +64,7 @@ class Runner():
 		model_type_val = self.default_models[model_type][1]
 
 		# load network
+		self.model = None
 		if model_type == "MidasV3DptLarge": # DPT-Large
 			model = DPTDepthModel(
 				path=model_weight_path,
