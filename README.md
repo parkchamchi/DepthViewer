@@ -50,6 +50,9 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Check the installed CUDA version and if the installed Pytorch version supports that.
 - Uninstall Pytorch `pip uninstall torch torchvision` and reinstall it.
 
+#### For depthserver.py
+- Install Flask `pip install Flask`
+
 ## Inputs
 - Right mouse key: hides the UI.
 - WASD: rotate the mesh.
