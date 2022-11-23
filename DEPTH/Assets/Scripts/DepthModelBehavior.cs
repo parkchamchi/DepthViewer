@@ -62,7 +62,8 @@ public class DepthModelBehavior : MonoBehaviour {
 public interface DepthModel : IDisposable {
 	int ModelTypeVal {get;}
 
-	void Run(Texture inputTexture, List<float> depths, ref int[] size);
+	float[] Run(Texture inputTexture, out int x, out int y); //value may change after the following calls
+	float[] RunAndClone(Texture inputTexture, out int x, out int y);
 }
 
 public class DepthONNX : DepthModel {
@@ -98,27 +99,34 @@ public class DepthONNX : DepthModel {
 		AllocateObjects();
 	}
 
-	public void Run(Texture inputTexture, List<float> depths, ref int[] size) {
+	public float[] Run(Texture inputTexture, out int x, out int y) {
 		/*
 		Returns a private member (may change)
 		*/
 
-		if (inputTexture == null || _model == null) {
-			size[0] = -1;
-			return;
-		}
+		x = _width;
+		y = _height;
 
-		size[0] = _width;
-		size[1] = _height;
+		if (inputTexture == null || _model == null) {
+			x = y = 0;
+			return null;
+		}
 
 		// Fast resize
 		Graphics.Blit(inputTexture, _input);
 
 		RunModel(_input);
 		
-		//depths = new List<float>(_output);
-		depths.Clear();
-		depths.AddRange(_output);
+		//return (float[]) _output.Clone();
+		return _output;
+	}
+
+	public float[] RunAndClone(Texture inputTexture, out int x, out int y) {
+		/*
+		Returns a clone of the output
+		Not used
+		*/
+		return (float[]) RunAndClone(inputTexture, out x, out y).Clone();
 	}
 
 	private void OnDestroy() => DeallocateObjects();

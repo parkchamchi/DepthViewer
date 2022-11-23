@@ -23,8 +23,6 @@ public class ServerConnectBehavior : MonoBehaviour {
 		string addr = AddrIF.text;
 		string modelType = ModelTypeIF.text;
 
-		ServerStatusText.text = "Connecting.";
-
 		string url = $"{addr}/depthpy/models/{modelType}";
 		StartCoroutine(GetRequest(url));
 	}
@@ -65,9 +63,6 @@ public class DepthServerModel : DepthModel {
 	private string _url;
 	private DummyBehavior _behav;
 
-	private List<float> _depths;
-	private int[] _size;
-
 	public DepthServerModel(string url, int modelTypeVal) {
 		_url = url + "/pgm";
 		_modelTypeVal = modelTypeVal;
@@ -75,13 +70,10 @@ public class DepthServerModel : DepthModel {
 		_behav = GameObject.Find("DummyObject").GetComponent<DummyBehavior>();
 	}
 
-	public void Run(Texture inTex, List<float> depths, ref int[] size) {
-		_depths = depths;
-		_size = size;
-
+	public float[] Run(Texture inTex, out int x, out int y) {
 		Texture2D tex = new Texture2D(inTex.width, inTex.height);
 		RenderTexture rt = new RenderTexture(inTex.width, inTex.height, 16);
-		Graphics.Blit(inTex, rt);
+		Graphics.Blit(tex, rt);
 
 		RenderTexture origRT = RenderTexture.active;
 		RenderTexture.active = rt;
@@ -92,6 +84,20 @@ public class DepthServerModel : DepthModel {
 		UnityEngine.Object.Destroy(tex);
 
 		_behav.StartUnityCoroutine(Post(jpg));
+		
+		if (true) {
+			x = y = 0;
+			return null;
+		}
+		
+		//byte[] data = (byte[]) data;
+		//float[] depths = DepthFileUtils.ReadPGM(data, out x, out y);
+
+		//return depths;
+	}
+
+	public float[] RunAndClone(Texture inTex, out int x, out int y) {
+		return (float[]) Run(inTex, out x, out y).Clone();
 	}
 
 	private IEnumerator Post(byte[] jpg) {
@@ -103,15 +109,14 @@ public class DepthServerModel : DepthModel {
 			yield return req.SendWebRequest();
 
 			if (req.result == UnityWebRequest.Result.Success) {
+				Debug.Log("success");
+				Debug.Log(req.downloadHandler);
 				byte[] data = req.downloadHandler.data;
-				float[] depths = DepthFileUtils.ReadPGM(data, out _size[0], out _size[1]);
-
-				_depths.Clear();
-				_depths.AddRange(depths);
+				yield return data;
 			}
 			else {
 				Debug.Log("fail");
-				_size[0] = -1; //fail signal
+				yield return null;
 			}
 		}
 	}

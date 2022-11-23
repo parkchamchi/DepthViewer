@@ -101,11 +101,6 @@ public class MainBehavior : MonoBehaviour {
 	private VRRecordBehavior _vrRecordBehav;
 	private DesktopRenderBehavior _desktopRenderBehav;
 
-	private List<float> _depths;
-	private Texture _texture;
-	private bool _waitingDepth = false;
-	private int[] _size; //{_x, _y}
-
 	private int _x, _y;
 	private int _orig_width, _orig_height;
 
@@ -163,9 +158,6 @@ public class MainBehavior : MonoBehaviour {
 		ToggleSearchCache(); //init. _searchCache
 
 		_processedFrames = new List<Task>();
-		_size = new int[2] {0, 0};
-		_depths = new List<float>();
-		_texture = new Texture2D(1, 1);
 
 		/* Check the first arguement */
 		string[] args = System.Environment.GetCommandLineArgs();
@@ -219,11 +211,6 @@ public class MainBehavior : MonoBehaviour {
 	void Update() {
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
-
-		if (_waitingDepth && _size[0]*_size[1] != 0) {
-			OnDepthReady();
-			return;
-		}
 
 		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
 			SetBrowseDir(Input.mouseScrollDelta.y < 0);
@@ -291,8 +278,7 @@ public class MainBehavior : MonoBehaviour {
 
 	private void UpdateVideoDepth() {
 		if (_currentFileType != FileTypes.Vid && _currentFileType != FileTypes.Depth) return;
-		if (_waitingDepth) return;
-
+	
 		long frame = _vp.frame;
 		if (frame == _currentFrame) 
 			return;
@@ -316,16 +302,31 @@ public class MainBehavior : MonoBehaviour {
 		else {
 			//Run the model
 			if (_donnx == null) return;
+			depths = _donnx.Run(texture, out _x, out _y);
+			if (depths == null) {
+				StatusText.text = "depths == null";
+				return;
+			}
 
-			_texture = texture;
-			/*if (_texture == null || _texture.width != texture.width || _texture.height != texture.height)
-				_texture = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false);
-			Graphics.CopyTexture(texture, _texture);*/
+			/* For a new media, create the depth file */
+			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+				_hasCreatedArchive = true;
+			}
 
-			_waitingDepth = true;
-			_size[0] = 0;
-			_donnx.Run(_texture, _depths, ref _size);
+			//Save it
+			if (_shouldUpdateArchive) {
+				depths = (float[]) depths.Clone();
+				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, actualFrame, _x, _y)));
+			}
+
+			StatusText.text = "processed";
 		}
+
+		if (_currentFileType == FileTypes.Depth)
+			StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
+		
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	public void HaltVideo() {
@@ -538,12 +539,27 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		else {
-			_texture = texture;
+			depths = _donnx.Run(texture, out _x, out _y);
+			if (depths == null) {
+				StatusText.text = "depths == null";
+				return;
+			}
+
+			/* Save */
 			_framecount = 1;
-			_waitingDepth = true;
-			_size[0] = 0;
-			_donnx.Run(_texture, _depths, ref _size);
+
+			if (_shouldUpdateArchive) {
+				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+
+				depths = (float[]) depths.Clone();
+				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
+				_hasCreatedArchive = true; //not needed
+			}
+
+			StatusText.text = "processed";
 		}
+
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	private void FromVideo(string filepath) {
@@ -587,39 +603,6 @@ public class MainBehavior : MonoBehaviour {
 		_vp.url = filepath;
 
 		_currentFrame = -1;
-	}
-
-	private void OnDepthReady() {
-		if (_size[0] < 0) {
-			StatusText.text = "the model failed to get the depth.";
-			return;
-		}
-
-		_x = _size[0];
-		_y = _size[1];
-		float[] depths = _depths.ToArray();
-
-		/* For a new media, create the depth file */
-		if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-			DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
-			_hasCreatedArchive = true;
-		}
-
-		//Vid
-		//Save it
-		long actualFrame = (_currentFileType == FileTypes.Vid) ? _currentFrame-_startFrame : 0;
-		if (_shouldUpdateArchive) {
-			_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, actualFrame, _x, _y)));
-		}
-
-		if (_currentFileType == FileTypes.Depth)
-			StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
-		else
-			StatusText.text = "processed";
-
-		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, _texture);
-
-		_waitingDepth = false;
 	}
 
 	/************************************************************************************/
@@ -844,10 +827,12 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_donnx == null) return;
 
-		_texture = texture;
-		_waitingDepth = true;
-		_size[0] = 0;
-		_donnx.Run(_texture, _depths, ref _size);
+		float[] depths = _donnx.Run(texture, out _x, out _y);
+		if (depths == null) {
+			StatusText.text = "depths == null";
+			return;
+		}
+		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 	}
 
 	private void SaveDepth(bool shouldReload=false) {
