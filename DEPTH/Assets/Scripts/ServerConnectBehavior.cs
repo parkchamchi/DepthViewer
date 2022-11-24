@@ -80,6 +80,8 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 	public void Disconnect() {
 		ServerStatusText.text = "Disconnected.";
 		ModelStatusText.text = "";
+
+		_model = null;
 	}
 
 	public Coroutine StartUnityCoroutine(IEnumerator routine) =>
