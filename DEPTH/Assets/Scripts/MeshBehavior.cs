@@ -269,10 +269,6 @@ public class MeshBehavior : MonoBehaviour {
 			Debug.LogError("depth.Length == 0");
 			return;
 		}
-		if (ratio < 0) {
-			Debug.LogError("ratio < 0");
-			return;
-		}
 
 		if (x != _x || y != _y || ratio != _ratio)
 			SetMeshSize(x, y, ratio:ratio);

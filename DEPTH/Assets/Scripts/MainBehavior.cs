@@ -132,8 +132,8 @@ public class MainBehavior : MonoBehaviour {
 
 	private string[] _dirFilenames; //set by BrowseDir()
 	private int _dirFileIdx;
-	private bool _dirRandom;
-	private System.Random _random;
+	private bool _dirRandom = false;
+	private List<int> _dirRandomIdxList;
 
 #if UNITY_WEBGL
 	private string _webglImageExts; /* ".jpg .png ..." */
@@ -1115,10 +1115,42 @@ public class MainBehavior : MonoBehaviour {
 
 	public void ToggleBrowseDirRandom() {
 		_dirRandom = BrowseDirRandomToggle.isOn;
+
+		if (_dirRandom) //reshuffle
+			ShuffleBrowseDirRandomIdxList();
+		else {
+			//shuffle -> noshuffle: set the index to be what is currently being shown
+			if (_dirFilenames != null && _dirFilenames.Length >= 0) {
+				int idx = System.Array.FindIndex(_dirFilenames, (x) => x == FilepathInputField.text);
+				
+				if (idx >= 0)
+					_dirFileIdx = idx;
+			}
+		}
+	}
+
+	private void ShuffleBrowseDirRandomIdxList() {
+		if (_dirFilenames == null) return;
+
+		if (_dirRandomIdxList == null || _dirRandomIdxList.Count != _dirFilenames.Length) {
+			_dirRandomIdxList = new List<int>();
+			for (int i = 0; i < _dirFilenames.Length; i++)
+				_dirRandomIdxList.Add(i);
+		}
+
+		/* Shuffle */
+		for (int i = 0; i < _dirRandomIdxList.Count; i++) {
+			int randomidx = Random.Range(i, _dirRandomIdxList.Count);
+
+			int tmp = _dirRandomIdxList[i];
+			_dirRandomIdxList[i] = _dirRandomIdxList[randomidx];
+			_dirRandomIdxList[randomidx] = tmp;
+		}
 	}
 
 	public void ClearBrowseDir() {
 		_dirFilenames = null;
+		_dirRandomIdxList = null;
 		BrowseDirText.text = "";
 	}
 
@@ -1135,15 +1167,12 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
-		if (!_dirRandom) {
-			_dirFileIdx += (next) ? +1 : -1;
-			_dirFileIdx = (_dirFileIdx % _dirFilenames.Length);
-			if (_dirFileIdx < 0) _dirFileIdx += _dirFilenames.Length;
-		}
-		else
-			_dirFileIdx = _random.Next(0, _dirFilenames.Length);
+		_dirFileIdx += (next) ? +1 : -1;
+		_dirFileIdx = (_dirFileIdx % _dirFilenames.Length);
+		if (_dirFileIdx < 0) _dirFileIdx += _dirFilenames.Length;
 
-		string newfilename = _dirFilenames[_dirFileIdx];
+		int idx = (_dirRandom) ? _dirRandomIdxList[_dirFileIdx] : _dirFileIdx;
+		string newfilename = _dirFilenames[idx];
 		FilepathInputField.text = newfilename;
 		SelectFile();
 	}
@@ -1177,8 +1206,7 @@ public class MainBehavior : MonoBehaviour {
 		_dirFilenames = filenames_list.ToArray();
 		_dirFileIdx = 0;
 
-		if (_random == null) //TODO: to Start()
-			_random = new System.Random();
+		ShuffleBrowseDirRandomIdxList();
 
 		SetBrowseDir();
 	}

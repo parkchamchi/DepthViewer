@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using TMPro;
 
 public class OptionsBehavior : MonoBehaviour {
-	//TODO: codes below are quite redundant, make a seperate script to attach to each options & make them emit events or something
+	//TODO: codes below repeats itself, make a seperate script to attach to each options & make them emit events or something
 
 	public GameObject ScrollView;
 
