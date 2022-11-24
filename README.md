@@ -92,6 +92,7 @@ Other formats have not been tested.
 - Overhaul UI & Control
 - Add more options
 - Fix codecs
+- GIF support
 - Stablize
 
 ## Misc
