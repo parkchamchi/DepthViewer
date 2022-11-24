@@ -98,7 +98,7 @@ public class DepthServerModel {
 	private int _modelTypeVal;
 	public int ModelTypeVal {get {return _modelTypeVal;}}
 
-	public delegate void DepthReadyCallback(float[] depths, int x, int y);
+	public delegate bool DepthReadyCallback(float[] depths, int x, int y);
 
 	private string _url;
 	private CanRunCoroutine _behav;

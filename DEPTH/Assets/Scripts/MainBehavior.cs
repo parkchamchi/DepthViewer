@@ -75,6 +75,8 @@ public class MainBehavior : MonoBehaviour {
 	private string _pythonPath = "python";
 	public string PythonPath {set {_pythonPath = value;}}
 
+	public Toggle CallServerOnPauseToggle;
+
 	public enum FileTypes {
 		NotExists, 
 		Dir,
@@ -122,6 +124,7 @@ public class MainBehavior : MonoBehaviour {
 	private List<Task> _processedFrames;
 
 	private bool _waitingServer = false;
+	private Texture _serverTexture; //input texture for the server
 
 	private ExtensionFilter[] _extFilters;
 
@@ -549,18 +552,11 @@ public class MainBehavior : MonoBehaviour {
 		else if (_serverBehav.IsAvailable) {
 			/* This will be processed some frames later  */
 			_waitingServer = true;
-			_serverBehav.Run(texture, (float[] depths, int x, int y) => {
-				if (_waitingServer == false) //Cleanup()
-					return;
-				_waitingServer = false;
-
-				if (depths == null || x == 0 || y == 0) {
-					StatusText.text = "DepthServer error";
-					return;
-				}
-			
-				_meshBehav.SetScene(depths, x, y, (float) _orig_width/_orig_height, texture);
-
+			_serverTexture = texture; 
+			_serverBehav.Run(_serverTexture, (float[] depths, int x, int y) => {
+				if (!OnDepthReady(depths, x, y))
+					return false;
+	
 				if (_shouldUpdateArchive) {
 					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, x, y, _serverBehav.ModelTypeVal, model_type: _serverBehav.ModelType);
 
@@ -569,7 +565,7 @@ public class MainBehavior : MonoBehaviour {
 					_hasCreatedArchive = true; //not needed
 				}
 
-				StatusText.text = "From DepthServer";
+				return true; //return value does not matter here
 			});
 			return;
 		}
@@ -590,6 +586,30 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+	}
+
+	private bool OnDepthReady(float[] depths, int x, int y) {
+		/* returns true when `depths` is valid */
+
+		if (_waitingServer == false) //Cleanup()
+			return false;
+		_waitingServer = false;
+
+		if (depths == null || x == 0 || y == 0) {
+			StatusText.text = "DepthServer error";
+			return false;
+		}
+
+		if (_serverTexture == null) {
+			Debug.LogError("OnDepthReady(): _serverTexture == null");
+			return false;
+		}
+	
+		_meshBehav.SetScene(depths, x, y, (float) _orig_width/_orig_height, _serverTexture);
+		StatusText.text = "From DepthServer";
+
+		_serverTexture = null;
+		return true;
 	}
 
 	public void HaltWaitingServer() =>
@@ -904,14 +924,29 @@ public class MainBehavior : MonoBehaviour {
 		SetModel(_depthModelBehav.GetBuiltIn());
 
 	public void PausePlayVideo() {
-		if (_currentFileType != FileTypes.Vid) return;
-		if (_vp == null) return;
+		if (_currentFileType == FileTypes.Vid) {
+			if (_vp == null) return;
 
-		if (_vp.isPaused) {
-			_vp.Play();
-		}
-		else {
-			_vp.Pause();
+			if (_vp.isPaused) {
+				/* Play */
+				if (_waitingServer) {
+					StatusText.text = "Waiting for the server.";
+					return;
+				}
+
+				_vp.Play();
+			}
+			else {
+				/* Pause */
+				_vp.Pause();
+
+				if (_serverBehav.IsAvailable && CallServerOnPauseToggle != null && CallServerOnPauseToggle.isOn) {
+					_waitingServer = true;
+					_serverTexture = _vp.texture;
+
+					_serverBehav.Run(_serverTexture, OnDepthReady);
+				}
+			}
 		}
 	}
 	
