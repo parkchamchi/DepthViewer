@@ -126,6 +126,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _waitingServer = false;
 	private Texture _serverTexture; //input texture for the server
 
+	private bool _desktopRenderPaused;
+
 	private ExtensionFilter[] _extFilters;
 
 	/* For depthfile input */
@@ -426,6 +428,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
 
 		_waitingServer = false;
+		_desktopRenderPaused = false;
 	}
 
 	public void SelectFile() {
@@ -864,6 +867,10 @@ public class MainBehavior : MonoBehaviour {
 			Debug.LogError("StartDesktopRendering() called when !_desktopRenderBehav.Supported");
 			return;
 		}
+		if (_waitingServer) {
+			StatusText.text = "Waiting for the server.";
+			return;
+		}
 
 		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
 
@@ -872,6 +879,9 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	private void DesktopRenderingUpdate() {
+		if (_desktopRenderPaused)
+			return;
+
 		Texture texture = _desktopRenderBehav.Get(out _orig_width, out _orig_height);
 		if (texture == null) {
 			Debug.LogError("Couldn't get the desktop screen");
@@ -882,6 +892,8 @@ public class MainBehavior : MonoBehaviour {
 
 		float[] depths = _donnx.Run(texture, out _x, out _y);
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+
+		_serverTexture = texture;
 	}
 
 	private void SaveDepth(bool shouldReload=false) {
@@ -944,6 +956,30 @@ public class MainBehavior : MonoBehaviour {
 					_waitingServer = true;
 					_serverTexture = _vp.texture;
 
+					_serverBehav.Run(_serverTexture, OnDepthReady);
+				}
+			}
+		}
+
+		else if (_currentFileType == FileTypes.Desktop) {
+			if (_desktopRenderPaused) {
+				/* Unpause */
+				if (_waitingServer) {
+					StatusText.text = "Waiting for the server.";
+					return;
+				}
+
+				_desktopRenderPaused = false;
+				StatusText.text = "Unpaused.";
+			}
+			else {
+				/* Pause */
+				_desktopRenderPaused = true;
+				StatusText.text = "Paused.";
+
+				//_serverTexture is always set
+				if (_serverBehav.IsAvailable && CallServerOnPauseToggle != null && CallServerOnPauseToggle.isOn) {
+					_waitingServer = true;
 					_serverBehav.Run(_serverTexture, OnDepthReady);
 				}
 			}
