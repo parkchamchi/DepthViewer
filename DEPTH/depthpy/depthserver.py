@@ -18,6 +18,13 @@ def index():
 def depthpy_version():
 	return f"depth.py {depth.VERSION}"
 
+@app.route("/depthpy/models/<model_type>")
+def model_index(model_type):
+	if runner.model_exists(model_type):
+		return model_type
+	else:
+		flask.abort(404)
+
 @app.route("/depthpy/models/<model_type>/modeltypeval")
 def model_type_val(model_type):
 	res = runner.model_exists(model_type)
