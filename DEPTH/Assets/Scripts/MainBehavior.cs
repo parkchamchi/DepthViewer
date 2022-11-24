@@ -948,6 +948,7 @@ public class MainBehavior : MonoBehaviour {
 					return;
 				}
 
+				_meshBehav.ShouldUpdateDepth = false;
 				_vp.Play();
 			}
 			else {
@@ -960,6 +961,8 @@ public class MainBehavior : MonoBehaviour {
 
 					_serverBehav.Run(_serverTexture, OnDepthReady);
 				}
+
+				_meshBehav.ShouldUpdateDepth = true;
 			}
 		}
 
@@ -973,6 +976,8 @@ public class MainBehavior : MonoBehaviour {
 
 				_desktopRenderPaused = false;
 				StatusText.text = "Unpaused.";
+
+				_meshBehav.ShouldUpdateDepth = false;
 			}
 			else {
 				/* Pause */
@@ -984,6 +989,8 @@ public class MainBehavior : MonoBehaviour {
 					_waitingServer = true;
 					_serverBehav.Run(_serverTexture, OnDepthReady);
 				}
+
+				_meshBehav.ShouldUpdateDepth = true;
 			}
 		}
 	}
