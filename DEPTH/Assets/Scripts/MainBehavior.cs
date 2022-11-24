@@ -428,6 +428,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
 
 		_waitingServer = false;
+		_serverTexture = null;
 		_desktopRenderPaused = false;
 	}
 
@@ -873,6 +874,7 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
+		ClearBrowseDir();
 
 		_currentFileType = FileTypes.Desktop;
 		_desktopRenderBehav.StartRendering();
@@ -1092,6 +1094,7 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		string path = paths[0];
 
+		ClearBrowseDir();
 		FilepathInputField.text = path;
 		SelectFile();
 	}
