@@ -48,10 +48,12 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 
 		string url = $"{addr}/depthpy/models/{modelType}";
 		StartCoroutine(GetRequest(url, modelType));
+
+		ServerStatusText.text = "Connecting.";
 	}
 
 	private IEnumerator GetRequest(string url, string modelType) {
-		using (UnityWebRequest req = UnityWebRequest.Get(url)) {
+		using (UnityWebRequest req = UnityWebRequest.Get(url + "/modeltypeval")) {
 			yield return req.SendWebRequest();
 
 			if (req.result == UnityWebRequest.Result.Success) {
