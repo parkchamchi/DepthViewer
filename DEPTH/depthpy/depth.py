@@ -31,7 +31,7 @@ class Runner():
 		#path to model and model_type_val -- see DepthFileUtils.cs for explanation
 		self.default_models = { 
 			"MidasV21Small": ("midas_v21_small-70d6b9c8.pt", 100),
-			"MiDasV21": ("midas_v21-f6b98070.pt", 200),
+			"MidasV21": ("midas_v21-f6b98070.pt", 200),
 			"MidasV3DptHybrid": ("dpt_hybrid-midas-501f0c75.pt", 300),
 			"MidasV3DptLarge": ("dpt_large-midas-2f21e586.pt", 400),
 		}
@@ -89,7 +89,7 @@ class Runner():
 			net_w, net_h = 384, 384
 			resize_mode="minimal"
 			normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-		elif model_type == "MiDasV21":
+		elif model_type == "MidasV21":
 			model = MidasNet(model_weight_path, non_negative=True)
 			net_w, net_h = 384, 384
 			resize_mode="upper_bound"
@@ -416,7 +416,7 @@ if __name__ == "__main__":
 		parser.add_argument('-t', '--model_type',
 			default="MidasV3DptLarge",
 			help="model type",
-			choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MiDasV21", "MidasV21Small"]
+			choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MidasV21", "MidasV21Small"]
 		)
 
 		parser.add_argument("--zip_in_memory",

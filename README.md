@@ -94,9 +94,6 @@ Other formats have not been tested.
 - Fix codecs
 - Stablize
 
-### WIP
-- Calling DPT models real-time (opening a python server?)
-
 ## Misc
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
 - Used [Unity Simple File Browser](https://github.com/yasirkula/UnitySimpleFileBrowser) (MIT License)

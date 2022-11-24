@@ -6,7 +6,7 @@ print("Loading the depth.py Runner")
 runner = depth.Runner()
 print("Loaded.")
 
-loaded_models = set()
+loaded_model = ""
 
 app = flask.Flask(__name__)
 
@@ -35,8 +35,9 @@ def model_type_val(model_type):
 
 @app.route("/depthpy/models/<model_type>/pgm", methods=["POST"])
 def pgm(model_type):
-	if model_type not in loaded_models:
-		loaded_models.add(model_type)
+	global loaded_model
+	if model_type != loaded_model:
+		loaded_model = model_type
 		runner.load_model(model_type)
 
 	data = flask.request.data
