@@ -21,12 +21,6 @@ using SimpleFileBrowser;
 
 public class MainBehavior : MonoBehaviour {
 
-	public Slider DepthMultSlider;
-	public Slider AlphaSlider;
-	public Slider BetaSlider;
-	public Slider MeshLocSlider;
-	public Slider ScaleSlider;
-
 	public TMP_InputField FilepathInputField;
 	public TMP_Text FilepathResultText;
 
@@ -1035,33 +1029,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);
-	}
-
-	public void SetDepthMult() =>
-		_meshBehav.DepthMult = DepthMultSlider.value;
-
-	public void SetAlpha() =>
-		_meshBehav.Alpha = AlphaSlider.value;
-
-	public void SetBeta() =>
-		_meshBehav.Beta = BetaSlider.value;
-
-	public void SetMeshLoc() =>
-		_meshBehav.MeshLoc = MeshLocSlider.value;
-
-	public void SetScale() =>
-		_meshBehav.Scale = ScaleSlider.value;
-
-	public void ToDefault() {
-		//Will not reset MeshX, MeshY
-
-		DepthMultSlider.value = MeshBehavior.DefaultDepthMult;
-		AlphaSlider.value = MeshBehavior.DefaultAlpha;
-		BetaSlider.value = MeshBehavior.DefaultBeta;
-		MeshLocSlider.value = MeshBehavior.DefaultMeshLoc;
-		ScaleSlider.value = MeshBehavior.DefaultScale;
-
-		_meshBehav.ResetRotation();
 	}
 
 	public void ToggleFullscreen() {

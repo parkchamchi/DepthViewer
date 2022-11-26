@@ -9615,6 +9615,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 933767824}
+  - component: {fileID: 933767825}
   m_Layer: 0
   m_Name: Sliders
   m_TagString: Untagged
@@ -9642,6 +9643,23 @@ Transform:
   m_Father: {fileID: 1150659575}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &933767825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933767823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00c6af64de9ad944b9a4b3a9b289400, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DepthMultSlider: {fileID: 984972794}
+  AlphaSlider: {fileID: 353530454}
+  BetaSlider: {fileID: 644946366}
+  MeshLocSlider: {fileID: 387962982}
+  ScaleSlider: {fileID: 1858899201}
 --- !u!1 &957792804
 GameObject:
   m_ObjectHideFlags: 0
@@ -21819,11 +21837,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2617b2f1140e994bbda5d9438b35761, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepthMultSlider: {fileID: 984972794}
-  AlphaSlider: {fileID: 353530454}
-  BetaSlider: {fileID: 644946366}
-  MeshLocSlider: {fileID: 387962982}
-  ScaleSlider: {fileID: 1858899201}
   FilepathInputField: {fileID: 696514300}
   FilepathResultText: {fileID: 697740476}
   StatusText: {fileID: 224956837}
