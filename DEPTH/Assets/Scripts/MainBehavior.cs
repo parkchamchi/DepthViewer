@@ -446,7 +446,7 @@ public class MainBehavior : MonoBehaviour {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
 
-		if (_currentFileType == FileTypes.Depth) {
+		if (_currentFileType == FileTypes.Depth && !_recording) {
 			/* Selecting the texture for depthfile */
 			DepthFileInput(filepath, ftype);
 			return;
