@@ -3,7 +3,7 @@
 Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
 ## Try Now
-- [WebGL Demo](https://parkchamchi.github.io/DepthViewer/) [(WebXR version)](https://parkchamchi.github.io/DepthViewer/vr_version/)
+- [WebGL Demo](https://parkchamchi.github.io/DepthViewer/) ([WebXR version](https://parkchamchi.github.io/DepthViewer/vr_version/))
 - [Releases](https://github.com/parkchamchi/DepthViewer/releases)
 - [Steam Page (Soon!)](https://store.steampowered.com/app/2218510/DepthViewer/)
 - [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
@@ -96,6 +96,7 @@ Other formats have not been tested.
 - Stablize
 
 ## Misc
+### Libraries used
 - Used [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
 - Used [Unity Simple File Browser](https://github.com/yasirkula/UnitySimpleFileBrowser) (MIT License)
 - Used [WebXR Export](https://github.com/De-Panther/unity-webxr-export) (Apache License 2.0)
@@ -103,3 +104,7 @@ Other formats have not been tested.
 
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)
+
+### Also check out
+- [monocular-depth-unity](https://github.com/GeorgeAdamon/monocular-depth-unity) ([used this code](https://github.com/GeorgeAdamon/monocular-depth-unity/blob/main/MonocularDepthBarracuda/Packages/DepthFromImage/Runtime/DepthFromImage.cs))
+- [godot-midas-depth](https://github.com/lewiji/godot-midas-depth)
