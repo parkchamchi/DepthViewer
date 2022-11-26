@@ -106,5 +106,6 @@ Other formats have not been tested.
 - [Readme file](DEPTH/Assets/Assets/README.txt)
 
 ### Also check out
+- This project was inspired by [VRin](https://www.vrin.app/)
 - [monocular-depth-unity](https://github.com/GeorgeAdamon/monocular-depth-unity) ([used this code](https://github.com/GeorgeAdamon/monocular-depth-unity/blob/main/MonocularDepthBarracuda/Packages/DepthFromImage/Runtime/DepthFromImage.cs))
 - [godot-midas-depth](https://github.com/lewiji/godot-midas-depth)
