@@ -2159,7 +2159,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1611361787474004, guid: 54a613ba6e982e84db04156af08d6a89, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4545079059221816, guid: 54a613ba6e982e84db04156af08d6a89, type: 3}
       propertyPath: m_RootOrder
@@ -23112,6 +23112,7 @@ MonoBehaviour:
   BrowseDirRandomToggle: {fileID: 2064043009}
   OptionsScrollView: {fileID: 47606369}
   IsVideoToggle: {fileID: 86809324}
+  WebXRSet: {fileID: 846631294}
   MainLight: {fileID: 705507994}
   CallPythonObjectParent: {fileID: 1391802854}
   CallServerOnPauseToggle: {fileID: 1043418866}

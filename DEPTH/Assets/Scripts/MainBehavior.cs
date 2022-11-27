@@ -46,6 +46,7 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
 
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
+	public GameObject WebXRSet; //same as above
 
 	public Light MainLight;
 
@@ -202,6 +203,8 @@ public class MainBehavior : MonoBehaviour {
 		/* File browsing for WebGL */
 		SetWebGLExts();
 		IsVideoToggle.gameObject.SetActive(true);
+
+		WebXRSet.SetActive(true);
 
 #elif UNITY_ANDROID && !UNITY_EDITOR
 
