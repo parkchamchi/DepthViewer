@@ -32,10 +32,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public GameObject UI;
 
-	public GameObject AboutScreen;
-	public TMP_Text AboutText;
-	public TextAsset AboutTextAsset;
-
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
 
@@ -190,10 +186,6 @@ public class MainBehavior : MonoBehaviour {
 			new ExtensionFilter("Image/Video/Depth Files", exts),
 		};
 
-		/* Set about screen */
-		CloseAboutScreen(); //redundant
-		AboutText.text = AboutTextAsset.text;
-
 		DepthFilePanel.SetActive(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -339,7 +331,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void Quit() {
 #if UNITY_WEBGL
-		ShowAboutScreen();
+		StatuxText.text = "Quitting.";
 #endif
 
 		SaveDepth(); //save the current one
@@ -1294,13 +1286,5 @@ public class MainBehavior : MonoBehaviour {
 
 		xrss.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device);
 		xrss.TryRecenter();
-	}
-
-	public void ShowAboutScreen() {
-		AboutScreen.SetActive(true);
-	}
-
-	public void CloseAboutScreen() {
-		AboutScreen.SetActive(false);
 	}
 } 

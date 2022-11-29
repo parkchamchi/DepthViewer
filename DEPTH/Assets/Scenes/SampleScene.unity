@@ -206,8 +206,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1410142142}
   m_HandleRect: {fileID: 1410142141}
   m_Direction: 2
-  m_Value: 1.0000001
-  m_Size: 0.097126916
+  m_Value: 1.0000004
+  m_Size: 0.07781488
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -824,9 +824,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2128267913}
-        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: CloseAboutScreen
+      - m_Target: {fileID: 422160959}
+        m_TargetAssemblyTypeName: AboutScreenBehavior, Assembly-CSharp
+        m_MethodName: ToggleScreen
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1280,9 +1280,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2128267913}
-        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: ShowAboutScreen
+      - m_Target: {fileID: 422160959}
+        m_TargetAssemblyTypeName: AboutScreenBehavior, Assembly-CSharp
+        m_MethodName: ToggleScreen
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4531,6 +4531,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 422160958}
+  - component: {fileID: 422160959}
   m_Layer: 0
   m_Name: About
   m_TagString: Untagged
@@ -4555,6 +4556,21 @@ Transform:
   m_Father: {fileID: 1150659575}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &422160959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 422160957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 518db30bb7ec9064f8e1f48322a40bed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AboutScreen: {fileID: 1414458817}
+  AboutText: {fileID: 643541657}
+  AboutTextAsset: {fileID: 4900000, guid: 899a1633639650948b93dd88f89a913b, type: 3}
 --- !u!1001 &428810837
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6745,8 +6761,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.00012207031, y: -2897.6}
-  m_SizeDelta: {x: 1534.8, y: 6418.6196}
+  m_AnchoredPosition: {x: 7.9989014, y: -3486.544}
+  m_SizeDelta: {x: 1499.6199, y: 7561.4883}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &643541657
 MonoBehaviour:
@@ -14897,7 +14913,7 @@ RectTransform:
   m_Father: {fileID: 2071150760}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.9028731}
+  m_AnchorMin: {x: 0, y: 0.9221851}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
@@ -14979,8 +14995,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9.5442, y: 0}
-  m_SizeDelta: {x: 1551.8223, y: 623.4207}
+  m_AnchoredPosition: {x: -16.0445, y: 17.5081}
+  m_SizeDelta: {x: 1500.645, y: 588.4046}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1414458819
 MonoBehaviour:
@@ -15001,7 +15017,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 100
+  m_ScrollSensitivity: 75
   m_Viewport: {fileID: 2116887942}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 38547768}
@@ -23102,9 +23118,6 @@ MonoBehaviour:
   SearchCacheToggle: {fileID: 2118448347}
   OutputSaveText: {fileID: 692346199}
   UI: {fileID: 1150659574}
-  AboutScreen: {fileID: 1414458817}
-  AboutText: {fileID: 643541657}
-  AboutTextAsset: {fileID: 4900000, guid: 899a1633639650948b93dd88f89a913b, type: 3}
   DepthFilePanel: {fileID: 497387996}
   DepthFileCompareText: {fileID: 1729033237}
   BrowseDirPanel: {fileID: 746753798}
