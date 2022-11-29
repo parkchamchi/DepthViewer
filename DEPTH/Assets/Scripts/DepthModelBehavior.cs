@@ -126,7 +126,7 @@ public class DepthONNX : DepthModel {
 		Returns a clone of the output
 		Not used
 		*/
-		return (float[]) RunAndClone(inputTexture, out x, out y).Clone();
+		return (float[]) Run(inputTexture, out x, out y).Clone();
 	}
 
 	private void OnDestroy() => DeallocateObjects();
