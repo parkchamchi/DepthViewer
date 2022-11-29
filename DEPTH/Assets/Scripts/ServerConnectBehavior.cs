@@ -104,6 +104,8 @@ public class DepthServerModel {
 	private CanRunCoroutine _behav;
 	private DepthReadyCallback _callback;
 
+	private RenderTexture _rt;
+
 	public DepthServerModel(string url, string modeltype, int modelTypeVal, CanRunCoroutine behav) {
 		_url = url + "/pgm";
 
@@ -114,17 +116,16 @@ public class DepthServerModel {
 	}
 
 	public void Run(Texture inTex, DepthReadyCallback callback) {
-		//TODO: Room for optimization?
 		_callback = callback;
 
 		Texture2D tex = new Texture2D(inTex.width, inTex.height);
-		RenderTexture rt = new RenderTexture(inTex.width, inTex.height, 16);
-		Graphics.Blit(inTex, rt);
+		_rt?.Release();
+		_rt = new RenderTexture(inTex.width, inTex.height, 16);
+		Graphics.Blit(inTex, _rt);
 
-		RenderTexture origRT = RenderTexture.active;
-		RenderTexture.active = rt;
-		tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-		RenderTexture.active = origRT;
+		RenderTexture.active = _rt;
+		tex.ReadPixels(new Rect(0, 0, _rt.width, _rt.height), 0, 0);
+		RenderTexture.active = null;
 
 		byte[] jpg = tex.EncodeToJPG();
 		UnityEngine.Object.Destroy(tex);
@@ -156,5 +157,8 @@ public class DepthServerModel {
 
 	public void Dispose() {
 		_url = null; //not needed
+		
+		_rt?.Release();
+		UnityEngine.Object.Destroy(_rt);
 	}
 }
