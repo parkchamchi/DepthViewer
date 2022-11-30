@@ -74,17 +74,73 @@ public class MainBehavior : MonoBehaviour {
 		Img, Vid,
 		Depth,
 		Desktop,
+		Gif,
 		Unsupported
 	};
 
-	public static readonly string[] SupportedImgExts = {
-		".jpg", ".png", //tested
-	};
-	public static readonly string[] SupportedVidExts = {
-		".mp4", //tested
-		".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
-	};
-	public static readonly string[] SupportedDepthExts = {DepthFileUtils.DepthExt};
+	/* TODO: There has to be a better way to implement this */
+	public static class Exts {
+		public static Dictionary<FileTypes, string[]> ExtsDict {get; private set;}
+
+		//with no '.'
+		public static string[] AllExtsWithoutDot {get; private set;}
+
+		static Exts() {
+			ExtsDict = new Dictionary<FileTypes, string[]>();
+
+			ExtsDict.Add(FileTypes.Img, new string[] {".jpg", ".png"});
+			ExtsDict.Add(FileTypes.Vid, new string[] {
+				".mp4",
+				".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
+			});
+			ExtsDict.Add(FileTypes.Depth, new string[] {DepthFileUtils.DepthExt});
+			ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
+
+			List<string> allExtsWithoutDotList = new List<string>();
+			foreach (string[] exts in ExtsDict.Values)
+				foreach (string ext in exts)
+					allExtsWithoutDotList.Add(ext.Substring(1, ext.Length-1));
+			AllExtsWithoutDot = allExtsWithoutDotList.ToArray();
+		}
+
+		public static FileTypes FileTypeCheck(string filepath) {
+			//Does not check if the file actually exists
+			foreach (KeyValuePair<FileTypes, string[]> item in ExtsDict)
+				foreach (string ext in item.Value)
+					if (filepath.ToLower().EndsWith(ext))
+						return item.Key;
+
+			return FileTypes.Unsupported;
+		}
+
+		public static string WebGLExts(FileTypes ftype) {
+			// e.g. ".jpg .png"
+
+			if (!ExtsDict.ContainsKey(ftype)) {
+				Debug.LogError($"WebGLExts: invalid ftype {ftype}");
+				return "";
+			}
+
+			/* Why doesn't this work?
+			string webglexts = "";
+			foreach (string ext in ExtsDict[ftype])
+				webglexts += (ext + " ");
+
+			return webglexts.Substring(0, webglexts.Length-1);
+			*/
+
+			switch (ftype) {
+			case FileTypes.Img:
+				return "image/*";
+			case FileTypes.Vid:
+				return "video/*";
+			/*case FileTypes.Gif:
+				return ".gif";*/
+			default:
+				return null;
+			}
+		}
+	}
 
 	private FileTypes _currentFileType = FileTypes.NotExists;
 
@@ -132,10 +188,6 @@ public class MainBehavior : MonoBehaviour {
 	private List<int> _dirRandomIdxList;
 
 #if UNITY_WEBGL
-	private string _webglImageExts; /* ".jpg .png ..." */
-	private string _webglVideoExts;
-	private string _webglDepthExts;
-
 	private bool _isVideo;
 #endif
 
@@ -173,17 +225,8 @@ public class MainBehavior : MonoBehaviour {
 
 		/* Set ExtensionFilter for StandalonFileBrowser */
 		//remove '.'
-		string[] exts = new string[SupportedImgExts.Length + SupportedVidExts.Length + SupportedDepthExts.Length];
-		int idx = 0;
-		for (int i = 0; i < SupportedImgExts.Length; i++)
-			exts[idx++] = SupportedImgExts[i].Substring(1, SupportedImgExts[i].Length-1);
-		for (int i = 0; i < SupportedVidExts.Length; i++)
-			exts[idx++] = SupportedVidExts[i].Substring(1, SupportedVidExts[i].Length-1);
-		for (int i = 0; i < SupportedDepthExts.Length; i++)
-			exts[idx++] = SupportedDepthExts[i].Substring(1, SupportedDepthExts[i].Length-1);
-
 		_extFilters = new [] {
-			new ExtensionFilter("Image/Video/Depth Files", exts),
+			new ExtensionFilter("Image/Video/Depth Files", Exts.AllExtsWithoutDot),
 		};
 
 		DepthFilePanel.SetActive(false);
@@ -193,14 +236,13 @@ public class MainBehavior : MonoBehaviour {
 		_searchCache = false;
 
 		/* File browsing for WebGL */
-		SetWebGLExts();
 		IsVideoToggle.gameObject.SetActive(true);
 
 		WebXRSet.SetActive(true);
 
 #elif UNITY_ANDROID && !UNITY_EDITOR
 
-		FileBrowser.SetFilters(false, new FileBrowser.Filter("Image/Video/Depth Files", exts));
+		FileBrowser.SetFilters(false, new FileBrowser.Filter("Image/Video/Depth Files", Exts.AllExtsWithoutDot));
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		Screen.brightness = 1.0f;
 #endif
@@ -331,7 +373,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void Quit() {
 #if UNITY_WEBGL
-		StatuxText.text = "Quitting.";
+		StatusText.text = "Quitting.";
 #endif
 
 		SaveDepth(); //save the current one
@@ -484,16 +526,7 @@ public class MainBehavior : MonoBehaviour {
 		if (Directory.Exists(filepath))
 			return FileTypes.Dir;
 
-		foreach (string ext in SupportedImgExts)
-			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Img;
-
-		foreach (string ext in SupportedVidExts)
-			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Vid;
-
-		foreach (string ext in SupportedDepthExts)
-			if (filepath.ToLower().EndsWith(ext)) return FileTypes.Depth;
-
-		return FileTypes.Unsupported;
+		return Exts.FileTypeCheck(filepath);
 	}
 
 	private void FromImage(string filepath) {
@@ -1086,26 +1119,10 @@ public class MainBehavior : MonoBehaviour {
 	[DllImport("__Internal")]
 	private static extern void UploadFile(string gameObjectName, string methodName, string filter, bool multiple);
 
-	private void SetWebGLExts() {
-		_webglImageExts = "";
-			foreach (string ext in SupportedImgExts)
-				_webglImageExts += (ext + " ");
-			_webglImageExts = _webglImageExts.Substring(1, _webglImageExts.Length - 1);
-
-		_webglVideoExts = "";
-		foreach (string ext in SupportedVidExts)
-			_webglVideoExts += (ext + " ");
-		_webglVideoExts = _webglVideoExts.Substring(1, _webglVideoExts.Length - 1);
-
-		_webglDepthExts = "";
-		foreach (string ext in SupportedDepthExts)
-			_webglDepthExts += (ext + " ");
-		_webglDepthExts = _webglDepthExts.Substring(1, _webglDepthExts.Length - 1);
-	}
-
 	public void BrowseFiles() {
 		_isVideo = IsVideoToggle.isOn;
-		string exts = (_isVideo) ? _webglVideoExts : _webglImageExts;
+		FileTypes ftype = (_isVideo) ? FileTypes.Vid : FileTypes.Img;
+		string exts = Exts.WebGLExts(ftype);
 
 		UploadFile(gameObject.name, "OnFileUpload", exts, false);
 	}
@@ -1227,18 +1244,13 @@ public class MainBehavior : MonoBehaviour {
 		if (dirnames.Length < 1)
 			return;
 		string dirname = dirnames[0];
-		
-		string[] supportedExts = new string[SupportedImgExts.Length+SupportedVidExts.Length];
-		SupportedImgExts.CopyTo(supportedExts, 0);
-		SupportedVidExts.CopyTo(supportedExts, SupportedImgExts.Length);
 
+		//Add only: img, vid, gif
 		List<string> filenames_list = new List<string>();
 		foreach (string filename in Directory.GetFiles(dirname)) {
-			foreach (string ext in supportedExts) {
-				if (filename.ToLower().EndsWith(ext)) {
-					filenames_list.Add(filename);
-					break;
-				}
+			FileTypes ftype = Exts.FileTypeCheck(filename);
+			if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
+				filenames_list.Add(filename);
 			}
 		}
 
