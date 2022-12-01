@@ -97,6 +97,7 @@ public class MainBehavior : MonoBehaviour {
 	private long _startFrame;
 	private long _currentFrame;
 	private long _framecount;
+
 	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
 
@@ -199,6 +200,9 @@ public class MainBehavior : MonoBehaviour {
 
 		else if (_currentFileType == FileTypes.Desktop)
 			DesktopRenderingUpdate();
+
+		else if (_currentFileType == FileTypes.Gif)
+			GifUpdate();
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -355,7 +359,11 @@ public class MainBehavior : MonoBehaviour {
 		case FileTypes.Depth:
 			output = "Depth file.";
 			break;
+		case FileTypes.Gif:
+			output = "GIF file.";
+			break;
 		case FileTypes.Unsupported:
+		default:
 			output = "Unsupported.";
 			break;
 		}
@@ -377,7 +385,7 @@ public class MainBehavior : MonoBehaviour {
 		_depthFilePath = null;
 		_processedFrames.Clear();
 		
-		_startFrame = _currentFrame = _framecount = 0;
+		_startFrame = _currentFrame = _framecount = -1;
 		_x = _y = _orig_width = _orig_height = 0;
 		DepthFilePanel.SetActive(false);
 
@@ -419,20 +427,23 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
-		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth) return;
+		//TODO: better comparison
+		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth && ftype != FileTypes.Gif)
+			return;
 
 		Cleanup();
 
 		_currentFileType = ftype;
 		_orig_filepath = filepath;
 
-		if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
-			OutputSaveText.text = "Will be saved.";
-		else
-			OutputSaveText.text = "Won't be saved.";
+		/* Img & Vid can be cached */
+		if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
+			if (_shouldUpdateArchive = _canUpdateArchive) //assign & compare
+				OutputSaveText.text = "Will be saved.";
+			else
+				OutputSaveText.text = "Won't be saved.";
 
-		if (_searchCache || _shouldUpdateArchive) {
-			if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
+			if (_searchCache || _shouldUpdateArchive) {
 				StatusText.text = "Hashing.";
 				_hashval = Utils.GetHashval(filepath);
 				StatusText.text = "Hashed.";
@@ -451,6 +462,12 @@ public class MainBehavior : MonoBehaviour {
 			break;
 		case FileTypes.Depth:
 			FromDepthFile(filepath);
+			break;
+		case FileTypes.Gif:
+			GifPlayer.FromGif(filepath);
+			break;
+		default:
+			StatusText.text = "DEBUG: SelectFile(): something messed up :(";
 			break;
 		}
 	}
@@ -627,10 +644,7 @@ public class MainBehavior : MonoBehaviour {
 	private void FromDepthFile(string filepath) {
 		StatusText.text = "INPUT TEXTURE";
 
-		_shouldUpdateArchive = false;
 		_recording = false;
-		
-		OutputSaveText.text = "";
 	}
 
 	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
@@ -854,6 +868,44 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 		_serverTexture = texture;
+	}
+
+	private void GifUpdate() {
+		if (_donnx == null) return;
+
+		switch (GifPlayer.Status) {
+		case GifPlayer.State.None:
+			Debug.LogError("GifPlayer Error");
+			StatusText.text = "GifPlayer Error";
+			return;
+		case GifPlayer.State.Loading:
+			StatusText.text = "Loading...";
+			return;
+		case GifPlayer.State.Ready:
+			StatusText.text = "Ready.";
+			return;
+		case GifPlayer.State.Paused:
+			StatusText.text = "Paused.";
+			return;
+		
+		case GifPlayer.State.Playing:
+			int frame = GifPlayer.Frame;
+			if (_currentFrame == frame)
+				return;
+			_currentFrame = frame;
+
+			Texture2D tex = GifPlayer.GetTexture();
+
+			float[] depths = _donnx.Run(tex, out _x, out _y);
+			_meshBehav.SetScene(depths, _x, _y, (float) GifPlayer.Width/GifPlayer.Height, tex);
+
+			StatusText.text = $"#{frame}/{GifPlayer.FrameCount}";
+			return;
+
+		default:
+			StatusText.text = $"DEBUG: GifUpdate: not implemented: {GifPlayer.Status}";
+			return;
+		}
 	}
 
 	private void SaveDepth(bool shouldReload=false) {
@@ -1297,6 +1349,7 @@ public static class Exts {
 		/*case FileTypes.Gif:
 			return ".gif";*/
 		default:
+			Debug.LogError($"WebGLExts(): got illega fype {ftype}");
 			return null;
 		}
 	}

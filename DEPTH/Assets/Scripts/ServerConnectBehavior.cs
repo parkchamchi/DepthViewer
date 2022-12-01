@@ -7,10 +7,6 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
 
-public interface CanRunCoroutine {
-	Coroutine StartUnityCoroutine(IEnumerator routine);
-}
-
 public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 	public TMP_InputField AddrIF;
 	public TMP_InputField ModelTypeIF;
