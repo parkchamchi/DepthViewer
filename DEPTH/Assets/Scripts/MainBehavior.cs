@@ -20,14 +20,14 @@ using SimpleFileBrowser;
 #endif
 
 public enum FileTypes {
-		NotExists, 
-		Dir,
-		Img, Vid,
-		Depth,
-		Desktop,
-		Gif,
-		Unsupported
-	};
+	NotExists, 
+	Dir,
+	Img, Vid,
+	Depth,
+	Desktop,
+	Gif,
+	Unsupported
+};
 
 public class MainBehavior : MonoBehaviour {
 
@@ -1226,8 +1226,9 @@ public class MainBehavior : MonoBehaviour {
 	public void SetLightIntensity(float val) =>
 		MainLight.intensity = val;
 
+	/* Does not work */
+	/*
 	public void RecenterVR() {
-		/* Does not work */
 		//UnityEngine.XR.InputTracking.Recenter();
 		var xrss = XRGeneralSettings.Instance?.Manager?.activeLoader?.GetLoadedSubsystem<XRInputSubsystem>();
 		if (xrss == null) return;
@@ -1235,6 +1236,7 @@ public class MainBehavior : MonoBehaviour {
 		xrss.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device);
 		xrss.TryRecenter();
 	}
+	*/
 } 
 
 public static class Exts {
