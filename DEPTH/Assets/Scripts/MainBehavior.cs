@@ -19,6 +19,16 @@ using UnityEngine.Networking; //UnityWebRequest
 using SimpleFileBrowser;
 #endif
 
+public enum FileTypes {
+		NotExists, 
+		Dir,
+		Img, Vid,
+		Depth,
+		Desktop,
+		Gif,
+		Unsupported
+	};
+
 public class MainBehavior : MonoBehaviour {
 
 	public TMP_InputField FilepathInputField;
@@ -67,80 +77,6 @@ public class MainBehavior : MonoBehaviour {
 	public string PythonPath {set {_pythonPath = value;}}
 
 	public Toggle CallServerOnPauseToggle;
-
-	public enum FileTypes {
-		NotExists, 
-		Dir,
-		Img, Vid,
-		Depth,
-		Desktop,
-		Gif,
-		Unsupported
-	};
-
-	/* TODO: There has to be a better way to implement this */
-	public static class Exts {
-		public static Dictionary<FileTypes, string[]> ExtsDict {get; private set;}
-
-		//with no '.'
-		public static string[] AllExtsWithoutDot {get; private set;}
-
-		static Exts() {
-			ExtsDict = new Dictionary<FileTypes, string[]>();
-
-			ExtsDict.Add(FileTypes.Img, new string[] {".jpg", ".png"});
-			ExtsDict.Add(FileTypes.Vid, new string[] {
-				".mp4",
-				".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
-			});
-			ExtsDict.Add(FileTypes.Depth, new string[] {DepthFileUtils.DepthExt});
-			ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
-
-			List<string> allExtsWithoutDotList = new List<string>();
-			foreach (string[] exts in ExtsDict.Values)
-				foreach (string ext in exts)
-					allExtsWithoutDotList.Add(ext.Substring(1, ext.Length-1));
-			AllExtsWithoutDot = allExtsWithoutDotList.ToArray();
-		}
-
-		public static FileTypes FileTypeCheck(string filepath) {
-			//Does not check if the file actually exists
-			foreach (KeyValuePair<FileTypes, string[]> item in ExtsDict)
-				foreach (string ext in item.Value)
-					if (filepath.ToLower().EndsWith(ext))
-						return item.Key;
-
-			return FileTypes.Unsupported;
-		}
-
-		public static string WebGLExts(FileTypes ftype) {
-			// e.g. ".jpg .png"
-
-			if (!ExtsDict.ContainsKey(ftype)) {
-				Debug.LogError($"WebGLExts: invalid ftype {ftype}");
-				return "";
-			}
-
-			/* Why doesn't this work?
-			string webglexts = "";
-			foreach (string ext in ExtsDict[ftype])
-				webglexts += (ext + " ");
-
-			return webglexts.Substring(0, webglexts.Length-1);
-			*/
-
-			switch (ftype) {
-			case FileTypes.Img:
-				return "image/*";
-			case FileTypes.Vid:
-				return "video/*";
-			/*case FileTypes.Gif:
-				return ".gif";*/
-			default:
-				return null;
-			}
-		}
-	}
 
 	private FileTypes _currentFileType = FileTypes.NotExists;
 
@@ -1300,3 +1236,66 @@ public class MainBehavior : MonoBehaviour {
 		xrss.TryRecenter();
 	}
 } 
+
+public static class Exts {
+	public static Dictionary<FileTypes, string[]> ExtsDict {get; private set;}
+
+	//with no '.'
+	public static string[] AllExtsWithoutDot {get; private set;}
+
+	static Exts() {
+		ExtsDict = new Dictionary<FileTypes, string[]>();
+
+		ExtsDict.Add(FileTypes.Img, new string[] {".jpg", ".png"});
+		ExtsDict.Add(FileTypes.Vid, new string[] {
+			".mp4",
+			".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"
+		});
+		ExtsDict.Add(FileTypes.Depth, new string[] {DepthFileUtils.DepthExt});
+		ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
+
+		List<string> allExtsWithoutDotList = new List<string>();
+		foreach (string[] exts in ExtsDict.Values)
+			foreach (string ext in exts)
+				allExtsWithoutDotList.Add(ext.Substring(1, ext.Length-1));
+		AllExtsWithoutDot = allExtsWithoutDotList.ToArray();
+	}
+
+	public static FileTypes FileTypeCheck(string filepath) {
+		//Does not check if the file actually exists
+		foreach (KeyValuePair<FileTypes, string[]> item in ExtsDict)
+			foreach (string ext in item.Value)
+				if (filepath.ToLower().EndsWith(ext))
+					return item.Key;
+
+		return FileTypes.Unsupported;
+	}
+
+	public static string WebGLExts(FileTypes ftype) {
+		// e.g. ".jpg .png"
+
+		if (!ExtsDict.ContainsKey(ftype)) {
+			Debug.LogError($"WebGLExts: invalid ftype {ftype}");
+			return "";
+		}
+
+		/* Why doesn't this work?
+		string webglexts = "";
+		foreach (string ext in ExtsDict[ftype])
+			webglexts += (ext + " ");
+
+		return webglexts.Substring(0, webglexts.Length-1);
+		*/
+
+		switch (ftype) {
+		case FileTypes.Img:
+			return "image/*";
+		case FileTypes.Vid:
+			return "video/*";
+		/*case FileTypes.Gif:
+			return ".gif";*/
+		default:
+			return null;
+		}
+	}
+}
