@@ -52,6 +52,7 @@ class Runner():
 		print("device: %s" % self.device)
 
 		self.framecount = 1 #for video
+		self.framerate = 0
 
 		self.optimize = self.model_type = None
 
@@ -234,6 +235,7 @@ class Runner():
 
 				original_name = os.path.basename(inpath)
 				framecount = self.framecount
+				original_framerate = self.framerate
 				timestamp = int(time.time())
 				version = VERSION
 				program = "depthpy"
@@ -242,7 +244,7 @@ class Runner():
 				model_type_val = self.model_type_val
 
 				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_type_val=model_type_val, 
-					original_name=original_name, original_width=original_width, original_height=original_height, timestamp=timestamp, program=program, version=version)
+					original_name=original_name, original_width=original_width, original_height=original_height, original_framerate=original_framerate, timestamp=timestamp, program=program, version=version)
 				zout.writestr("METADATA.txt", metadata, compresslevel=0)
 
 			i += 1
@@ -295,7 +297,7 @@ class Runner():
 
 		return b"P5\n" + "{} {} {}\n".format(width, height, 255).encode("ascii") + image.tobytes()
 
-	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, timestamp, program, version) -> str:
+	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, original_framerate, timestamp, program, version) -> str:
 
 		metadata = '\n'.join([
 			f"DEPTHVIEWER",
@@ -309,6 +311,7 @@ class Runner():
 			f"original_name={original_name}",
 			f"original_width={original_width}",
 			f"original_height={original_height}",
+			f"original_framerate={original_framerate}",
 			f"timestamp={timestamp}",
 			f"program={program}",
 			f"version={version}",
@@ -350,6 +353,7 @@ class Runner():
 			cap = cv2.VideoCapture(buffer)
 
 		self.framecount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+		self.framerate = float(cap.get(cv2.CAP_PROP_FPS))
 
 		while cap.isOpened():
 			ret, frame = cap.read()
