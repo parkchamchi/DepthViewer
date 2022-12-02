@@ -322,6 +322,7 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_vp != null)
 			Destroy(_vp);
+		GifPlayer.Release();
 
 		if (_donnx != null)
 			_donnx.Dispose();

@@ -34,7 +34,6 @@ public static class GifPlayer {
 	public static State Status {get; private set;}
 
 	private static CanRunCoroutine _behav;
-	private static IEnumerator _coroutine;
 
 	private static List<UniGif.GifTexture> _actualTexlist;
 	private static List<UniGif.GifTexture> _texlist {
@@ -48,6 +47,8 @@ public static class GifPlayer {
 		}
 	}
 	private static float _lastTime;
+
+	private static float _decodingStartTime; //to check the decoded file is the one that is loading
 
 	static GifPlayer() {
 		Status = State.None;
@@ -70,14 +71,24 @@ public static class GifPlayer {
 		Status = State.Loading;
 
 		byte[] bytes = File.ReadAllBytes(filepath);
-		_coroutine = UniGif.GetTextureListCoroutine(bytes, OnDecoded);
-		_behav.StartCoroutine(_coroutine);
+		_behav.StartCoroutine(TexCoroutineWithTime(bytes));
 	}
 
-	private static void OnDecoded(List<UniGif.GifTexture> gifTexList, int loopCount, int w, int h) {
-		if (Status != State.Loading) {
-			//halted elsewhere
-			//TODO: check if it's the same file with the filename
+	private static IEnumerator TexCoroutineWithTime(byte[] bytes) {
+		float time = Time.time;
+		_decodingStartTime = time;
+
+		yield return UniGif.GetTextureListCoroutine(
+			bytes, 
+			(gifTexList, loopCount, w, h) => {
+				OnDecoded(gifTexList, loopCount, w, h, time);
+			}
+		);
+	}
+
+	private static void OnDecoded(List<UniGif.GifTexture> gifTexList, int loopCount, int w, int h, float time) {
+		if (Status != State.Loading || time != _decodingStartTime) {
+			// (halted elsewhere and it's not loading a new one) || (An older "halted" gif is decoded when a new gif is loading)
 			ReleaseTexList(gifTexList);
 			return; 
 		}
@@ -86,23 +97,26 @@ public static class GifPlayer {
 		Width = w;
 		Height = h;
 
-		_frame = 0;
-		_lastTime = Time.time;
-
+		_frame = -1;
 		Status = State.Playing;
 	}
 
 	private static void SetFrame() {
+		if (_frame < 0) {
+			_frame = 0;
+			_lastTime = Time.time;
+		}
+
 		float delta = Time.time - _lastTime;
 		int origFrame = _frame;
 
 		while (delta > _texlist[_frame].m_delaySec) {
-			_frame = (++_frame) % FrameCount;
 			delta -= _texlist[_frame].m_delaySec;
+			_frame = (++_frame) % FrameCount;
 		}
 
 		if (origFrame != _frame)
-			_lastTime = Time.time;
+			_lastTime = Time.time - delta;
 	}
 
 	public static Texture2D GetTexture() {
@@ -119,13 +133,17 @@ public static class GifPlayer {
 		Width = Height = 0;
 		_frame = -1;
 
-		if (_coroutine != null) {
-			/* I think a memory leak occurs when the coroutine is stopped before it's fully loaded. */
-			//_behav.StopCoroutine(_coroutine);
+		/* 
+			I think a memory leak occurs when the coroutine is stopped before it's fully loaded. 
+		*/
+		/*if (_coroutine != null) {
+			
+			_behav.StopCoroutine(_coroutine);
 			_coroutine = null;
-		}
+		}*/
 
 		_texlist = null;
+		_decodingStartTime = -1f;
 
 		Status = State.None;
 	}
