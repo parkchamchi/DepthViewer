@@ -57,7 +57,7 @@ public static class DepthFileUtils {
 		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
-	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, int x, int y, int model_type_val, string model_type=null) {
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, int model_type_val, string model_type=null) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
@@ -91,6 +91,7 @@ public static class DepthFileUtils {
 			original_name: orig_basename,
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
+			original_framerate: orig_fps.ToString(),
 			timestamp: Utils.GetTimestamp(),
 			program: "DepthViewer",
 			version: Version
@@ -190,7 +191,7 @@ public static class DepthFileUtils {
 	}
 
 	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val,
-		string original_name, string original_width, string original_height, string timestamp, string program, string version) {
+		string original_name, string original_width, string original_height, string original_framerate, string timestamp, string program, string version) {
 		/*
 		A line per a field, delimited by the initial '='
 		*/
@@ -206,6 +207,7 @@ public static class DepthFileUtils {
 			+ $"original_name={original_name}\n"
 			+ $"original_width={original_width}\n"
 			+ $"original_height={original_height}\n"
+			+ $"original_framerate={original_framerate}\n"
 			+ $"timestamp={timestamp}\n"
 			+ $"program={program}\n"
 			+ $"version={version}\n";

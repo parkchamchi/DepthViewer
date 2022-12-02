@@ -96,6 +96,7 @@ public class MainBehavior : MonoBehaviour {
 	private long _startFrame;
 	private long _currentFrame;
 	private long _framecount;
+	private float _framerate; //for metadata
 
 	private string _depthFilePath; //path to the depth file read for a video, null if not exists.
 	private Dictionary<string, string> _metadata;
@@ -224,6 +225,8 @@ public class MainBehavior : MonoBehaviour {
 		_startFrame = frame;
 		_framecount = (long) vp.frameCount;
 
+		_framerate = vp.frameRate;
+
 		/* Set original width/height & framecount for first time */
 		_orig_width = (int) vp.width;
 		_orig_height = (int) vp.height;
@@ -286,7 +289,7 @@ public class MainBehavior : MonoBehaviour {
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _donnx.ModelTypeVal);
 				_hasCreatedArchive = true;
 			}
 
@@ -390,6 +393,7 @@ public class MainBehavior : MonoBehaviour {
 		
 		_startFrame = _currentFrame = _framecount = -1;
 		_x = _y = _orig_width = _orig_height = 0;
+		_framerate = 0;
 		DepthFilePanel.SetActive(false);
 
 		if (CallPythonObjectParent != null)
@@ -540,7 +544,7 @@ public class MainBehavior : MonoBehaviour {
 					return false;
 	
 				if (_shouldUpdateArchive) {
-					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, x, y, _serverBehav.ModelTypeVal, model_type: _serverBehav.ModelType);
+					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _serverBehav.ModelTypeVal, model_type: _serverBehav.ModelType);
 
 					//depths = (float[]) depths.Clone();
 					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, x, y)));
@@ -557,7 +561,7 @@ public class MainBehavior : MonoBehaviour {
 
 			/* Save */
 			if (_shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _x, _y, _donnx.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _donnx.ModelTypeVal);
 
 				depths = (float[]) depths.Clone();
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
