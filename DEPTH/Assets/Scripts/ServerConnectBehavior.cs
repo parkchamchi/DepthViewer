@@ -81,9 +81,6 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 
 		_model = null;
 	}
-
-	public Coroutine StartUnityCoroutine(IEnumerator routine) =>
-		StartCoroutine(routine);
 }
 
 /* Does not impelement DepthModel */
@@ -126,7 +123,7 @@ public class DepthServerModel {
 		byte[] jpg = tex.EncodeToJPG();
 		UnityEngine.Object.Destroy(tex);
 
-		_behav.StartUnityCoroutine(Post(jpg));
+		_behav.StartCoroutine(Post(jpg));
 	}
 
 	private IEnumerator Post(byte[] jpg) {

@@ -8,8 +8,6 @@ using SFB;
 using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.UI;
-using UnityEngine.XR;
-using UnityEngine.XR.Management;
 using TMPro;
 
 #if UNITY_WEBGL
@@ -377,6 +375,8 @@ public class MainBehavior : MonoBehaviour {
 		SaveDepth();
 		HaltVideo();
 		DepthFileUtils.Dispose();
+
+		GifPlayer.Release();
 
 		_orig_filepath = null;
 		_currentFileType = FileTypes.Unsupported;
@@ -895,6 +895,7 @@ public class MainBehavior : MonoBehaviour {
 			_currentFrame = frame;
 
 			Texture2D tex = GifPlayer.GetTexture();
+			if (tex == null) return;
 
 			float[] depths = _donnx.Run(tex, out _x, out _y);
 			_meshBehav.SetScene(depths, _x, _y, (float) GifPlayer.Width/GifPlayer.Height, tex);

@@ -34,7 +34,19 @@ public static class GifPlayer {
 	public static State Status {get; private set;}
 
 	private static CanRunCoroutine _behav;
-	private static List<UniGif.GifTexture> _texlist;
+	private static IEnumerator _coroutine;
+
+	private static List<UniGif.GifTexture> _actualTexlist;
+	private static List<UniGif.GifTexture> _texlist {
+		get {
+			return _actualTexlist;
+		}
+		set {
+			if (_actualTexlist != null)
+				ReleaseTexList(_actualTexlist);	
+			_actualTexlist = value;
+		}
+	}
 	private static float _lastTime;
 
 	static GifPlayer() {
@@ -58,10 +70,18 @@ public static class GifPlayer {
 		Status = State.Loading;
 
 		byte[] bytes = File.ReadAllBytes(filepath);
-		_behav.StartUnityCoroutine(UniGif.GetTextureListCoroutine(bytes, OnDecoded));
+		_coroutine = UniGif.GetTextureListCoroutine(bytes, OnDecoded);
+		_behav.StartCoroutine(_coroutine);
 	}
 
 	private static void OnDecoded(List<UniGif.GifTexture> gifTexList, int loopCount, int w, int h) {
+		if (Status != State.Loading) {
+			//halted elsewhere
+			//TODO: check if it's the same file with the filename
+			ReleaseTexList(gifTexList);
+			return; 
+		}
+
 		_texlist = gifTexList;
 		Width = w;
 		Height = h;
@@ -86,7 +106,32 @@ public static class GifPlayer {
 	}
 
 	public static Texture2D GetTexture() {
+		if (_texlist == null) {
+			Debug.Log($"GifPlayer.GetTexture(): called when _texlist == null");
+			return null;
+		}
+
 		SetFrame();
 		return _texlist[_frame].m_texture2d;
+	}
+
+	public static void Release() {
+		Width = Height = 0;
+		_frame = -1;
+
+		if (_coroutine != null) {
+			/* I think a memory leak occurs when the coroutine is stopped before it's fully loaded. */
+			//_behav.StopCoroutine(_coroutine);
+			_coroutine = null;
+		}
+
+		_texlist = null;
+
+		Status = State.None;
+	}
+
+	private static void ReleaseTexList(List<UniGif.GifTexture> texlist) {
+		foreach (var giftex in texlist)
+			UnityEngine.Object.Destroy(giftex.m_texture2d);
 	}
 }
