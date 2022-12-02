@@ -109,6 +109,12 @@ public class DepthServerModel {
 	}
 
 	public void Run(Texture inTex, DepthReadyCallback callback) {
+		if (inTex == null) {
+			Debug.LogError("DepthServerModel.Run(): called when inTex == null");
+			_callback(null, 0, 0);
+			return;
+		}
+
 		_callback = callback;
 
 		Texture2D tex = new Texture2D(inTex.width, inTex.height);

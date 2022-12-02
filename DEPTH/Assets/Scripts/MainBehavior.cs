@@ -977,7 +977,8 @@ public class MainBehavior : MonoBehaviour {
 					_waitingServer = true;
 					_serverTexture = _vp.texture;
 
-					_serverBehav.Run(_serverTexture, OnDepthReady);
+					if (_serverTexture != null)
+						_serverBehav.Run(_serverTexture, OnDepthReady);
 				}
 
 				_meshBehav.ShouldUpdateDepth = true;
@@ -1005,7 +1006,9 @@ public class MainBehavior : MonoBehaviour {
 				//_serverTexture is always set
 				if (_serverBehav.IsAvailable && CallServerOnPauseToggle != null && CallServerOnPauseToggle.isOn) {
 					_waitingServer = true;
-					_serverBehav.Run(_serverTexture, OnDepthReady);
+
+					if (_serverTexture != null)
+						_serverBehav.Run(_serverTexture, OnDepthReady);
 				}
 
 				_meshBehav.ShouldUpdateDepth = true;
