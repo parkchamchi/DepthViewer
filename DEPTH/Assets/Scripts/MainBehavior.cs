@@ -46,6 +46,7 @@ public class MainBehavior : MonoBehaviour {
 	public GameObject BrowseDirPanel;
 	public TMP_Text BrowseDirText;
 	public Toggle BrowseDirRandomToggle;
+	public Toggle BrowseDirGifToggle;
 
 	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
 
@@ -121,6 +122,7 @@ public class MainBehavior : MonoBehaviour {
 	private int _dirFileIdx;
 	private bool _dirRandom = false;
 	private List<int> _dirRandomIdxList;
+	private int _dirGifCount; //number of gif files of the dir.
 
 #if UNITY_WEBGL
 	private bool _isVideo;
@@ -1223,6 +1225,18 @@ public class MainBehavior : MonoBehaviour {
 
 		int idx = (_dirRandom) ? _dirRandomIdxList[_dirFileIdx] : _dirFileIdx;
 		string newfilename = _dirFilenames[idx];
+
+		if (!BrowseDirGifToggle.isOn && Exts.FileTypeCheck(newfilename) == FileTypes.Gif) {
+			/* Skip GIF files */
+
+			/* When the directory only has Gif files */
+			if (_dirGifCount == _dirFilenames.Length)
+				return;
+
+			SetBrowseDir(next);
+			return;
+		}
+
 		FilepathInputField.text = newfilename;
 		SelectFile();
 	}
@@ -1235,21 +1249,29 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		string dirname = dirnames[0];
 
+		int gifcount = 0; //number of the gif files in the directory.
+
 		//Add only: img, vid, gif
 		List<string> filenames_list = new List<string>();
 		foreach (string filename in Directory.GetFiles(dirname)) {
 			FileTypes ftype = Exts.FileTypeCheck(filename);
 			if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
 				filenames_list.Add(filename);
+
+				if (ftype == FileTypes.Gif)
+					gifcount++;
 			}
 		}
 
 		if (filenames_list.Count == 0)
 			return;
+		if (!BrowseDirGifToggle.isOn && (gifcount == filenames_list.Count)) //directory with only gif files
+			return;
 
 		BrowseDirText.text = dirname;
 		_dirFilenames = filenames_list.ToArray();
 		_dirFileIdx = 0;
+		_dirGifCount = gifcount;
 
 		ShuffleBrowseDirRandomIdxList();
 
