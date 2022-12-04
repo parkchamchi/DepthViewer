@@ -23966,6 +23966,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2128267914}
   - component: {fileID: 2128267913}
+  - component: {fileID: 2128267915}
   m_Layer: 0
   m_Name: MainManager
   m_TagString: Untagged
@@ -23986,14 +23987,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FilepathInputField: {fileID: 696514300}
-  FilepathResultText: {fileID: 697740476}
-  StatusText: {fileID: 224956837}
   OutputSaveToggle: {fileID: 915679458}
   SearchCacheToggle: {fileID: 2118448347}
-  OutputSaveText: {fileID: 692346199}
   UI: {fileID: 1150659574}
-  DepthFilePanel: {fileID: 497387996}
-  DepthFileCompareText: {fileID: 1729033237}
   BrowseDirPanel: {fileID: 746753798}
   BrowseDirText: {fileID: 402104186}
   BrowseDirRandomToggle: {fileID: 2064043009}
@@ -24002,8 +23998,6 @@ MonoBehaviour:
   IsVideoToggle: {fileID: 86809324}
   WebXRSet: {fileID: 846631294}
   MainLight: {fileID: 705507994}
-  CallPythonObjectParent: {fileID: 1391802854}
-  CallServerOnPauseToggle: {fileID: 1043418866}
 --- !u!4 &2128267914
 Transform:
   m_ObjectHideFlags: 0
@@ -24019,6 +24013,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2128267915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128267912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0986cee8aa78e0b4f915649d734c9665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FilepathResultText: {fileID: 697740476}
+  StatusText: {fileID: 224956837}
+  OutputSaveText: {fileID: 692346199}
+  DepthFilePanel: {fileID: 497387996}
+  DepthFileCompareText: {fileID: 1729033237}
+  CallPythonObjectParent: {fileID: 1391802854}
+  CallServerOnPauseToggle: {fileID: 1043418866}
 --- !u!1 &2131931752
 GameObject:
   m_ObjectHideFlags: 0

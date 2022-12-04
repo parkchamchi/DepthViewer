@@ -7,7 +7,19 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
 
-public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
+public delegate bool DepthReadyCallback(float[] depths, int x, int y);
+
+public interface AsyncDepthModel {
+	public string ModelType {get;}
+	public int ModelTypeVal {get;}
+
+	public bool IsAvailable {get;}
+	public bool IsWaiting {get;}
+
+	public void Run(Texture tex, DepthReadyCallback callback);
+}
+
+public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCoroutine {
 	public TMP_InputField AddrIF;
 	public TMP_InputField ModelTypeIF;
 	public TMP_Text ServerStatusText;
@@ -37,6 +49,11 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 
 	private DepthServerModel _model;
 	public bool IsAvailable {get {return (_model != null);}}
+	public bool IsWaiting {get; private set;}
+
+	void Start() {
+		IsWaiting = false;
+	}
 
 	public void Connect() {
 		string addr = AddrIF.text;
@@ -69,10 +86,15 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 		_model = new DepthServerModel(url, modelType, modelTypeVal, this);
 	}
 
-	public void Run(Texture tex, DepthServerModel.DepthReadyCallback callback) {
+	public void Run(Texture tex, DepthReadyCallback callback) {
 		if (_model == null) return;
+		if (IsWaiting) return;
 
-		_model.Run(tex, callback);
+		IsWaiting = true;
+		_model.Run(tex, (float[] depths, int x, int y) => {
+			IsWaiting = false;
+			return callback(depths, x, y);
+		});
 	}
 
 	public void Disconnect() {
@@ -80,6 +102,7 @@ public class ServerConnectBehavior : MonoBehaviour, CanRunCoroutine {
 		ModelStatusText.text = "";
 
 		_model = null;
+		IsWaiting = false;
 	}
 }
 
@@ -90,8 +113,6 @@ public class DepthServerModel {
 
 	private int _modelTypeVal;
 	public int ModelTypeVal {get {return _modelTypeVal;}}
-
-	public delegate bool DepthReadyCallback(float[] depths, int x, int y);
 
 	private string _url;
 	private CanRunCoroutine _behav;

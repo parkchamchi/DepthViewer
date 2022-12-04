@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MeshBehavior : MonoBehaviour {
+public interface IDepthMesh {
+	bool ShouldUpdateDepth {set;} //whether the depth has to be updated when the parameters (alpha, ...) is changed
+	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
+}
+
+public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private Mesh _mesh;
 	private Vector3[] _vertices;

@@ -68,13 +68,13 @@ public class OptionsBehavior : MonoBehaviour {
 			return;
 		}
 
-		_mainBehav.SaveDir = outputdir;
+		DepthFileUtils.SaveDir = outputdir;
 		OutputDirStatusText.text = "O";
 	}
 
 	public void SetPythonPath() {
 		string pythonpath = PythonPathInputField.text;
-		_mainBehav.PythonPath = pythonpath;
+		PythonPath.Path = pythonpath;
 	}
 
 	public void SetMeshX() {

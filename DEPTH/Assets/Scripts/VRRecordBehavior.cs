@@ -2,7 +2,12 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 
-public class VRRecordBehavior : MonoBehaviour {
+public interface IVRRecord {
+	public int Size {set;}
+	public Task Capture(string outputpath, string format);
+}
+
+public class VRRecordBehavior : MonoBehaviour, IVRRecord {
 	public Camera mainCamera;
 
 	public RenderTexture cubemapRTLeft2048;

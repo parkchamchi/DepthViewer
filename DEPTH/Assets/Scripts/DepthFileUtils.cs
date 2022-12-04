@@ -13,18 +13,29 @@ public static class DepthFileUtils {
 	
 	public const string DepthExt = ".depthviewer";
 
-	private static string _depthdir;
-	public static string DepthDir {
+	private static string _savedir;
+	public static string SaveDir {
 		set {
-			_depthdir = value;
-			Utils.CreateDirectory(_depthdir);
+			if (!Directory.Exists(value)) {
+				Debug.LogError("Invalid directory: " + value);
+				return;
+			}
+			
+			_savedir = value;
 		}
 		get {
-			return _depthdir;
+			return _savedir;
 		}
 	}
 
-	private static readonly string _defaultDepthDir;
+	public static string DepthDir {
+		get {
+			string depthdir = $"{_savedir}/depths";
+			Utils.CreateDirectory(depthdir);
+
+			return depthdir;
+		}
+	}
 
 	private static ZipArchive _archive;
 	private static ZipArchiveMode _archiveMode;
@@ -41,6 +52,10 @@ public static class DepthFileUtils {
 		MiDasV21 = 200,
 		MidasV3DptHybrid = 300,
 		MidasV3DptLarge = 400,
+	}
+
+	static DepthFileUtils() {
+		_savedir = Application.persistentDataPath;
 	}
 
 	public static void Dispose() {
@@ -118,7 +133,7 @@ public static class DepthFileUtils {
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
 			output_filepath = $"{model_type_val}.{hashval}{DepthExt}";
 
-		output_filepath = _depthdir + '/' + output_filepath;
+		output_filepath = DepthDir + '/' + output_filepath;
 
 		return output_filepath;
 	}
@@ -176,7 +191,7 @@ public static class DepthFileUtils {
 
 		if (hashval == null) return null;
 
-		foreach (string filename in Directory.GetFiles(_depthdir))
+		foreach (string filename in Directory.GetFiles(DepthDir))
 			if (filename.EndsWith($"{hashval}{DepthExt}")) {
 				string[] tokens = Path.GetFileName(filename).Split('.');
 				int modelTypeVal = int.Parse(tokens[tokens.Length-3]);
