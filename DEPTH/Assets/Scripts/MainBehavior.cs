@@ -17,14 +17,13 @@ using UnityEngine.Networking; //UnityWebRequest
 using SimpleFileBrowser;
 #endif
 
+//TODO: Split this script
 public enum FileTypes {
-	NotExists, 
-	Dir,
-	Img, Vid,
-	Depth,
-	Desktop,
-	Gif,
-	Unsupported
+	NotExists, Dir, Unsupported,
+
+	Img, Vid, Depth, //These 3 are heavily dependent on Unity components and interwined, make a seperate script for this
+	Desktop, //This can be generalized to something like `OnlineTexInput`, that can be grouped together with live camera input
+	Gif, //This can be generalized to something like `AnimatedTexInput`
 };
 
 public class MainBehavior : MonoBehaviour {

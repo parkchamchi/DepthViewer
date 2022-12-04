@@ -5,7 +5,7 @@ Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 
 ## Try Now
 - [WebGL Demo](https://parkchamchi.github.io/DepthViewer/) ([WebXR version](https://parkchamchi.github.io/DepthViewer/vr_version/))
 - [Releases](https://github.com/parkchamchi/DepthViewer/releases)
-- [Steam Page (Soon!)](https://store.steampowered.com/app/2218510/DepthViewer/)
+- [Steam Page](https://store.steampowered.com/app/2218510/DepthViewer/)
 - [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
 
 ## Demonstration Video
@@ -94,6 +94,7 @@ Other formats have not been tested.
 - Fix codecs
 - Stablize
 ### WIP
+- Native DPT models support
 - VR controllers support
 
 ## Misc
