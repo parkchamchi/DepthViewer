@@ -17,7 +17,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class DesktopRenderBehavior : MonoBehaviour {
+public interface OnlineTex : IDisposable {
+	public bool Supported {get;}
+
+	void StartRendering();
+	Texture2D GetTex(out int width, out int height);
+}
+
+public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 
 	public GameObject MainButton;
 	public GameObject MainPanel;
@@ -60,7 +67,7 @@ public class DesktopRenderBehavior : MonoBehaviour {
 			SetPanel();
 	}
 
-	public Texture2D Get(out int width, out int height) {
+	public Texture2D GetTex(out int width, out int height) {
 		Texture2D texture = GetTexture();
 
 		width = texture.width;
@@ -211,4 +218,5 @@ public class DesktopRenderBehavior : MonoBehaviour {
 
 #endif
 
+	public void Dispose() {}
 }

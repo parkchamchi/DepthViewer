@@ -60,22 +60,13 @@ public class MainBehavior : MonoBehaviour {
 	private DepthModelBehavior _depthModelBehav;
 	private DepthModel _donnx;
 	private VRRecordBehavior _vrRecordBehav;
-	private DesktopRenderBehavior _desktopRenderBehav;
 	private ServerConnectBehavior _serverBehav;
+	private DesktopRenderBehavior _desktopRenderBehav;
 
 	private VideoPlayer _vp;
 
-	private int _x, _y;
-	private int _orig_width, _orig_height;
-	private string _orig_filepath;
-
-	private Texture _serverTexture; //TODO: delete
-	private int _currentFrame; //TODO: delete
-
 	private bool _searchCache;
 	private bool _canUpdateArchive; //User option, toggled in UI; can be ignored
-
-	private bool _desktopRenderPaused;
 
 	private ExtensionFilter[] _extFilters;
 
@@ -94,8 +85,8 @@ public class MainBehavior : MonoBehaviour {
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		GetBuiltInModel();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
-		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
 		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
+		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 
@@ -146,12 +137,6 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_texInputs != null)
 			_texInputs.UpdateTex();
-
-		else if (_currentFileType == FileTypes.Desktop)
-			DesktopRenderingUpdate();
-
-		else if (_currentFileType == FileTypes.Gif)
-			GifUpdate();
 	}
 
 	public void Quit() {
@@ -166,7 +151,6 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_vp != null)
 			Destroy(_vp);
-		GifPlayer.Release();
 
 		if (_donnx != null)
 			_donnx.Dispose();
@@ -220,19 +204,12 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs?.Dispose();
 		_texInputs = null;
 
-		GifPlayer.Release();
-
-		_orig_filepath = null;
 		_currentFileType = FileTypes.Unsupported;
 		
-		_x = _y = _orig_width = _orig_height = 0;
-
 		UITextSet.OutputSaveText.text = "";
 		UITextSet.StatusText.text = "";
 
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
-
-		_desktopRenderPaused = false;
 	}
 
 	public void SelectFile() {
@@ -262,16 +239,15 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 
 		_currentFileType = ftype;
-		_orig_filepath = filepath;
 
 		switch (ftype) {
 		case FileTypes.Img:
 		case FileTypes.Vid:
 		case FileTypes.Depth:
-			_texInputs = new ImgVidDepthTexInputs(_currentFileType, _meshBehav, _donnx, _orig_filepath, _searchCache, _canUpdateArchive, _vp, _vrRecordBehav, _serverBehav);
+			_texInputs = new ImgVidDepthTexInputs(_currentFileType, _meshBehav, _donnx, filepath, _searchCache, _canUpdateArchive, _vp, _vrRecordBehav, _serverBehav);
 			break;
 		case FileTypes.Gif:
-			GifPlayer.FromGif(filepath);
+			_texInputs = new GifTexInputs(filepath, _donnx, _meshBehav);
 			break;
 		default:
 			UITextSet.StatusText.text = "DEBUG: SelectFile(): something messed up :(";
@@ -303,64 +279,7 @@ public class MainBehavior : MonoBehaviour {
 		ClearBrowseDir();
 
 		_currentFileType = FileTypes.Desktop;
-		_desktopRenderBehav.StartRendering();
-	}
-
-	private void DesktopRenderingUpdate() {
-		if (_desktopRenderPaused)
-			return;
-
-		Texture texture = _desktopRenderBehav.Get(out _orig_width, out _orig_height);
-		if (texture == null) {
-			Debug.LogError("Couldn't get the desktop screen");
-			return;
-		}
-
-		if (_donnx == null) return;
-
-		float[] depths = _donnx.Run(texture, out _x, out _y);
-		_meshBehav.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
-
-		_serverTexture = texture;
-	}
-
-	private void GifUpdate() {
-		if (_donnx == null) return;
-
-		switch (GifPlayer.Status) {
-		case GifPlayer.State.None:
-			Debug.LogError("GifPlayer Error");
-			UITextSet.StatusText.text = "GifPlayer Error";
-			return;
-		case GifPlayer.State.Loading:
-			UITextSet.StatusText.text = "Loading...";
-			return;
-		case GifPlayer.State.Ready:
-			UITextSet.StatusText.text = "Ready.";
-			return;
-		case GifPlayer.State.Paused:
-			UITextSet.StatusText.text = "Paused.";
-			return;
-		
-		case GifPlayer.State.Playing:
-			int frame = GifPlayer.Frame;
-			if (_currentFrame == frame)
-				return;
-			_currentFrame = frame;
-
-			Texture2D tex = GifPlayer.GetTexture();
-			if (tex == null) return;
-
-			float[] depths = _donnx.Run(tex, out _x, out _y);
-			_meshBehav.SetScene(depths, _x, _y, (float) GifPlayer.Width/GifPlayer.Height, tex);
-
-			UITextSet.StatusText.text = $"#{frame}/{GifPlayer.FrameCount}";
-			return;
-
-		default:
-			UITextSet.StatusText.text = $"DEBUG: GifUpdate: not implemented: {GifPlayer.Status}";
-			return;
-		}
+		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, _desktopRenderBehav);
 	}
 
 	public void SetModel(DepthModel model) {
@@ -370,43 +289,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public void GetBuiltInModel() =>
 		SetModel(_depthModelBehav.GetBuiltIn());
-
-	public void PausePlayVideo() {
-		if (_currentFileType == FileTypes.Desktop) {
-			if (_desktopRenderPaused) {
-				/* Unpause */
-				if (_serverBehav.IsWaiting) {
-					UITextSet.StatusText.text = "Waiting for the server.";
-					return;
-				}
-
-				_desktopRenderPaused = false;
-				UITextSet.StatusText.text = "Unpaused.";
-
-				_meshBehav.ShouldUpdateDepth = false;
-			}
-			else {
-				/* Pause */
-				_desktopRenderPaused = true;
-				UITextSet.StatusText.text = "Paused.";
-
-				//_serverTexture is always set
-				if (_serverBehav.IsAvailable && !_serverBehav.IsWaiting && 
-					ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn)
-				{
-					if (_serverTexture != null)
-						_serverBehav.Run(_serverTexture, OnDepthReady);
-				}
-
-				_meshBehav.ShouldUpdateDepth = true;
-			}
-		}
-	}
-
-	private bool OnDepthReady(float[] a, int b, int c) {
-		//TODO: delete
-		return false;
-	}
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);
@@ -482,7 +364,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public void OnFileUpload(string url) {
 		Cleanup();
-		_orig_filepath = url; //not needed
 
 		if (_isVideo) {
 			_currentFileType = FileTypes.Vid;
