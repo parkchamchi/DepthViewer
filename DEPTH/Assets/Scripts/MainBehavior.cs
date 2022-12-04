@@ -18,19 +18,13 @@ using UnityEngine.Networking; //UnityWebRequest
 using SimpleFileBrowser;
 #endif
 
-//TODO: Split this script
 public enum FileTypes {
 	NotExists, Dir, Unsupported,
 
-	Img, Vid, Depth, //These 3 are heavily dependent on Unity components and interwined, make a seperate script for this
-	Desktop, //This can be generalized to something like `OnlineTexInput`, that can be grouped together with live camera input
-	Gif, //This can be generalized to something like `AnimatedTexInput`
+	Img, Vid, Depth, //These 3 are heavily dependent on Unity components and interwined
+	Desktop,
+	Gif
 };
-
-public static class PythonPath {
-	private static string _path = "python";
-	public static string Path {get {return _path;} set {_path = value;}}
-}
 
 public class MainBehavior : MonoBehaviour {
 
@@ -226,9 +220,9 @@ public class MainBehavior : MonoBehaviour {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
 
-		if (_texInputs != null && _texInputs.WaitingSequentialInput) {
+		if (_texInputs != null && _texInputs.SeqInputBehav != null && _texInputs.SeqInputBehav.WaitingSequentialInput) {
 			/* Selecting the texture for depthfile */
-			_texInputs.SequentialInput(filepath, ftype);
+			_texInputs.SeqInputBehav.SequentialInput(filepath, ftype);
 			return;
 		}
 
@@ -543,6 +537,15 @@ public class MainBehavior : MonoBehaviour {
 
 	public void SetLightIntensity(float val) =>
 		MainLight.intensity = val;
+
+	public void SendMsgToTexInputs(string msg) {
+		if (_texInputs == null) {
+			Debug.LogError("_texInputs == null");
+			return;
+		}
+
+		_texInputs.SendMsg(msg);
+	}
 
 	/* Does not work */
 	/*

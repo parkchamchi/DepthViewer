@@ -1095,14 +1095,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: PausePlayVideo
-        m_Mode: 1
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: PausePlay
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &103122552
@@ -12668,14 +12668,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: DepthFileStartRecording
-        m_Mode: 3
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 2048
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: DepthFileStartRecording_2048
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1179043071
@@ -17968,14 +17968,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: CallPythonLarge
-        m_Mode: 1
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: CallPythonHybrid
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1590929366
@@ -18313,14 +18313,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: DepthFileShow
-        m_Mode: 1
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: DepthFileShow
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1617557347
@@ -20226,14 +20226,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: CallPythonHybrid
-        m_Mode: 1
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: CallPythonHybrid
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1705273866
@@ -23118,14 +23118,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: DepthFileStartRecording
-        m_Mode: 3
+        m_MethodName: SendMsgToTexInputs
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 4096
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: DepthFileStartRecording_4096
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2060834700

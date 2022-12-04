@@ -74,7 +74,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void SetPythonPath() {
 		string pythonpath = PythonPathInputField.text;
-		PythonPath.Path = pythonpath;
+		Utils.PythonPath = pythonpath;
 	}
 
 	public void SetMeshX() {

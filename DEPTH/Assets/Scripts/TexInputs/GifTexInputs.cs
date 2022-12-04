@@ -61,6 +61,6 @@ public class GifTexInputs : TexInputs {
 		_dmodel = null;
 	}
 
-	public bool WaitingSequentialInput {get {return false;}}
-	public void SequentialInput(string filepath, FileTypes ftype) {}
+	public SequentialInputBehav SeqInputBehav {get {return null;}}
+	public void SendMsg(string msg) {}
 }

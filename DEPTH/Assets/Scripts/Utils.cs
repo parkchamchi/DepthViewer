@@ -7,6 +7,8 @@ using System.IO;
 using System.Security.Cryptography;
 
 public class Utils {
+	private static string _pythonpath = "python";
+	public static string PythonPath {get {return _pythonpath;} set {_pythonpath = value;}}
 
 	public static Texture2D LoadImage(string path) {
 		if (!File.Exists(path)) {

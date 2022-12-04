@@ -39,8 +39,8 @@ public class OnlineTexInputs : TexInputs {
 		_dmesh.SetScene(depths, x, y, (float) width/height, texture);
 	}
 
-	public bool WaitingSequentialInput {get {return false;}}
-	public void SequentialInput(string filepath, FileTypes ftype) {}
+	public SequentialInputBehav SeqInputBehav {get {return null;}}
+	public void SendMsg(string msg) {}
 
 	public void Dispose() {
 		_otex = null;

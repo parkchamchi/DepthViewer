@@ -11,9 +11,24 @@ using TMPro;
 
 public class ImgVidDepthTexInputs : TexInputs {
 
-	public bool WaitingSequentialInput {
-		get {return _ftype == FileTypes.Depth && !_recording;}
+	public class TexInputBehav : SequentialInputBehav {
+		private ImgVidDepthTexInputs _outer;
+		public TexInputBehav(ImgVidDepthTexInputs outer) {_outer = outer;}
+
+		public bool WaitingSequentialInput {
+			get {return _outer._ftype == FileTypes.Depth && !_outer._recording;}
+		}
+		public void SequentialInput(string filepath, FileTypes ftype) {
+			if (_outer._ftype != FileTypes.Depth ||_outer. _recording) {
+				Debug.LogError($"SequentialInput() called when _ftype == {_outer._ftype} and _recording == {_outer._recording}");
+				return;
+			}
+
+			_outer.DepthFileInput(filepath, ftype);
+		}
 	}
+	private TexInputBehav _texInputBehav;
+	public SequentialInputBehav SeqInputBehav {get {return _texInputBehav;}}
 
 	private FileTypes _ftype;
 	private DepthModel _dmodel;
@@ -71,15 +86,18 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_ftype = ftype;
 		_dmesh = dmesh;
 		_dmodel = dmodel;
+		_orig_filepath = filepath;
+
 		_searchCache = searchCache;
-		
-		_asyncDmodel = asyncDmodel;
 		_vrrecord = vrrecord;
+		_asyncDmodel = asyncDmodel;
 
 		_vp = vp;
 		_vp.frameReady += OnFrameReady;
 		_vp.errorReceived += OnVideoError;
 		_vp.loopPointReached += OnLoopPointReached;
+
+		_texInputBehav = new TexInputBehav(this);
 
 		_processedFrames = new List<Task>();
 		/* Img & Vid can be cached */
@@ -270,7 +288,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			UpdateVid();
 			break;
 		case FileTypes.Depth:
-			UpdateDepthfile();
+			UpdateDepthfileInput();
 			break;
 		}
 	}
@@ -400,15 +418,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		UITextSet.StatusText.text = "INPUT TEXTURE";
 
 		_recording = false;
-	}
-
-	public void SequentialInput(string filepath, FileTypes ftype) {
-		if (_ftype != FileTypes.Depth || _recording) {
-			Debug.LogError($"SequentialInput() called when _ftype == {_ftype} and _recording == {_recording}");
-			return;
-		}
-
-		DepthFileInput(filepath, ftype);
+		_orig_filepath = filepath;
 	}
 
 	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
@@ -544,7 +554,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_shouldCapture = true;
 	}
 
-	private void DepthFileCaptureFrame() {
+	private void UpdateDepthfileInput() {
+		if (!_recording || !_shouldCapture)
+			return;
+
 		DepthFileCapture();
 		_shouldCapture = false;
 
@@ -557,9 +570,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 			_vp.frame++;
 	}
 
-	private void DepthFileCapture(string format="jpg") {
+	private void DepthFileCapture(string format="jpg") =>
 		_processedFrames.Add(_vrrecord.Capture($"{_recordPath}/{_currentFrame-_startFrame}.{format}", format));
-	}
 
 	private void DepthFileEnded() {
 		_recording = false;
@@ -598,12 +610,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 	/************************************************************************************/
 	/* End - Depth file input
 	/************************************************************************************/
-
-	private void UpdateDepthfile() {
-		if (!_recording || !_shouldCapture)
-			return;
-	}
-
 
 	private void SaveDepth(bool shouldReload=false) {
 		//if (_processedFrames == null || _processedFrames.Count <= 0) return;
@@ -689,11 +695,46 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
 
-		System.Diagnostics.Process.Start(PythonPath.Path, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
+		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
+	/* Better implementation? */
+	public void SendMsg(string msg) {
+		switch (msg) {
+		case "DepthFileShow":
+			DepthFileShow();
+			break;
+		case "DepthFileStartRecording_2048":
+			DepthFileStartRecording(2048);
+			break;
+		case "DepthFileStartRecording_4096":
+			DepthFileStartRecording(4096);
+			break;
+
+		case "CallPythonHybrid":
+			CallPythonHybrid();
+			break;
+		case "CallPythonLarge":
+			CallPythonLarge();
+			break;
+		
+		case "PausePlay": //TODO: if there's another input that can be paused, move this to the interface
+			PausePlay();
+			break;
+
+		default:
+			Debug.LogError("Got msg: " + msg);
+			break;
+		}
+	}
 
 	public void Dispose() {
+		_recording = _shouldCapture = false;
+
+		_vp.frameReady -= OnFrameReady;
+		_vp.errorReceived -= OnVideoError;
+		_vp.loopPointReached -= OnLoopPointReached;
+
 		SaveDepth();
 		HaltVideo();
 		DepthFileUtils.Dispose();
