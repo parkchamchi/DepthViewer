@@ -8,9 +8,6 @@ Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 
 - [Steam Page](https://store.steampowered.com/app/2218510/DepthViewer/)
 - [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
 
-## Demonstration Video
-[![DemoVideo](https://img.youtube.com/vi/3ZDIcntVvQM/0.jpg)](https://www.youtube.com/watch?v=3ZDIcntVvQM)
-
 ## Examples
 
 | Original input (resized) | v2.1 small (built in) | Src |
