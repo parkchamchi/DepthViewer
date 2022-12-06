@@ -133,15 +133,27 @@ public class MainBehavior : MonoBehaviour {
 			_texInputs.UpdateTex();
 	}
 
+	private void Cleanup() {
+		/* Called by SelectFile(), DesktopRenderingStart() */
+
+		_texInputs?.Dispose();
+		_texInputs = null;
+		DepthFileUtils.Dispose(); //not needed, should be handled at _texInputs.Dispose()
+
+		_currentFileType = FileTypes.Unsupported;
+		
+		UITextSet.OutputSaveText.text = "";
+		UITextSet.StatusText.text = "";
+
+		_meshBehav.ShouldUpdateDepth = false; //only true in images
+	}
+
 	public void Quit() {
 #if UNITY_WEBGL
 		StatusText.text = "Quitting.";
 #endif
 
-		_texInputs.Dispose();
-		DepthFileUtils.Dispose(); //not needed
-
-		_currentFileType = FileTypes.Unsupported;
+		Cleanup();
 
 		if (_vp != null)
 			Destroy(_vp);
@@ -190,20 +202,6 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		UITextSet.FilepathResultText.text = output;
-	}
-
-	void Cleanup() {
-		/* Called by SelectFile(), DesktopRenderingStart() */
-
-		_texInputs?.Dispose();
-		_texInputs = null;
-
-		_currentFileType = FileTypes.Unsupported;
-		
-		UITextSet.OutputSaveText.text = "";
-		UITextSet.StatusText.text = "";
-
-		_meshBehav.ShouldUpdateDepth = false; //only true in images
 	}
 
 	public void SelectFile() {
