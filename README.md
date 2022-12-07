@@ -101,13 +101,13 @@ The Unity Editor version used: `2021.3.10f1`
 These dll files has to be in `DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64/native`.
 They are in the nuget package files (.nupkg), get them from <br>
 <br>
-[Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Managed/) => `microsoft.ml.onnxruntime.gpu.1.13.1.nupkg/lib/netstandard1.1/*.dll` <br>
+[Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) => `microsoft.ml.onnxruntime.gpu.1.13.1.nupkg/lib/netstandard1.1/*.dll` <br>
 - `onnxruntime.dll`
 - `onnxruntime_providers_shared.dll`
 - `onnxruntime_providers_cuda.dll`
 - I don't think this is needed: `onnxruntime_providers_tensorrt.dll`
 
-[Microsoft.ML.OnnxRuntime.Managed](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) => `microsoft.ml.onnxruntime.managed.1.13.1.nupkg/runtimes/win-x64/native/*.dll` <br>
+[Microsoft.ML.OnnxRuntime.Managed](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Managed/) => `microsoft.ml.onnxruntime.managed.1.13.1.nupkg/runtimes/win-x64/native/*.dll` <br>
 - `Microsoft.ML.OnnxRuntime.dll`
 
 ## Misc
