@@ -77,7 +77,7 @@ public class MainBehavior : MonoBehaviour {
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
-		/* GetBuiltInModel(); */ _donnx = GameObject.Find("DepthModel").GetComponent<OnnxRuntimeDepthModelBehavior>().GetLargeModel();
+		GetBuiltInModel();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
 		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
