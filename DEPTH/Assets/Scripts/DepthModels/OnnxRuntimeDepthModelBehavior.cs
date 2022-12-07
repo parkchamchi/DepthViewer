@@ -1,3 +1,6 @@
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+//#define USING_ONNX_RUNTIME
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,15 +54,6 @@ Used https://github.com/lewiji/godot-midas-depth/blob/master/src/Inference/Infer
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 	SOFTWARE.
 */
-
-public class OnnxRuntimeDepthModelBehavior : MonoBehaviour {
-	private string _largeModelPath = "D:/tmp/dpt_large-midas.onnx";
-
-	public DepthModel GetLargeModel() {
-		var modeltype = DepthFileUtils.ModelTypes.MidasV3DptLarge;
-		return new OnnxRuntimeDepthModel(_largeModelPath, modeltype.ToString(), (int) modeltype);
-	}
-}
 
 public class OnnxRuntimeDepthModel : DepthModel {
 	public string ModelType {get; private set;}
@@ -207,3 +201,13 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		Debug.Log($"Version:{mm.Version}");
 	}
 }
+
+#else
+
+public class OnnxRuntimeDepthModel : DepthModel {
+	public OnnxRuntimeDepthModel(string s1, string s2, int i1) {
+		Debug.LogError("This should not be shown.");
+	}
+}
+
+#endif
