@@ -215,7 +215,7 @@ THE SOFTWARE.
 
 -----------------------------------------------------------------------
 
-Uses onnxruntime
+Uses ONNX Runtime
 https://github.com/microsoft/onnxruntime
 
 Original License:
