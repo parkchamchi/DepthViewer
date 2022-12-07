@@ -10,18 +10,23 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
 /*
-These nuget packages has to be installed:
-	Microsoft.ML.OnnxRuntime
-	Microsoft.ML.OnnxRuntime.Managed
-
-	Not needed: Microsoft.ML.OnnxRuntime.Gpu (but see below)
-
 These dll files has to be in DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64/native
-	onnxruntime.dll
-	onnxruntime_providers_shared.dll
-	onnxruntime_providers_cuda.dll
-	onnxruntime_providers_tensorrt.dll (i don't think that this is needed)
-Which are in the Microsoft.ML.OnnxRuntime.Gpu nupkg file, NOT Microsoft.ML.OnnxRuntime ITSELF
+They are in the nuget package files (.nupkg), get them from
+	https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Managed/
+		[THE NUPKG FILE]/lib/netstandard1.1/*.dll
+	https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/
+		[THE NUPKG FILE]/runtimes/win-x64/native/*.dll
+
+	From Microsoft.ML.OnnxRuntime.Gpu
+		onnxruntime.dll
+		onnxruntime_providers_shared.dll
+		onnxruntime_providers_cuda.dll
+		onnxruntime_providers_tensorrt.dll (i don't think that this is needed)
+
+	From Microsoft.ML.OnnxRuntime.Managed
+		Microsoft.ML.OnnxRuntime.dll
+
+I think it would work in the linux build if you get the .so files in linux-64 directory
 
 Used https://github.com/lewiji/godot-midas-depth/blob/master/src/Inference/InferImageDepth.cs as reference
 	MIT License

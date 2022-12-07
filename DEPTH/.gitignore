@@ -89,4 +89,4 @@ Assets/Samples.meta
 Assets/Packages
 Assets/Packages.meta
 
-Assets/Plugins/OnnxRuntimeDlls/*/*/*.dll
+Assets/Plugins/OnnxRuntimeDlls/*/*.dll
