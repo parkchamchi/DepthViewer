@@ -56,13 +56,14 @@ public class OnnxRuntimeDepthModelBehavior : MonoBehaviour {
 	private string _largeModelPath = "D:/tmp/dpt_large-midas.onnx";
 
 	public DepthModel GetLargeModel() {
-		return new OnnxRuntimeDepthModel(_largeModelPath, 400);
+		var modeltype = DepthFileUtils.ModelTypes.MidasV3DptLarge;
+		return new OnnxRuntimeDepthModel(_largeModelPath, modeltype.ToString(), (int) modeltype);
 	}
 }
 
 public class OnnxRuntimeDepthModel : DepthModel {
-	private int _modelTypeVal;
-	public int ModelTypeVal {get {return _modelTypeVal;}}
+	public string ModelType {get; private set;}
+	public int ModelTypeVal {get; private set;}
 
 	private InferenceSession _infsession;
 	private int _width, _height;
@@ -72,8 +73,9 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, int modelTypeVal) {
-		_modelTypeVal = modelTypeVal;
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal) {
+		ModelType = modelType;
+		ModelTypeVal = modelTypeVal;
 
 		_infsession = new InferenceSession(onnxpath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
 		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.InputMetadata) {

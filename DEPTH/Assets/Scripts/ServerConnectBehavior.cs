@@ -7,18 +7,6 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using TMPro;
 
-public delegate bool DepthReadyCallback(float[] depths, int x, int y);
-
-public interface AsyncDepthModel {
-	public string ModelType {get;}
-	public int ModelTypeVal {get;}
-
-	public bool IsAvailable {get;}
-	public bool IsWaiting {get;}
-
-	public void Run(Texture tex, DepthReadyCallback callback);
-}
-
 public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCoroutine {
 	public TMP_InputField AddrIF;
 	public TMP_InputField ModelTypeIF;
@@ -86,7 +74,7 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		_model = new DepthServerModel(url, modelType, modelTypeVal, this);
 	}
 
-	public void Run(Texture tex, DepthReadyCallback callback) {
+	public void Run(Texture tex, AsyncDepthModel.DepthReadyCallback callback) {
 		if (_model == null) return;
 		if (IsWaiting) return;
 
@@ -104,6 +92,9 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		_model = null;
 		IsWaiting = false;
 	}
+
+	public void Dispose() =>
+		Disconnect();
 }
 
 /* Does not impelement DepthModel */
@@ -116,7 +107,7 @@ public class DepthServerModel {
 
 	private string _url;
 	private CanRunCoroutine _behav;
-	private DepthReadyCallback _callback;
+	private AsyncDepthModel.DepthReadyCallback _callback;
 
 	private RenderTexture _rt;
 
@@ -129,7 +120,7 @@ public class DepthServerModel {
 		_behav = behav;
 	}
 
-	public void Run(Texture inTex, DepthReadyCallback callback) {
+	public void Run(Texture inTex, AsyncDepthModel.DepthReadyCallback callback) {
 		if (inTex == null) {
 			Debug.LogError("DepthServerModel.Run(): called when inTex == null");
 			_callback(null, 0, 0);

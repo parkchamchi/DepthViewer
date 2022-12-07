@@ -183,7 +183,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 					return false;
 	
 				if (_shouldUpdateArchive) {
-					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _asyncDmodel.ModelTypeVal, model_type: _asyncDmodel.ModelType);
+					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _asyncDmodel.ModelType, _asyncDmodel.ModelTypeVal);
 
 					//depths = (float[]) depths.Clone();
 					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, x, y)));
@@ -200,7 +200,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 			/* Save */
 			if (_shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType, _dmodel.ModelTypeVal);
 
 				depths = (float[]) depths.Clone();
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
@@ -377,7 +377,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType, _dmodel.ModelTypeVal);
 				_hasCreatedArchive = true;
 			}
 

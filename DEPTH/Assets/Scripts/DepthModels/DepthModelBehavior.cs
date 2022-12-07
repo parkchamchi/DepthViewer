@@ -40,35 +40,35 @@ public class DepthModelBehavior : MonoBehaviour {
 	/* Built-in: midas v2.1 small model*/
 
 	public NNModel BuiltIn;
-	public const int ModelTypeVal = (int) DepthFileUtils.ModelTypes.MidasV21Small; //see DepthFileUtils.MotelTypes
+
+	private DepthFileUtils.ModelTypes _builtInModelType = DepthFileUtils.ModelTypes.MidasV21Small;
 
 	private static DepthModel _donnx;
-	private string _hashval;
+
+	private string _modelType;
+	private int _modelTypeVal;
 
 	public DepthModel GetBuiltIn() {
 
-		if (_donnx != null && _donnx.ModelTypeVal != ModelTypeVal) {
+		if (_donnx != null && _donnx.ModelType != _modelType && _donnx.ModelTypeVal != _modelTypeVal) {
 			_donnx.Dispose();
 			_donnx = null;
 		}
 
-		if (_donnx == null)
-			_donnx = new DepthONNX(BuiltIn, ModelTypeVal);
+		if (_donnx == null) {
+			_modelType = _builtInModelType.ToString();
+			_modelTypeVal = (int) _builtInModelType;
+
+			_donnx = new DepthONNX(BuiltIn, _modelType, _modelTypeVal);
+		}
 
 		return _donnx;
 	}
 }
 
-public interface DepthModel : IDisposable {
-	int ModelTypeVal {get;}
-
-	float[] Run(Texture inputTexture, out int x, out int y); //value may change after the following calls
-	float[] RunAndClone(Texture inputTexture, out int x, out int y);
-}
-
 public class DepthONNX : DepthModel {
-	private int _modelTypeVal;
-	public int ModelTypeVal {get {return _modelTypeVal;}}
+	public string ModelType {get; private set;}
+	public int ModelTypeVal {get; private set;}
 
 	private RenderTexture _input;
 	private float[] _output;
@@ -76,15 +76,17 @@ public class DepthONNX : DepthModel {
 	private IWorker _engine;
 	private Model _model;
 
-	public DepthONNX(NNModel nnm, int modelTypeVal) {
+	public DepthONNX(NNModel nnm, string modelType, int modelTypeVal) {
 		_model = ModelLoader.Load(nnm);
-		_modelTypeVal = modelTypeVal;
+
+		ModelType = modelType;
+		ModelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();
 	}
 
-	public DepthONNX(string onnxpath, int modelTypeVal) {
+	public DepthONNX(string onnxpath, string modelType, int modelTypeVal) {
 		/*
 		Currently not used.
 		Args:
@@ -93,7 +95,9 @@ public class DepthONNX : DepthModel {
 
 		var onnx_conv = new ONNXModelConverter(true);
 		_model = onnx_conv.Convert(onnxpath);
-		_modelTypeVal = modelTypeVal;
+
+		ModelType = modelType;
+		ModelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();

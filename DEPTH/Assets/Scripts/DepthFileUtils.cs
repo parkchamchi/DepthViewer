@@ -72,7 +72,7 @@ public static class DepthFileUtils {
 		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
-	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, int model_type_val, string model_type=null) {
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, string model_type, int model_type_val) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
