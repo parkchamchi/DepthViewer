@@ -13,12 +13,15 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 These nuget packages has to be installed:
 	Microsoft.ML.OnnxRuntime
 	Microsoft.ML.OnnxRuntime.Managed
-.Gpu doen't work, probably because of the lack of .Managed
+
+	Not needed: Microsoft.ML.OnnxRuntime.Gpu (but see below)
 
 These dll files has to be in DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64/native
 	onnxruntime.dll
 	onnxruntime_providers_shared.dll
-Which are in the nupkg file
+	onnxruntime_providers_cuda.dll
+	onnxruntime_providers_tensorrt.dll (i don't think that this is needed)
+Which are in the Microsoft.ML.OnnxRuntime.Gpu nupkg file, NOT Microsoft.ML.OnnxRuntime ITSELF
 
 Used https://github.com/lewiji/godot-midas-depth/blob/master/src/Inference/InferImageDepth.cs as reference
 	MIT License
@@ -67,7 +70,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	public OnnxRuntimeDepthModel(string onnxpath, int modelTypeVal) {
 		_modelTypeVal = modelTypeVal;
 
-		_infsession = new InferenceSession(onnxpath);
+		_infsession = new InferenceSession(onnxpath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
 		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.InputMetadata) {
 			_inputname = item.Key;
 			_width = item.Value.Dimensions[2];
@@ -143,6 +146,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 
 	public void Dispose() {
 		_infsession.Dispose();
+		_infsession = null;
 
 		_rt?.Release();
 		_rt = null;
