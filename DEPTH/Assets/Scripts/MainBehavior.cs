@@ -42,6 +42,9 @@ public class MainBehavior : MonoBehaviour {
 
 	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
 
+	public TMP_Text CurrentModelText;
+	public TMP_Text ModelLoadStatusText;
+
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 	public GameObject WebXRSet; //same as above
 
@@ -77,7 +80,7 @@ public class MainBehavior : MonoBehaviour {
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
-		GetBuiltInModel();
+		_donnx = _depthModelBehav.GetBuiltIn();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
 		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
@@ -274,13 +277,34 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, _desktopRenderBehav);
 	}
 
-	public void SetModel(DepthModel model) {
+	public void GetPresetModel(string type="builtin") {
+		Cleanup();
 		_donnx?.Dispose();
-		_donnx = model;
-	}
 
-	public void GetBuiltInModel() =>
-		SetModel(_depthModelBehav.GetBuiltIn());
+		CurrentModelText.text = type;
+		ModelLoadStatusText.text = "Loaded.";
+
+		switch (type) {
+		case "hybrid":
+			if (!_depthModelBehav.HybridFileExists()) {
+				ModelLoadStatusText.text = "File not found.";
+				break;
+			}
+			_donnx = _depthModelBehav.GetHybrid();	
+			return;
+		case "large":
+			if (!_depthModelBehav.LargeFileExists()) {
+				ModelLoadStatusText.text = "File not found.";
+				break;
+			}
+			_donnx = _depthModelBehav.GetLarge();
+			return;
+		}
+		
+		type = "builtin";
+		CurrentModelText.text = type; //always "builtin"
+		_donnx = _depthModelBehav.GetBuiltIn();
+	}
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);

@@ -146,7 +146,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	}
 
 	public void Dispose() {
-		_infsession.Dispose();
+		_infsession?.Dispose();
 		_infsession = null;
 
 		_rt?.Release();
