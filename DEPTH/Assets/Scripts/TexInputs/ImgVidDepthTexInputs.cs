@@ -675,14 +675,14 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	public void CallPythonHybrid() {
-		CallPython(DepthFileUtils.ModelTypes.MidasV3DptHybrid);
+		CallPython(ModelTypes.MidasV3DptHybrid);
 	}
 
 	public void CallPythonLarge() {
-		CallPython(DepthFileUtils.ModelTypes.MidasV3DptLarge);
+		CallPython(ModelTypes.MidasV3DptLarge);
 	}
 
-	private void CallPython(DepthFileUtils.ModelTypes modelType) {
+	private void CallPython(ModelTypes modelType) {
 		if (_ftype != FileTypes.Img && _ftype != FileTypes.Vid)
 			return;
 

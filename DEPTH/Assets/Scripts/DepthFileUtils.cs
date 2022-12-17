@@ -8,6 +8,15 @@ using System.Threading.Tasks;
 
 using UnityEngine;
 
+//Values are arbitrarily set relative numbers
+//So that the highest quality of depth file would be loaded
+public enum ModelTypes : int {
+	MidasV21Small = 100,
+	MiDasV21 = 200,
+	MidasV3DptHybrid = 300,
+	MidasV3DptLarge = 400,
+}
+
 public static class DepthFileUtils {
 	public const string Version = "v0.7.0-beta-prerelease-1";
 	
@@ -45,14 +54,7 @@ public static class DepthFileUtils {
 	private static long _count;
 	private static bool _isFull;
 
-	//Values are arbitrarily set relative numbers
-	//So that the highest quality of depth file would be loaded
-	public enum ModelTypes : int {
-		MidasV21Small = 100,
-		MiDasV21 = 200,
-		MidasV3DptHybrid = 300,
-		MidasV3DptLarge = 400,
-	}
+	
 
 	static DepthFileUtils() {
 		_savedir = Application.persistentDataPath;

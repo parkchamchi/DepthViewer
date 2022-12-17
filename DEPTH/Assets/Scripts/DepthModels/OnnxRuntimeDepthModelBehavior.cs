@@ -67,11 +67,24 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool useCuda=false, int gpuid=0) {
 		ModelType = modelType;
 		ModelTypeVal = modelTypeVal;
 
-		_infsession = new InferenceSession(onnxpath, SessionOptions.MakeSessionOptionWithCudaProvider(0));
+		SessionOptions sessionOptions;
+		if (!useCuda)
+			sessionOptions = new SessionOptions();
+		else
+			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
+
+		try {
+			_infsession = new InferenceSession(onnxpath, sessionOptions);
+		}
+		catch (OnnxRuntimeException exc) {
+			Debug.LogWarning($"OnnxRuntimeException, useCuda: {useCuda}, gpuid: {gpuid}. {exc}");
+			throw new InvalidOperationException();
+		}
+		
 		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.InputMetadata) {
 			_inputname = item.Key;
 			_width = item.Value.Dimensions[2];

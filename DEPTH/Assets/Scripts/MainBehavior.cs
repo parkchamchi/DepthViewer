@@ -281,25 +281,46 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 		_donnx?.Dispose();
 
-		CurrentModelText.text = type;
+		CurrentModelText.text = "";
 		ModelLoadStatusText.text = "Loaded.";
+
+		bool useOnnxRuntime = false;
+		ModelTypes modeltype = ModelTypes.MidasV21Small; //placeholder
 
 		switch (type) {
 		case "hybrid":
-			if (!_depthModelBehav.HybridFileExists()) {
-				ModelLoadStatusText.text = "File not found.";
-				break;
-			}
-			_donnx = _depthModelBehav.GetHybrid();	
-			return;
+			modeltype = ModelTypes.MidasV3DptHybrid;
+			useOnnxRuntime = true;
+			break;
 		case "large":
-			if (!_depthModelBehav.LargeFileExists()) {
+			modeltype = ModelTypes.MidasV3DptLarge;
+			useOnnxRuntime = true;
+			break;
+		}
+		if (useOnnxRuntime) {
+			if (!_depthModelBehav.PresetModelFileExists(modeltype)) {
 				ModelLoadStatusText.text = "File not found.";
-				break;
+				return;
 			}
-			_donnx = _depthModelBehav.GetLarge();
+			
+			try {
+				_donnx = _depthModelBehav.GetPreset(modeltype);
+			}
+			catch (InvalidOperationException) {
+				ModelLoadStatusText.text = "OnnxRuntime Error.";
+				_donnx?.Dispose();
+				_donnx = null;
+				return;
+			}
+			
+			CurrentModelText.text = type;
+			if (_depthModelBehav.OnnxRuntimeUseCuda) {
+				CurrentModelText.text += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
+			}
+
 			return;
 		}
+
 		
 		type = "builtin";
 		CurrentModelText.text = type; //always "builtin"
