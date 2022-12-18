@@ -187,10 +187,6 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		return actualOutput;
 	}
 
-	public float[] RunAndClone(Texture inputTexture, out int x, out int y) {
-		return (float[]) Run(inputTexture, out x, out y).Clone();
-	}
-
 	public void Dispose() {
 		_infsession?.Dispose();
 		_infsession = null;

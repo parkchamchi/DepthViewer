@@ -9,7 +9,10 @@ public interface BaseDepthModel : IDisposable {
 
 public interface DepthModel : BaseDepthModel {
 	float[] Run(Texture inputTexture, out int x, out int y); //value may change after the following calls
-	float[] RunAndClone(Texture inputTexture, out int x, out int y);
+	
+	float[] RunAndClone(Texture inputTexture, out int x, out int y) {
+		return (float[]) Run(inputTexture, out x, out y).Clone();
+	}
 }
 
 public interface AsyncDepthModel : BaseDepthModel {

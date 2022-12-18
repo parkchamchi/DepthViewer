@@ -99,7 +99,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			break;
 		}
 
-		return GetDepthModel(modelpath, modeltype.ToString(), (int) modeltype, useOnnxRuntime: true);
+		return GetDepthModel(modelpath, modeltype.ToString(), (int) modeltype - 30, useOnnxRuntime: true);
 	}
 
 	public bool PresetModelFileExists(ModelTypes modeltype) {
@@ -191,14 +191,6 @@ public class BarracudaDepthModel : DepthModel {
 		
 		//return (float[]) _output.Clone();
 		return _output;
-	}
-
-	public float[] RunAndClone(Texture inputTexture, out int x, out int y) {
-		/*
-		Returns a clone of the output
-		Not used
-		*/
-		return (float[]) Run(inputTexture, out x, out y).Clone();
 	}
 
 	private void OnDestroy() => DeallocateObjects();
