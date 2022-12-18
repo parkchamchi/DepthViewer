@@ -283,6 +283,7 @@ public class MainBehavior : MonoBehaviour {
 
 		CurrentModelText.text = "";
 		ModelLoadStatusText.text = "Loaded.";
+		UITextSet.StatusText.text = "RELOAD";
 
 		bool useOnnxRuntime = false;
 		ModelTypes modeltype = ModelTypes.MidasV21Small; //placeholder
