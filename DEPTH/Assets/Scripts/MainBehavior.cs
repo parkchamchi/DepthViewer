@@ -314,9 +314,10 @@ public class MainBehavior : MonoBehaviour {
 			}
 			
 			CurrentModelText.text = type;
-			if (_depthModelBehav.OnnxRuntimeUseCuda) {
+			if (_depthModelBehav.OnnxRuntimeUseCuda)
 				CurrentModelText.text += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
-			}
+			if (_depthModelBehav.OnnxRuntimeRetainRatio)
+				CurrentModelText.text += ":Retaining Ratio";
 
 			return;
 		}

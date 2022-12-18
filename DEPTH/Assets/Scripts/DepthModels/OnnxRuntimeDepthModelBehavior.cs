@@ -62,12 +62,13 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private InferenceSession _infsession;
 	private int _width, _height;
 	private string _inputname;
-	private int _outwidth, _outheight;
+	//private int _outwidth, _outheight;
+	private bool _retainRatio;
 
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool useCuda=false, int gpuid=0) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool retainRatio=false, bool useCuda=false, int gpuid=0) {
 		ModelType = modelType;
 		ModelTypeVal = modelTypeVal;
 
@@ -90,28 +91,43 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			_width = item.Value.Dimensions[2];
 			_height = item.Value.Dimensions[3];
 		} //only 1
-		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.OutputMetadata) {
+		/*foreach (KeyValuePair<string, NodeMetadata> item in _infsession.OutputMetadata) {
 			_outwidth = item.Value.Dimensions[1];
 			_outheight = item.Value.Dimensions[2];
-		} //only 1
+		} //only 1*/
 
 		_rt = new RenderTexture(_width, _height, 16);
-		_output = new float[_outwidth * _outheight];
+		//_output = new float[_outwidth * _outheight];
+		_retainRatio = retainRatio;
 	}
 
 	public float[] Run(Texture inputTexture, out int x, out int y) {
-		int length = _width * _height;
+		int w = _width;
+		int h = _height;
+		if (_retainRatio) {
+			float rat = (float) inputTexture.width / inputTexture.height;
+			
+			if (rat < 1) //longer height
+				w = (int) (w * rat);
+			else //longer width
+				h = (int) (h / rat);
+		}
+		if (w != _rt.width || h != _rt.height) {
+			_rt.Release();
+			_rt = new RenderTexture(w, h, 16);
+		}
+
+		int length = w * h;
 
 		Graphics.Blit(inputTexture, _rt);
 
-		Texture2D tex = new Texture2D(_width, _height);
+		Texture2D tex = new Texture2D(w, h);
 		RenderTexture.active = _rt;
-		tex.ReadPixels(new Rect(0, 0, _width, _height), 0, 0);
+		tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
 		RenderTexture.active = null;
 		UnityEngine.GameObject.Destroy(tex);
 
 		var rawdata = tex.GetRawTextureData();
-		//Debug.Log($"rawdata.Length: {rawdata.Length}"); //why is this more than 384*384*4 ?
 
 		float[] rfloats = new float[length];
 		float[] gfloats = new float[length];
@@ -127,8 +143,12 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		var dimensions = new ReadOnlySpan<int>(new []{1, 3, _height, _width});
 		var t1 = new DenseTensor<float>(dimensions);
 		for (var j = 0; j < _height; j++) {
+			if (j >= h) continue;
+
 			for (var i = 0; i < _width; i++) {
-				var index = j * _height + i;
+				if (i >= w) continue;
+
+				var index = j * w + i;
 				t1[0, 0, j, i] = rfloats[index];
 				t1[0, 1, j, i] = gfloats[index];
 				t1[0, 2, j, i] = bfloats[index];
@@ -143,15 +163,28 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		float[] output = results?.First().AsEnumerable<float>().ToArray();
 		results?.Dispose();
 
-		float max = output.Max();
-		float min = output.Min();
+		float[] actualOutput = new float[w*h];
+		for (int i = 0; i < _width * _height; i++) { //rotate 180
+			int row = (i/_width);
+			if (row >= h) continue;
+			row = h-1 - row;
+			
+			int col = (i%_width);
+			if (col >= w) continue;
 
-		for (int i = 0; i < length; i++) 
-			_output[(_height-1-(i/_width))*_width + (i%_width)] = (output[i] - min) / (max - min); //rotate 180
+			//Debug.Log($"row: {row}, col: {col}");
+			actualOutput[row*w + col] = output[i];
+		}
 
-		x = _outwidth;
-		y = _outheight;
-		return _output;
+		float max = actualOutput.Max();
+		float min = actualOutput.Min();
+		
+		for (int i = 0; i < actualOutput.Length; i++)
+			actualOutput[i] = (actualOutput[i] - min) / (max - min); 
+
+		x = w;
+		y = h;
+		return actualOutput;
 	}
 
 	public float[] RunAndClone(Texture inputTexture, out int x, out int y) {

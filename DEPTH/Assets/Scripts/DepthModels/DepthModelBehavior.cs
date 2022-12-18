@@ -48,6 +48,7 @@ public class DepthModelBehavior : MonoBehaviour {
 	
 	public Toggle OnnxRuntimeCudaToggle;
 	public TMP_InputField OnnxRuntimeGpuIdInputField;
+	public Toggle OnnxRuntimeRetainRatioToggle;
 
 	public bool OnnxRuntimeUseCuda {get {return OnnxRuntimeCudaToggle.isOn;}}
 	public int OnnxRuntimeGpuId {
@@ -64,6 +65,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			return gpuid;
 		}
 	}
+	public bool OnnxRuntimeRetainRatio {get {return OnnxRuntimeRetainRatioToggle.isOn;}}
 
 	private static DepthModel _donnx;
 
@@ -123,7 +125,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			Debug.LogError("Not using onnxruntime but got useOnnxRuntime=true!");
 			return null;
 #else			
-			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, modelTypeVal, useCuda: OnnxRuntimeUseCuda, gpuid: OnnxRuntimeGpuId);
+			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, modelTypeVal, retainRatio: OnnxRuntimeRetainRatio, useCuda: OnnxRuntimeUseCuda, gpuid: OnnxRuntimeGpuId);
 #endif
 
 		}
