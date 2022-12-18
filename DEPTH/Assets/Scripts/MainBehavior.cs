@@ -282,7 +282,7 @@ public class MainBehavior : MonoBehaviour {
 		_donnx?.Dispose();
 
 		CurrentModelText.text = "";
-		ModelLoadStatusText.text = "Loaded.";
+		ModelLoadStatusText.text = "Loading.";
 		UITextSet.StatusText.text = "RELOAD";
 
 		bool useOnnxRuntime = false;
@@ -313,6 +313,15 @@ public class MainBehavior : MonoBehaviour {
 				_donnx = null;
 				return;
 			}
+			//can't catch EntryPointNotFoundException here?
+			/*catch (EntryPointNotFoundException exc) {
+				Debug.LogError(exc);
+
+				ModelLoadStatusText.text = "OnnxRuntime Link Error.";
+				_donnx?.Dispose();
+				_donnx = null;
+				return;
+			}*/
 			
 			CurrentModelText.text = type;
 			if (_depthModelBehav.OnnxRuntimeUseCuda)
@@ -320,12 +329,15 @@ public class MainBehavior : MonoBehaviour {
 			if (_depthModelBehav.OnnxRuntimeRetainRatio)
 				CurrentModelText.text += ":Retaining Ratio";
 
+			ModelLoadStatusText.text = "Loaded.";
+
 			return;
 		}
 
 		
 		type = "builtin";
 		CurrentModelText.text = type; //always "builtin"
+		ModelLoadStatusText.text = "Loaded.";
 		_donnx = _depthModelBehav.GetBuiltIn();
 	}
 
