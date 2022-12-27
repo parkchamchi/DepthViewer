@@ -92,7 +92,7 @@ Other formats have not been tested.
 - Stablize
 ### WIP
 - Native DPT models support
-- VR controllers support
+- VR controllers support [(See here)](https://github.com/parkchamchi/UnityVRControllerTest)
 
 ## Building
 The Unity Editor version used: `2021.3.10f1`
