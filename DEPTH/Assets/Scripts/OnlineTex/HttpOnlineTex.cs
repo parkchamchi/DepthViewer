@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 
 public class HttpOnlineTex : OnlineTex {
 	public bool Supported {get; private set;} = true;
+	public float LastTime {get; private set;} = 0;
 
 	private string _url;
 	private CanRunCoroutine _behav;
@@ -50,7 +51,8 @@ public class HttpOnlineTex : OnlineTex {
 			}
 		}
 
-		UITextSet.StatusText.text = $"fps: {1 / (Time.time - _startingTime)}";
+		LastTime = Time.time;
+		UITextSet.StatusText.text = $"fps: {1 / (LastTime - _startingTime)}";
 		_isWaiting = false;
 	}
 
