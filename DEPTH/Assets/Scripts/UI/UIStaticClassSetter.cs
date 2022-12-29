@@ -20,6 +20,10 @@ public static class ImgVidDepthGOs {
 	public static Toggle CallServerOnPauseToggle;
 }
 
+public static class StaticGOs {
+	public static Texture2D PlaceholderTexture;
+}
+
 public class UIStaticClassSetter : MonoBehaviour {
 
 	public TMP_Text FilepathResultText;
@@ -31,6 +35,8 @@ public class UIStaticClassSetter : MonoBehaviour {
 	public GameObject CallPythonObjectParent; //Only visible when the hashval is set
 	public Toggle CallServerOnPauseToggle;
 
+	public Texture2D PlaceholderTexture;
+
 	void Start() {
 		UITextSet.FilepathResultText = FilepathResultText;
 		UITextSet.StatusText = StatusText;
@@ -40,5 +46,7 @@ public class UIStaticClassSetter : MonoBehaviour {
 		ImgVidDepthGOs.DepthFileCompareText = DepthFileCompareText;
 		ImgVidDepthGOs.CallPythonObjectParent = CallPythonObjectParent;
 		ImgVidDepthGOs.CallServerOnPauseToggle = CallServerOnPauseToggle;
+
+		StaticGOs.PlaceholderTexture = PlaceholderTexture;
 	}
 }

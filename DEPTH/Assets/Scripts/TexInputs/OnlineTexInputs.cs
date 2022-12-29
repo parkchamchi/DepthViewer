@@ -43,6 +43,7 @@ public class OnlineTexInputs : TexInputs {
 	public void SendMsg(string msg) {}
 
 	public void Dispose() {
+		_otex.Dispose();
 		_otex = null;
 	}
 }

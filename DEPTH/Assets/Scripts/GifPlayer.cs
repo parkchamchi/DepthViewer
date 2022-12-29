@@ -53,10 +53,9 @@ public static class GifPlayer {
 	static GifPlayer() {
 		Status = State.None;
 
-		_behav = GameObject.Find("DummyObject").GetComponent<DummyBehavior>();
+		_behav = Utils.GetDummyBehavior();
 		if (_behav == null) {
 			Debug.LogError("Couldn't find the DummyObject");
-			
 			return;
 		}
 	}

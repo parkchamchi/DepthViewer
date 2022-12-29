@@ -118,7 +118,7 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [Google Cardboard XR Plugin for Unity](https://github.com/googlevr/cardboard-xr-plugin) (Apache License 2.0)
 - [UniGif](https://github.com/WestHillApps/UniGif) (MIT License)
 - [ONNX Runtime](https://github.com/microsoft/onnxruntime) (MIT License)
-- [UnityIngameDebugConsole](https://github.com/yasirkula/UnityIngameDebugConsole) (MIT License)
+- [In-game Debug Console for Unity 3D](https://github.com/yasirkula/UnityIngameDebugConsole) (MIT License)
 
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)

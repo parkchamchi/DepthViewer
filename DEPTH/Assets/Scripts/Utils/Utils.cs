@@ -58,4 +58,12 @@ public class Utils {
 		if (!Directory.Exists(path))
 			Directory.CreateDirectory(path);
 	}
+
+	public static CanRunCoroutine GetDummyBehavior() {
+		CanRunCoroutine behav = GameObject.Find("DummyObject").GetComponent<DummyBehavior>();
+		if (behav == null)
+			Debug.LogError("Couldn't get the DummyBehavior!");
+			
+		return behav;
+	}
 }

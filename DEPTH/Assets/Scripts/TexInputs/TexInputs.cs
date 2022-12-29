@@ -7,7 +7,7 @@ public interface TexInputs : IDisposable {
 	void UpdateTex();
 
 	SequentialInputBehav SeqInputBehav {get;}
-	void SendMsg(string msg); //better implementation?
+	void SendMsg(string msg);
 }
 
 public interface SequentialInputBehav {

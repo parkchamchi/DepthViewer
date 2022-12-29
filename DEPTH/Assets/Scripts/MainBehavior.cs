@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using SFB;
+using IngameDebugConsole;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -123,6 +124,9 @@ public class MainBehavior : MonoBehaviour {
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		Screen.brightness = 1.0f;
 #endif
+
+		/*Console methods*/
+		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
 	}
 
 	void Update() {
@@ -260,7 +264,14 @@ public class MainBehavior : MonoBehaviour {
 		return Exts.FileTypeCheck(filepath);
 	}
 
-	public void DesktopRenderingStart() {
+	public void DesktopRenderingStart() =>
+		OnlineTexStart(_desktopRenderBehav);
+
+	public void HttpOnlineTexStart(string url) {
+		OnlineTexStart(new HttpOnlineTex(url));
+	}
+
+	private void OnlineTexStart(OnlineTex otex) {
 		if (!_desktopRenderBehav.Supported) {
 			Debug.LogError("StartDesktopRendering() called when !_desktopRenderBehav.Supported");
 			return;
@@ -274,7 +285,7 @@ public class MainBehavior : MonoBehaviour {
 		ClearBrowseDir();
 
 		_currentFileType = FileTypes.Desktop;
-		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, _desktopRenderBehav);
+		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
 	}
 
 	public void GetPresetModel(string type="builtin") {

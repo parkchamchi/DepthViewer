@@ -27201,6 +27201,7 @@ MonoBehaviour:
   DepthFileCompareText: {fileID: 1729033237}
   CallPythonObjectParent: {fileID: 1391802854}
   CallServerOnPauseToggle: {fileID: 1043418866}
+  PlaceholderTexture: {fileID: 2800000, guid: 29bb790034a93b947b4e57d52d2a9482, type: 3}
 --- !u!1 &2131931752
 GameObject:
   m_ObjectHideFlags: 0

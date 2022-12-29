@@ -698,7 +698,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
-	/* Better implementation? */
 	public void SendMsg(string msg) {
 		switch (msg) {
 		case "DepthFileShow":

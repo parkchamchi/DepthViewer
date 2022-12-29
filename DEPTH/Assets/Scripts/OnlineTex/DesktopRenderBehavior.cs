@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -16,13 +15,6 @@ using HWND = System.IntPtr;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
-public interface OnlineTex : IDisposable {
-	public bool Supported {get;}
-
-	void StartRendering();
-	Texture2D GetTex(out int width, out int height);
-}
 
 public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 
@@ -44,8 +36,6 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 	private bool _supported;
 	public bool Supported {get {return _supported;}}
 	
-	
-
 	void Start() {
 		/* Only supports Windows */
 	#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -58,6 +48,8 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 		MainPanel.SetActive(false);
 
 		_texture = new Texture2D(1, 1);
+
+		PlaceholderTexture = StaticGOs.PlaceholderTexture;
 	}
 
 	public void TogglePanel() {
