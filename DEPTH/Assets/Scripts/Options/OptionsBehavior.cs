@@ -28,6 +28,8 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_InputField LightInputField;
 	public TMP_Text LightStatusText;
 
+	public GameObject ModelSettingsGO;
+
 	private MainBehavior _mainBehav;
 
 	void Start() {
@@ -118,4 +120,7 @@ public class OptionsBehavior : MonoBehaviour {
 		_mainBehav.SetLightIntensity(val);
 		LightStatusText.text = "O";
 	}
+
+	public void ShowModelSettings() =>
+		ModelSettingsGO.SetActive(true);
 }
