@@ -75,6 +75,16 @@ To add audio,
 ffmpeg -i <source.mp4> -i <output.mp4> -c copy -map 1:v:0 -map 0:a:0 -shortest <output_w_audio.mp4>
 ```
 
+## Connecting to an image server
+The server has to provide a `jpg` or `png` bytestring when requested. 
+Like [this program](https://github.com/parkchamchi/screencaptureserver): it captures the screen and returns the jpg file.
+I found it to be faster than the built-in one (20fps for 1080p video).
+<br>
+Open the console with the backtick ` key and execute (url is for the project above, targeting the second monitor)
+```
+httpinput localhost:5000/screencaptureserver/jpg?monitor_num=2
+```
+
 ## Tested formats:
 ### Images
 - .jpg
@@ -91,7 +101,7 @@ Other formats have not been tested.
 - Fix codecs
 - Stablize
 ### WIP
-- Native DPT models support
+- Native DPT models support (The ONNX one implemented now is much less accurate than the official PyTorch one)
 - VR controllers support [(See here)](https://github.com/parkchamchi/UnityVRControllerTest)
 
 ## Building
