@@ -14,7 +14,7 @@ new = args.new
 tochanges = [
 	"../depth.py",
 	"../../Assets/Assets/README.txt",
-	"../../Assets/Scripts/DepthFileUtils.cs",
+	"../../Assets/Scripts/Utils/DepthFileUtils.cs",
 	"../../ProjectSettings/ProjectSettings.asset"
 ]
 
