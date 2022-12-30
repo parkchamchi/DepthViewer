@@ -30,7 +30,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 	public Slider RightSlider;
 	public Slider DownSlider;
 
-	public Texture2D PlaceholderTexture;
+	private Texture2D _placeholderTexture {get {return StaticGOs.PlaceholderTexture;}}
 	private Texture2D _texture;
 
 	private bool _supported;
@@ -48,8 +48,6 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 		MainPanel.SetActive(false);
 
 		_texture = new Texture2D(1, 1);
-
-		PlaceholderTexture = StaticGOs.PlaceholderTexture;
 	}
 
 	public void TogglePanel() {
@@ -68,9 +66,9 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 		if (width * height == 0) {
 			Debug.LogError($"Invalid texture size: {width}x{height}");
 
-			width = PlaceholderTexture.width;
-			height = PlaceholderTexture.height;
-			return PlaceholderTexture;
+			width = _placeholderTexture.width;
+			height = _placeholderTexture.height;
+			return _placeholderTexture;
 		}
 
 		return texture;
@@ -117,7 +115,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 	private Texture2D GetTexture() {
 		// https://stackoverflow.com/questions/891345/get-a-screenshot-of-a-specific-application
 
-		if (_hwnd == null) return PlaceholderTexture;
+		if (_hwnd == null) return _placeholderTexture;
 
 		User32.Rect rect = new User32.Rect();
 		User32.GetWindowRect(_hwnd, ref rect);
@@ -139,7 +137,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
   		height = rect.bottom - rect.top;
 
 		if (width * height == 0)
-			return PlaceholderTexture;
+			return _placeholderTexture;
 		
 		using (Sysdraw.Bitmap bitmap = new Sysdraw.Bitmap(width, height)) {
 			using (Sysdraw.Graphics graphic = Sysdraw.Graphics.FromImage(bitmap)) {
@@ -201,7 +199,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 
 	private Texture2D GetTexture() {
 		Debug.LogError("Not implemented.");
-		return PlaceholderTexture;
+		return _placeholderTexture;
 	}
 
 	private void SetPanel() {
