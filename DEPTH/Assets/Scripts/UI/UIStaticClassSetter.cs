@@ -47,6 +47,21 @@ public class UIStaticClassSetter : MonoBehaviour {
 		ImgVidDepthGOs.CallPythonObjectParent = CallPythonObjectParent;
 		ImgVidDepthGOs.CallServerOnPauseToggle = CallServerOnPauseToggle;
 
-		StaticGOs.PlaceholderTexture = PlaceholderTexture;
+		/*
+		Why is this null on Builds?
+		Interestingly it's not null on VR
+		*/
+		if (PlaceholderTexture != null)
+			StaticGOs.PlaceholderTexture = PlaceholderTexture;
+		else {
+			Debug.LogWarning("PlaceholderTexture is not loaded! Something wrong with UIStaticClassSetter.cs");
+
+			/* Manually loading the alternative placeholder */
+			StaticGOs.PlaceholderTexture = Resources.Load<Texture2D>("placeholder_alt");
+			if (StaticGOs.PlaceholderTexture != null)
+				Debug.LogWarning("PlaceholderTexture loaded manually.");
+			else
+				Debug.LogWarning("Couldn't load the alternative placeholder manually.");
+		}
 	}
 }
