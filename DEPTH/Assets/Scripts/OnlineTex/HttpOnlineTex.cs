@@ -40,25 +40,31 @@ public class HttpOnlineTex : OnlineTex {
 		using (UnityWebRequest req = UnityWebRequest.Get(_url)) {
 			yield return req.SendWebRequest();
 
-			if (req.result == UnityWebRequest.Result.Success) {
-				UITextSet.StatusText.text = "OK";
+			if (_url == null) yield break; //disposed
 
+			if (req.result == UnityWebRequest.Result.Success) {
 				byte[] data = req.downloadHandler.data;
 				_currentTex = Utils.LoadImage(data);
+
+				if (_currentTex == null) {
+					//not an image file
+					UITextSet.StatusText.text = "Failed to parse";
+					_currentTex = StaticGOs.PlaceholderTexture;
+				}
+				else {
+					LastTime = Time.time;
+					UITextSet.StatusText.text = $"fps: {(int) (1 / (LastTime - _startingTime))}";
+				}
 			}
 			else {
 				UITextSet.StatusText.text = "Failed to connect";
 			}
 		}
 
-		LastTime = Time.time;
-		UITextSet.StatusText.text = $"fps: {1 / (LastTime - _startingTime)}";
 		_isWaiting = false;
 	}
 
-	public void StartRendering() {
-		Get();
-	}
+	public void StartRendering() {}
 
 	public Texture2D GetTex(out int width, out int height) {
 		Get();
