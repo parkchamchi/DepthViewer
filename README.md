@@ -19,6 +19,17 @@ Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 
 | --- | --- | --- | --- |
 | ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_100.gif) | ![cat_large](./examples/cat_400.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_kneading_blanket.gk.webm) |
 
+## So what is this program?
+This program is essentially a depthmap plotter with an integrated depthmap inferer, with VR support.<br>
+<br>
+![demo_basic](./examples/demo_basic.png)<br>
+<br>
+
+The depthmaps can be cached to a file so that it can be loaded later.
+<br>
+![demo_cache](./examples/demo_cache.png)<br>
+<br>
+
 ## Models
 The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/releases/tag/v2_1), which is ideal for real-time rendering.
 
@@ -47,12 +58,16 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Check the installed CUDA version and if the installed Pytorch version supports that.
 - Uninstall Pytorch `pip uninstall torch torchvision` and reinstall it.
 
+`depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer. It can be called from the program by `Call Python` buttons or it can be executed independently from the command console.
+
 #### For depthserver.py
 - Install Flask `pip install Flask`
+- Run `python depthserver.py` to open the server and connect to it via the option menu. If it's connected all image inputs will be processed by calling the server.
 
 ## Inputs
 - Right mouse key: hides the UI.
 - WASD: rotate the mesh.
+- Backtick `: opens the console.
 
 ## Notes
 - If VR HMD is detected, it will open with OpenXR.
@@ -103,6 +118,7 @@ Other formats have not been tested.
 ### WIP
 - Native DPT models support (The ONNX one implemented now is much less accurate than the official PyTorch one)
 - VR controllers support [(See here)](https://github.com/parkchamchi/UnityVRControllerTest)
+- Support for the servers that send both the image file and the depthmap
 
 ## Building
 The Unity Editor version used: `2021.3.10f1`
