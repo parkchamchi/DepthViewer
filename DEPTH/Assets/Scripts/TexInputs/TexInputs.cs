@@ -6,8 +6,8 @@ using UnityEngine;
 public interface TexInputs : IDisposable {
 	void UpdateTex();
 
-	SequentialInputBehav SeqInputBehav {get;}
-	void SendMsg(string msg);
+	SequentialInputBehav SeqInputBehav {get {return null;}}
+	void SendMsg(string msg) {}
 }
 
 public interface SequentialInputBehav {

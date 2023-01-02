@@ -24,7 +24,8 @@ public enum FileTypes {
 
 	Img, Vid, Depth, //These 3 are heavily dependent on Unity components and interwined
 	Desktop,
-	Gif
+	Gif,
+	Pgm,
 };
 
 public class MainBehavior : MonoBehaviour {
@@ -151,6 +152,7 @@ public class MainBehavior : MonoBehaviour {
 		
 		UITextSet.OutputSaveText.text = "";
 		UITextSet.StatusText.text = "";
+		UITextSet.FilepathResultText.text = "";
 
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
 	}
@@ -182,6 +184,7 @@ public class MainBehavior : MonoBehaviour {
 		FileTypes ftype = GetFileType(filepath);
 		string output = "DEBUG: Default value, should not be seen.";
 
+		/*
 		//Check if the file exists
 		switch (ftype) {
 		case FileTypes.NotExists:
@@ -207,6 +210,9 @@ public class MainBehavior : MonoBehaviour {
 			output = "Unsupported.";
 			break;
 		}
+		*/
+
+		output = $"Type: {ftype}";
 
 		UITextSet.FilepathResultText.text = output;
 	}
@@ -231,13 +237,20 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
-		//TODO: better comparison
-		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth && ftype != FileTypes.Gif)
+		bool isSupportedType = false;
+		var supportedFileTypes = new FileTypes[] {FileTypes.Img, FileTypes.Vid, FileTypes.Depth, FileTypes.Gif, FileTypes.Pgm};
+		foreach (var t in supportedFileTypes)
+			if (ftype == t) {
+				isSupportedType = true;
+				break;
+			}
+		if (!isSupportedType)
 			return;
 
 		Cleanup();
 
 		_currentFileType = ftype;
+		UITextSet.FilepathResultText.text = $"Current Type: {ftype}";
 
 		switch (ftype) {
 		case FileTypes.Img:
@@ -248,17 +261,24 @@ public class MainBehavior : MonoBehaviour {
 		case FileTypes.Gif:
 			_texInputs = new GifTexInputs(filepath, _donnx, _meshBehav);
 			break;
+		case FileTypes.Pgm:
+			_texInputs = new PgmTexInputs(filepath, _meshBehav);
+			break;
 		default:
 			UITextSet.StatusText.text = "DEBUG: SelectFile(): something messed up :(";
+			Debug.LogError($"SelectFile(): ftype {ftype} is in supportedFileTypes but not implemented");
 			break;
 		}
 	}
 
 	public static FileTypes GetFileType(string filepath) {
-		if (!File.Exists(filepath)) 
+		bool file_exists = File.Exists(filepath);
+		bool dir_exists = Directory.Exists(filepath);
+
+		if (!file_exists && !dir_exists)
 			return FileTypes.NotExists;
 
-		if (Directory.Exists(filepath))
+		if (dir_exists)
 			return FileTypes.Dir;
 
 		return Exts.FileTypeCheck(filepath);
@@ -644,6 +664,7 @@ public static class Exts {
 		});
 		ExtsDict.Add(FileTypes.Depth, new string[] {DepthFileUtils.DepthExt});
 		ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
+		ExtsDict.Add(FileTypes.Pgm, new string[] {".pgm"});
 
 		List<string> allExtsWithoutDotList = new List<string>();
 		foreach (string[] exts in ExtsDict.Values)
