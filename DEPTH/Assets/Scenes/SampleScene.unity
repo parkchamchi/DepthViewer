@@ -25915,7 +25915,6 @@ MonoBehaviour:
   LeftSlider: {fileID: 703114984}
   RightSlider: {fileID: 566358993}
   DownSlider: {fileID: 1368639608}
-  PlaceholderTexture: {fileID: 2800000, guid: 29bb790034a93b947b4e57d52d2a9482, type: 3}
 --- !u!114 &1964135452
 MonoBehaviour:
   m_ObjectHideFlags: 0
