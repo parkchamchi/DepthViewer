@@ -106,9 +106,13 @@ httpinput localhost:5000/screencaptureserver/jpg?monitor_num=2
 - .png
 
 ### Videos
-- .mp4 : 
-Some files can't be played because Unity can't open them. (e.g. VP9) \
-Other formats have not been tested.
+- .mp4, ... : 
+Some files can't be played because Unity's VideoPlayer can't open them. (e.g. VP9) 
+
+### Others
+- .gif : Certain formats are not supported.
+- .pgm : Can be used as a depthmap (Needs a subsequential image input)
+- .depthviewer
 
 ## Todo
 - Overhaul UI & Control
