@@ -23,7 +23,7 @@ public enum FileTypes {
 	NotExists, Dir, Unsupported,
 
 	Img, Vid, Depth, //These 3 are heavily dependent on Unity components and interwined
-	Desktop,
+	Online,
 	Gif,
 	Pgm,
 };
@@ -287,13 +287,12 @@ public class MainBehavior : MonoBehaviour {
 	public void DesktopRenderingStart() =>
 		OnlineTexStart(_desktopRenderBehav);
 
-	public void HttpOnlineTexStart(string url) {
+	public void HttpOnlineTexStart(string url) =>
 		OnlineTexStart(new HttpOnlineTex(url));
-	}
 
 	private void OnlineTexStart(OnlineTex otex) {
-		if (!_desktopRenderBehav.Supported) {
-			Debug.LogError("StartDesktopRendering() called when !_desktopRenderBehav.Supported");
+		if (!otex.Supported) {
+			Debug.LogError("OnlineTexStart() called when !otex.Supported");
 			return;
 		}
 		if (_serverBehav.IsWaiting) {
@@ -304,7 +303,7 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
 		ClearBrowseDir();
 
-		_currentFileType = FileTypes.Desktop;
+		_currentFileType = FileTypes.Online;
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
 	}
 
