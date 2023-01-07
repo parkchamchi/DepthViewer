@@ -64,6 +64,7 @@ public class DepthModelBehavior : MonoBehaviour {
 
 	public DepthModel GetDepthModel(string onnxpath, string modelType, int modelTypeVal=0, bool useOnnxRuntime=false) {
 		_donnx?.Dispose();
+		_donnx = null;
 
 		if (!useOnnxRuntime)
 			_donnx = new BarracudaDepthModel(onnxpath, modelType, modelTypeVal);
@@ -86,6 +87,15 @@ public class DepthModelBehavior : MonoBehaviour {
 
 		OnnxRuntimeUseCuda = useCuda;
 		OnnxRuntimeGpuId = gpuId;
+	}
+
+	public void PrintCurrentModelType() {
+		if (_donnx == null) {
+			Debug.Log("No model assigned.");
+			return;
+		}
+
+		Debug.Log($"Current model: {_donnx.ModelType}");
 	}
 }
 

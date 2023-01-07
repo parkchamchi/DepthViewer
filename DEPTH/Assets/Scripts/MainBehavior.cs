@@ -125,8 +125,9 @@ public class MainBehavior : MonoBehaviour {
 		/*Console methods*/
 		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
 		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
-		DebugLogConsole.AddCommandInstance("loadmodel", "Load ONNX model from path", "LoadModel", this);
+		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
 
+		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
 		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
 
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
@@ -170,8 +171,7 @@ public class MainBehavior : MonoBehaviour {
 		if (_vp != null)
 			Destroy(_vp);
 
-		if (_donnx != null)
-			_donnx.Dispose();
+		_donnx?.Dispose();
 		_donnx = null;
 
 		if (_meshBehav != null)
@@ -328,11 +328,6 @@ public class MainBehavior : MonoBehaviour {
 
 		Debug.Log($"Loading model: {onnxpath}");
 
-		if (!File.Exists(onnxpath)) {
-			Debug.LogError($"File does not exist: {onnxpath}");
-			return;
-		}
-
 		string modelTypeStr = onnxpath;
 		if (useOnnxRuntime) {
 			modelTypeStr += ":OnnxRuntime";
@@ -345,10 +340,10 @@ public class MainBehavior : MonoBehaviour {
 			_donnx = _depthModelBehav.GetDepthModel(onnxpath, modelTypeStr, useOnnxRuntime: useOnnxRuntime);
 		}
 		catch (Exception exc) {
-			//dispose and rethrow
 			_donnx?.Dispose();
 			_donnx = null;
-			throw exc;
+
+			Debug.LogError("LoadModel(): Got exception: " + exc);
 		}
 
 		//Failure
