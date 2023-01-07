@@ -21,11 +21,7 @@ shutil.copyfile(readmetxtpath, os.path.join(builddir, "README.txt"))
 
 print()
 
-print("#3. Making /weights")
-os.mkdir(os.path.join(builddir, "weights"))
-print()
-
-print("#4. Locating the depthpy")
+print("#3. Locating the depthpy")
 
 depthpydir = os.path.join(builddir, "depthpy")
 os.mkdir(depthpydir)
