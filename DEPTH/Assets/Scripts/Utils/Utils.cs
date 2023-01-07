@@ -1,14 +1,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-
 using System.IO;
 using System.Security.Cryptography;
 
+using UnityEngine;
+
+using IngameDebugConsole;
+
 public class Utils {
-	private static string _pythonpath = "python";
-	public static string PythonPath {get {return _pythonpath;} set {_pythonpath = value;}}
+	public static string PythonPath {get; set;} = "python";
+
+	[ConsoleMethod("set_python_path", "Set the path for python, which were used for the Call Python buttons (replaced by `send_msg CallPythonHybrid` and `...Large`)")]
+	public static void SetPythonPath(string path) =>
+		PythonPath = path;
 
 	public static Texture2D LoadImage(string path) {
 		if (!File.Exists(path)) {

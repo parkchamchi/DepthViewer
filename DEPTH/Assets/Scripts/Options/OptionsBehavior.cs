@@ -17,8 +17,6 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_InputField OutputDirInputField;
 	public TMP_Text OutputDirStatusText;
 
-	public TMP_InputField PythonPathInputField;
-
 	public TMP_InputField MeshXInputField;
 	public TMP_Text MeshXStatusText;
 
@@ -72,11 +70,6 @@ public class OptionsBehavior : MonoBehaviour {
 
 		DepthFileUtils.SaveDir = outputdir;
 		OutputDirStatusText.text = "O";
-	}
-
-	public void SetPythonPath() {
-		string pythonpath = PythonPathInputField.text;
-		Utils.PythonPath = pythonpath;
 	}
 
 	public void SetMeshX() {
