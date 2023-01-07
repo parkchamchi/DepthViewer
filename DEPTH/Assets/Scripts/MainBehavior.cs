@@ -128,6 +128,7 @@ public class MainBehavior : MonoBehaviour {
 
 		/*Console methods*/
 		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
+		DebugLogConsole.AddCommandInstance("loadmodel", "Load ONNX model from path", "LoadModel", this);
 	}
 
 	void Update() {
@@ -311,6 +312,7 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 		_donnx?.Dispose();
 
+		//TODO: Move the code below here to DepthModelBehavior
 		CurrentModelText.text = "";
 		ModelLoadStatusText.text = "Loading.";
 		UITextSet.StatusText.text = "RELOAD";
@@ -328,6 +330,7 @@ public class MainBehavior : MonoBehaviour {
 			useOnnxRuntime = true;
 			break;
 		}
+
 		if (useOnnxRuntime) {
 			if (!_depthModelBehav.PresetModelFileExists(modeltype)) {
 				ModelLoadStatusText.text = "File not found.";
@@ -363,12 +366,47 @@ public class MainBehavior : MonoBehaviour {
 
 			return;
 		}
+		else {
+			type = "builtin";
+			CurrentModelText.text = type; //always "builtin"
+			ModelLoadStatusText.text = "Loaded.";
+			_donnx = _depthModelBehav.GetBuiltIn();
+		}
+	}
 
-		
-		type = "builtin";
-		CurrentModelText.text = type; //always "builtin"
-		ModelLoadStatusText.text = "Loaded.";
-		_donnx = _depthModelBehav.GetBuiltIn();
+	//TODO: merge with GetPresetModel() / or move it to DepthModelBehavior
+	//Only meant to be used with the console
+	public void LoadModel(string onnxpath, bool useOnnxRuntime=false) {
+		Cleanup();
+		_donnx?.Dispose();
+
+		CurrentModelText.text = "";
+		ModelLoadStatusText.text = "Loading.";
+		UITextSet.StatusText.text = "RELOAD";
+
+		Debug.Log($"Loading model: {onnxpath}");
+
+		string modelTypeStr = Path.GetFileName(onnxpath);
+		if (useOnnxRuntime) {
+			modelTypeStr += ":OnnxRuntime";
+
+			if (_depthModelBehav.OnnxRuntimeUseCuda)
+				modelTypeStr += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
+			if (_depthModelBehav.OnnxRuntimeRetainRatio)
+				modelTypeStr += ":Retaining Ratio";
+		}
+
+		_donnx = _depthModelBehav.GetDepthModel(onnxpath, modelTypeStr, useOnnxRuntime: useOnnxRuntime);
+
+		//Failure
+		if (_donnx == null) {
+			Debug.LogError($"Failed to load: {onnxpath}");
+			ModelLoadStatusText.text = "Failed to load";
+			return;
+		}
+
+		CurrentModelText.text = modelTypeStr;
+		Debug.Log($"Loaded the model: {onnxpath} : {modelTypeStr}");
 	}
 
 	public void HideUI() {
