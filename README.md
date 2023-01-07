@@ -39,11 +39,12 @@ The depthmaps can be cached to a file so that it can be loaded later.
 The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/releases/tag/v2_1), which is ideal for real-time rendering.
 
 ### Loading an ONNX model
+
 Open the console and insert
 ```xml
 load_model <onnx_path> false
 ```
-`false` uses Unity's Barracuda and `true` uses OnnxRuntime, which is somewhat buggy and inaccurate now.<br>
+`false` uses Unity's Barracuda and `true` uses OnnxRuntime. Try these [unofficial MiDaS v3 DPT ONNX models](https://github.com/parkchamchi/MiDaS/releases/tag/22.12.07)<br>
 <br>
 
 To make OnnxRuntime to use CUDA (takes effect in the next load),
@@ -63,6 +64,7 @@ To see the current model,
 ```
 print_model_type
 ```
+<br>
 
 ### Using depth.py and depthserver.py (OPTIONAL)
 `depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer.
