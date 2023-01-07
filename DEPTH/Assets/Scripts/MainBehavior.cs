@@ -126,6 +126,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
 		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
 		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
+		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
 
 		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
 		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);

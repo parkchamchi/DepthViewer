@@ -111,8 +111,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 				UITextSet.StatusText.text = "Hashing.";
 				_hashval = Utils.GetHashval(filepath);
 				UITextSet.StatusText.text = "Hashed.";
-
-				ImgVidDepthGOs.CallPythonObjectParent?.SetActive(true);
 			}
 		}
 
@@ -739,6 +737,5 @@ public class ImgVidDepthTexInputs : TexInputs {
 		DepthFileUtils.Dispose();
 
 		ImgVidDepthGOs.DepthFilePanel.SetActive(false);
-		ImgVidDepthGOs.CallPythonObjectParent?.SetActive(false);
 	}
 }

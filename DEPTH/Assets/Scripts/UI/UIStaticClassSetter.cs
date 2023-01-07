@@ -16,7 +16,6 @@ public static class UITextSet {
 public static class ImgVidDepthGOs {
 	public static GameObject DepthFilePanel;
 	public static TMP_Text DepthFileCompareText;
-	public static GameObject CallPythonObjectParent; //Only visible when the hashval is set
 	public static Toggle CallServerOnPauseToggle;
 }
 
@@ -32,7 +31,6 @@ public class UIStaticClassSetter : MonoBehaviour {
 
 	public GameObject DepthFilePanel;
 	public TMP_Text DepthFileCompareText;
-	public GameObject CallPythonObjectParent; //Only visible when the hashval is set
 	public Toggle CallServerOnPauseToggle;
 
 	public Texture2D PlaceholderTexture;
@@ -44,7 +42,6 @@ public class UIStaticClassSetter : MonoBehaviour {
 
 		ImgVidDepthGOs.DepthFilePanel = DepthFilePanel;
 		ImgVidDepthGOs.DepthFileCompareText = DepthFileCompareText;
-		ImgVidDepthGOs.CallPythonObjectParent = CallPythonObjectParent;
 		ImgVidDepthGOs.CallServerOnPauseToggle = CallServerOnPauseToggle;
 
 		/*
