@@ -30,13 +30,47 @@ The depthmaps can be cached to a file so that it can be loaded later.
 ![demo_cache](./examples/demo_cache.png)<br>
 <br>
 
+## Inputs
+- Right mouse key: hides the UI.
+- WASD: rotate the mesh.
+- Backtick `: opens the console.
+
 ## Models
 The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/releases/tag/v2_1), which is ideal for real-time rendering.
 
-### Calling python (Optional)
-The [MiDaS v3 DPT models](https://github.com/isl-org/MiDaS), which is exceptionally accurate, hasn't been released as ONNX model that can be used with Unity's Barracuda.
-The `Call Python` buttons will call python subprocess and process it with pytorch. 
-For now it just calls `python ./depthpy/depth.py [args]...`, so dependency for MiDaS and `depth.py` should be installed manually, for that also check the [MiDaS github page](https://github.com/isl-org/MiDaS). 
+### Loading an ONNX model
+Open the console and insert
+```xml
+load_model <onnx_path> false
+```
+`false` uses Unity's Barracuda and `true` uses OnnxRuntime, which is somewhat buggy and inaccurate now.<br>
+<br>
+
+To make OnnxRuntime to use CUDA (takes effect in the next load),
+```
+set_onnxruntime_params true 0
+```
+The final `0` is the id of GPU.<br>
+<br>
+
+To load the built-in model,
+```
+load_builtin
+```
+<br>
+
+To see the current model,
+```
+print_model_type
+```
+
+### Using depth.py and depthserver.py (OPTIONAL)
+`depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer.
+It can be executed independently from the command console or called from the main program using the console command `send_msg CallPythonHybrid` or `send_msg CallPythonLarge` (replaces the `Call Python` buttons). 
+
+#### Dependencies for depth.py
+
+Also check the [MiDaS github page](https://github.com/isl-org/MiDaS). 
 
 1. Install Python3. The version I use is `3.9.6`. By default the program calls `python`, assuming it is on PATH. This can be changed in the options menu.
 2. Install OpenCV and Numpy. <br>
@@ -58,24 +92,9 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Check the installed CUDA version and if the installed Pytorch version supports that.
 - Uninstall Pytorch `pip uninstall torch torchvision` and reinstall it.
 
-`depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer. It can be called from the program by `Call Python` buttons or it can be executed independently from the command console.
-
 #### For depthserver.py
 - Install Flask `pip install Flask`
 - Run `python depthserver.py` to open the server and connect to it via the option menu. If it's connected all image inputs will be processed by calling the server.
-
-## Inputs
-- Right mouse key: hides the UI.
-- WASD: rotate the mesh.
-- Backtick `: opens the console.
-
-## Notes
-- If VR HMD is detected, it will open with OpenXR.
-- All outputs will be cached to `Application.persistentDataPath` (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
-- Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
-- Rendering the desktop is only supported in Windows for now.
-- C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
-- Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
 
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .jpg file will be generated in `Application.persistentDataPath`. \
@@ -114,13 +133,20 @@ Some files can't be played because Unity's VideoPlayer can't open them. (e.g. VP
 - .pgm : Can be used as a depthmap (Needs a subsequential image input)
 - .depthviewer
 
+## Notes
+- If VR HMD is detected, it will open with OpenXR.
+- All outputs will be cached to `Application.persistentDataPath` (In Windows, `...\AppData\LocalLow\parkchamchi\DepthViewer`).
+- Depth files this program creates are of extention `.depthviewer`, which is a zip file with .pgm files and a metadata file.
+- Rendering the desktop is only supported in Windows for now.
+- C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
+- Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
+
 ## Todo
 - Overhaul UI & Control
 - Add more options
 - Fix codecs
 - Stablize
 ### WIP
-- Native DPT models support (The ONNX one implemented now is much less accurate than the official PyTorch one)
 - VR controllers support [(See here)](https://github.com/parkchamchi/UnityVRControllerTest)
 - Support for the servers that send both the image file and the depthmap
 
