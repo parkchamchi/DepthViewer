@@ -62,7 +62,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private InferenceSession _infsession;
 	private int _width, _height;
 	private string _inputname;
-	//private int _outwidth, _outheight;
+	private int _outwidth, _outheight;
 
 	private RenderTexture _rt;
 	private float[] _output;
@@ -90,13 +90,12 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			_width = item.Value.Dimensions[2];
 			_height = item.Value.Dimensions[3];
 		} //only 1
-		/*foreach (KeyValuePair<string, NodeMetadata> item in _infsession.OutputMetadata) {
+		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.OutputMetadata) {
 			_outwidth = item.Value.Dimensions[1];
 			_outheight = item.Value.Dimensions[2];
-		} //only 1*/
+		} //only 1
 
 		_rt = new RenderTexture(_width, _height, 16);
-		//_output = new float[_outwidth * _outheight];
 	}
 
 	public float[] Run(Texture inputTexture, out int x, out int y) {
@@ -125,18 +124,23 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		float[] bfloats = new float[length];
 
 		for (int i = 0; i < length; i++) {
-			rfloats[i] = (float) rawdata[i*4 + 0] / 255;
-			gfloats[i] = (float) rawdata[i*4 + 1] / 255;
-			bfloats[i] = (float) rawdata[i*4 + 2] / 255;
+			int row = h - (i/w) - 1;
+			int col = (i%w);
+
+			int k = row * w + col;
+
+			rfloats[k] = (float) rawdata[i*4 + 0] / 255;
+			gfloats[k] = (float) rawdata[i*4 + 1] / 255;
+			bfloats[k] = (float) rawdata[i*4 + 2] / 255;
 			//a = rawdata[i*4 + 3];
 		}
 		
-		var dimensions = new ReadOnlySpan<int>(new []{1, 3, _height, _width});
+		var dimensions = new ReadOnlySpan<int>(new []{1, 3, h, w});
 		var t1 = new DenseTensor<float>(dimensions);
 		for (var j = 0; j < _height; j++) {
 			if (j >= h) continue;
 
-			for (var i = 0; i < _width; i++) {
+			for (var i = 0; i < w; i++) {
 				if (i >= w) continue;
 
 				var index = j * w + i;
@@ -154,28 +158,15 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		float[] output = results?.First().AsEnumerable<float>().ToArray();
 		results?.Dispose();
 
-		float[] actualOutput = new float[w*h];
-		for (int i = 0; i < _width * _height; i++) { //rotate 180
-			int row = (i/_width);
-			if (row >= h) continue;
-			row = h-1 - row;
-			
-			int col = (i%_width);
-			if (col >= w) continue;
-
-			//Debug.Log($"row: {row}, col: {col}");
-			actualOutput[row*w + col] = output[i];
-		}
-
-		float max = actualOutput.Max();
-		float min = actualOutput.Min();
+		float max = output.Max();
+		float min = output.Min();
 		
-		for (int i = 0; i < actualOutput.Length; i++)
-			actualOutput[i] = (actualOutput[i] - min) / (max - min); 
+		for (int i = 0; i < output.Length; i++)
+			output[i] = (output[i] - min) / (max - min); 
 
-		x = w;
-		y = h;
-		return actualOutput;
+		x = _outwidth;
+		y = _outheight;
+		return output;
 	}
 
 	public void Dispose() {
