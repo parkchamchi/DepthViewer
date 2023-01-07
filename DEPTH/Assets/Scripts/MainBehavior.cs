@@ -44,9 +44,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
 
-	public TMP_Text CurrentModelText;
-	public TMP_Text ModelLoadStatusText;
-
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 	public GameObject WebXRSet; //same as above
 
@@ -82,7 +79,6 @@ public class MainBehavior : MonoBehaviour {
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
-		_donnx = _depthModelBehav.GetBuiltIn();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
 		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
@@ -128,7 +124,13 @@ public class MainBehavior : MonoBehaviour {
 
 		/*Console methods*/
 		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
+		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
 		DebugLogConsole.AddCommandInstance("loadmodel", "Load ONNX model from path", "LoadModel", this);
+
+		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
+
+		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
+		_donnx = _depthModelBehav.GetBuiltIn();
 	}
 
 	void Update() {
@@ -308,105 +310,54 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
 	}
 
-	public void GetPresetModel(string type="builtin") {
+	public void LoadBuiltIn() {
 		Cleanup();
 		_donnx?.Dispose();
 
-		//TODO: Move the code below here to DepthModelBehavior
-		CurrentModelText.text = "";
-		ModelLoadStatusText.text = "Loading.";
-		UITextSet.StatusText.text = "RELOAD";
+		_donnx = _depthModelBehav.GetBuiltIn();
 
-		bool useOnnxRuntime = false;
-		ModelTypes modeltype = ModelTypes.MidasV21Small; //placeholder
-
-		switch (type) {
-		case "hybrid":
-			modeltype = ModelTypes.MidasV3DptHybrid;
-			useOnnxRuntime = true;
-			break;
-		case "large":
-			modeltype = ModelTypes.MidasV3DptLarge;
-			useOnnxRuntime = true;
-			break;
-		}
-
-		if (useOnnxRuntime) {
-			if (!_depthModelBehav.PresetModelFileExists(modeltype)) {
-				ModelLoadStatusText.text = "File not found.";
-				return;
-			}
-			
-			try {
-				_donnx = _depthModelBehav.GetPreset(modeltype);
-			}
-			catch (InvalidOperationException) {
-				ModelLoadStatusText.text = "OnnxRuntime Error.";
-				_donnx?.Dispose();
-				_donnx = null;
-				return;
-			}
-			//can't catch EntryPointNotFoundException here?
-			/*catch (EntryPointNotFoundException exc) {
-				Debug.LogError(exc);
-
-				ModelLoadStatusText.text = "OnnxRuntime Link Error.";
-				_donnx?.Dispose();
-				_donnx = null;
-				return;
-			}*/
-			
-			CurrentModelText.text = type;
-			if (_depthModelBehav.OnnxRuntimeUseCuda)
-				CurrentModelText.text += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
-			if (_depthModelBehav.OnnxRuntimeRetainRatio)
-				CurrentModelText.text += ":Retaining Ratio";
-
-			ModelLoadStatusText.text = "Loaded.";
-
-			return;
-		}
-		else {
-			type = "builtin";
-			CurrentModelText.text = type; //always "builtin"
-			ModelLoadStatusText.text = "Loaded.";
-			_donnx = _depthModelBehav.GetBuiltIn();
-		}
+		Debug.Log("Loaded the built-in model.");
 	}
 
-	//TODO: merge with GetPresetModel() / or move it to DepthModelBehavior
-	//Only meant to be used with the console
+	//Mant to be used with the console
 	public void LoadModel(string onnxpath, bool useOnnxRuntime=false) {
 		Cleanup();
 		_donnx?.Dispose();
 
-		CurrentModelText.text = "";
-		ModelLoadStatusText.text = "Loading.";
 		UITextSet.StatusText.text = "RELOAD";
 
 		Debug.Log($"Loading model: {onnxpath}");
 
-		string modelTypeStr = Path.GetFileName(onnxpath);
+		if (!File.Exists(onnxpath)) {
+			Debug.LogError($"File does not exist: {onnxpath}");
+			return;
+		}
+
+		string modelTypeStr = onnxpath;
 		if (useOnnxRuntime) {
 			modelTypeStr += ":OnnxRuntime";
 
 			if (_depthModelBehav.OnnxRuntimeUseCuda)
 				modelTypeStr += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
-			if (_depthModelBehav.OnnxRuntimeRetainRatio)
-				modelTypeStr += ":Retaining Ratio";
 		}
 
-		_donnx = _depthModelBehav.GetDepthModel(onnxpath, modelTypeStr, useOnnxRuntime: useOnnxRuntime);
+		try {
+			_donnx = _depthModelBehav.GetDepthModel(onnxpath, modelTypeStr, useOnnxRuntime: useOnnxRuntime);
+		}
+		catch (Exception exc) {
+			//dispose and rethrow
+			_donnx?.Dispose();
+			_donnx = null;
+			throw exc;
+		}
 
 		//Failure
 		if (_donnx == null) {
-			Debug.LogError($"Failed to load: {onnxpath}");
-			ModelLoadStatusText.text = "Failed to load";
+			Debug.LogError($"Failed to load: {modelTypeStr}");
 			return;
 		}
 
-		CurrentModelText.text = modelTypeStr;
-		Debug.Log($"Loaded the model: {onnxpath} : {modelTypeStr}");
+		Debug.Log($"Loaded the model: {modelTypeStr}");
 	}
 
 	public void HideUI() {

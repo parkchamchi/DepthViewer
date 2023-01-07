@@ -63,12 +63,11 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private int _width, _height;
 	private string _inputname;
 	//private int _outwidth, _outheight;
-	private bool _retainRatio;
 
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool retainRatio=false, bool useCuda=false, int gpuid=0) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool useCuda=false, int gpuid=0) {
 		ModelType = modelType;
 		ModelTypeVal = modelTypeVal;
 
@@ -98,20 +97,12 @@ public class OnnxRuntimeDepthModel : DepthModel {
 
 		_rt = new RenderTexture(_width, _height, 16);
 		//_output = new float[_outwidth * _outheight];
-		_retainRatio = retainRatio;
 	}
 
 	public float[] Run(Texture inputTexture, out int x, out int y) {
 		int w = _width;
 		int h = _height;
-		if (_retainRatio) {
-			float rat = (float) inputTexture.width / inputTexture.height;
-			
-			if (rat < 1) //longer height
-				w = (int) (w * rat);
-			else //longer width
-				h = (int) (h / rat);
-		}
+
 		if (w != _rt.width || h != _rt.height) {
 			_rt.Release();
 			_rt = new RenderTexture(w, h, 16);
