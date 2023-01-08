@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,17 @@ public interface IDepthMesh {
 	void ToDefault();
 
 	event System.Action<string, float> ParamChanged; //paramname, value
+
+	/*
+	Save current params as string, in format
+		param1=value1
+		param2=value2
+		...
+
+	For video depthfiles this format would not be quite memory efficient, but since it is compressed it wouldn't be much trouble
+	*/
+	string ExportParams();
+	void ImportParams(string paramstr);
 }
 
 public class MeshBehavior : MonoBehaviour, IDepthMesh {
@@ -49,13 +61,17 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		set {
 			if (value <= 0) {
 				//Debug.LogError($"Got negative alpha {value}.");
-				return;
+				//return;
+
+				value = 0;
 			}
 			_alpha = value;
 			if (_shouldUpdateDepth) UpdateDepth();
 
 			ParamChanged?.Invoke("Alpha", value);
 		}
+
+		get {return _alpha;}
 	}
 
 	public const float DefaultBeta = 0.5f;
@@ -64,13 +80,17 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		set {
 			if (value <= 0) {
 				//Debug.LogError($"Got negative beta {value}.");
-				return;
+				//return;
+
+				value = 0;
 			}
 			_beta = value;
 			if (_shouldUpdateDepth) UpdateDepth();
 
 			ParamChanged?.Invoke("Beta", value);
 		}
+
+		get {return _beta;}
 	}
 
 	public const float DefaultDepthMult = 50f;
@@ -82,38 +102,55 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			ParamChanged?.Invoke("DepthMult", value);
 		}
+
+		get {return _depthMult;}
 	}
 
 	public const float DefaultMeshLoc = 0f;
+	private float _meshLoc = DefaultMeshLoc;
 	public float MeshLoc {
 		set {
+			_meshLoc = value;
 			transform.position = new Vector3(transform.position.x, transform.position.y, _defaultZ - value);
 			ParamChanged?.Invoke("MeshLoc", value);
 		}
+
+		get {return _meshLoc;}
 	}
 
 	public const float DefaultMeshX = 0f;
+	private float _meshX = DefaultMeshX;
 	public float MeshX {
 		set {
+			_meshX = value;
 			transform.position = new Vector3(_defaultX - value, transform.position.y, transform.position.z);
 			ParamChanged?.Invoke("MeshX", value);
 		}
+
+		get {return _meshX;}
 	}
 
 	public const float DefaultMeshY = 0f;
+	private float _meshY = DefaultMeshY;
 	public float MeshY {
 		set {
+			_meshY = value;
 			transform.position = new Vector3(transform.position.x, _defaultY - value, transform.position.z);
 			ParamChanged?.Invoke("MeshY", value);
 		}
+
+		get {return _meshY;}
 	}
 
 	public const float DefaultScale = 1f;
+	private float _scale = DefaultScale;
 	public float Scale {
 		set {
 			transform.localScale = new Vector3(value, value, transform.localScale.z);
 			ParamChanged?.Invoke("Scale", value);
 		}
+
+		get {return _scale;}
 	}
 
 	private bool _isThresholdSet = false;
@@ -316,10 +353,57 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public void SetParam(string paramname, float value) {
 		var pinfo = this.GetType().GetProperty(paramname);
 		if (pinfo == null) {
-			Debug.LogError($"SetParam(): Got invalid paramname {paramname}");
+			Debug.LogWarning($"SetParam(): Got invalid paramname {paramname}");
 			return;
 		}
 
 		pinfo.SetValue(this, value);
+	}
+
+	public float GetParam(string paramname) {
+		var pinfo = this.GetType().GetProperty(paramname);
+		if (pinfo == null) {
+			Debug.LogWarning($"GetParam(): Got invalid paramname {paramname}");
+			throw new System.ArgumentException();
+		}
+
+		return (float) pinfo.GetValue(this);
+	}
+
+	public string ExportParams() {
+		string[] toexports = new string[] {
+			"Alpha", "Beta", "Scale", "MeshLoc", "DepthMult", "MeshX", "MeshY"
+		};
+
+		StringBuilder output = new StringBuilder();
+
+		foreach (string paramname in toexports) {
+			float value = GetParam(paramname);
+			output.Append($"{paramname}={value}\n");
+		}
+
+		return output.ToString();
+	}
+
+	public void ImportParams(string paramstr) {
+		foreach (string line in paramstr.Split('\n')) {
+			int sep_i = line.IndexOf('=');
+			if (sep_i < 0)
+				continue;
+
+			string key = line.Substring(0, sep_i).Trim();
+
+			string valueStr = line.Substring(sep_i+1).Trim();
+			float value = 0f;
+			try {
+				value = float.Parse(valueStr);
+			}
+			catch (System.FormatException) {
+				Debug.LogWarning($"ImportParams(): Got invalid value {valueStr}");
+				continue;
+			}
+
+			SetParam(key, value);
+		}
 	}
 }

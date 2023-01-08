@@ -88,6 +88,8 @@ public class MainBehavior : MonoBehaviour {
 		ToggleOutputSave(); //initializing _canUpdateArchive
 		ToggleSearchCache(); //init. _searchCache
 
+		ParamUtils.Dmesh = _meshBehav;
+
 		/* Check the first arguement */
 		string[] args = System.Environment.GetCommandLineArgs();
 		if (args.Length > 1) {

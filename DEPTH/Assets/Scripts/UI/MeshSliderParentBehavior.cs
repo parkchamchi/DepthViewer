@@ -54,6 +54,6 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 			Slider.value = value;
 		else
 			//otherwise just change the label
-			ValueText.text = "*" + value.ToString("0.##");
+			ValueText.text = value.ToString("0.##") + "*";
 	}
 }
