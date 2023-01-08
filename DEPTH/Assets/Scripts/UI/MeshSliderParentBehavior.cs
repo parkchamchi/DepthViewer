@@ -49,6 +49,11 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 			return;
 		
 		//Value changed by other object
-		Slider.value = value;
+		//Check if it is in the range of the slider
+		if (Slider.minValue <= value && value <= Slider.maxValue)
+			Slider.value = value;
+		else
+			//otherwise just change the label
+			ValueText.text = "*" + value.ToString("0.##");
 	}
 }
