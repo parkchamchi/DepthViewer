@@ -6,13 +6,16 @@ using UnityEngine.UI;
 using TMPro;
 
 public class ParamMinMaxBehavior : MonoBehaviour {
-	public Slider TargetSlider;
+	public TMP_Text ParamnameText;
 
 	public TMP_InputField MinInputField;
 	public TMP_InputField MaxInputField;
 	public TMP_Text StatusText;
 
 	public void Set() {
+		/* Get the target slider from the label */
+		Slider targetSlider = MeshSliderParents.Get(ParamnameText.text).Slider;
+
 		float min;
 		float max;
 
@@ -25,8 +28,8 @@ public class ParamMinMaxBehavior : MonoBehaviour {
 			return;
 		}
 
-		TargetSlider.minValue = min;
-		TargetSlider.maxValue = max;
+		targetSlider.minValue = min;
+		targetSlider.maxValue = max;
 
 		StatusText.text = "O";
 	}

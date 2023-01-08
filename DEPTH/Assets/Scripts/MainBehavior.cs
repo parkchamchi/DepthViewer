@@ -615,17 +615,8 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs.SendMsg(msg);
 	}
 
-	/* Does not work */
-	/*
-	public void RecenterVR() {
-		//UnityEngine.XR.InputTracking.Recenter();
-		var xrss = XRGeneralSettings.Instance?.Manager?.activeLoader?.GetLoadedSubsystem<XRInputSubsystem>();
-		if (xrss == null) return;
-
-		xrss.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device);
-		xrss.TryRecenter();
-	}
-	*/
+	public void MeshToDefault() =>
+		_meshBehav.ToDefault();
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

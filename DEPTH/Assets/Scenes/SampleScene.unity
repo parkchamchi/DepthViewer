@@ -3927,7 +3927,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 259.87085, y: -194.4748}
+  m_AnchoredPosition: {x: 259.87085, y: -194.47473}
   m_SizeDelta: {x: 1130.9666, y: 1563.4265}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &340014273
@@ -6765,7 +6765,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8870614494936561884, guid: dc691186236831241b1d54719d70a5b3, type: 3}
       propertyPath: m_text
-      value: Beta > 0
+      value: Beta
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc691186236831241b1d54719d70a5b3, type: 3}
@@ -20813,9 +20813,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: MeshSlidersBehavior, Assembly-CSharp
-        m_MethodName: ToDefault
+      - m_Target: {fileID: 2128267913}
+        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
+        m_MethodName: MeshToDefault
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23099,7 +23099,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8870614494936561884, guid: dc691186236831241b1d54719d70a5b3, type: 3}
       propertyPath: m_text
-      value: Alpha > 0
+      value: Alpha
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc691186236831241b1d54719d70a5b3, type: 3}

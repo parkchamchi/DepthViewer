@@ -8,6 +8,7 @@ public interface IDepthMesh {
 	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
 
 	void SetParam(string paramname, float value);
+	void ToDefault();
 }
 
 public class MeshBehavior : MonoBehaviour, IDepthMesh {
@@ -123,7 +124,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 
-	/*private void ToDefault() {
+	public void ToDefault() {
 		//Does not reset MeshX, MeshY
 
 		Alpha = DefaultAlpha;
@@ -131,7 +132,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		DepthMult = DefaultDepthMult;
 		MeshLoc = DefaultMeshLoc;
 		Scale = DefaultScale;
-	}*/
+
+		ResetRotation();
+	}
 
 	void Start() {
 		_mesh = new Mesh();

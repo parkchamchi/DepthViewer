@@ -1810,7 +1810,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55ac6755de1196c4aaf4525bf25d915f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetSlider: {fileID: 0}
+  ParamnameText: {fileID: 8870614494936561884}
   MinInputField: {fileID: 1389510849097976670}
   MaxInputField: {fileID: 1756490362966618462}
   StatusText: {fileID: 2903073829774980351}
