@@ -40,4 +40,7 @@ public static class ParamUtils {
 		string paramstr = File.ReadAllText(NormalizeFilename(filename));
 		Dmesh.ImportParams(paramstr);
 	}
+
+	public static void SetTargetValToNaN() =>
+		Dmesh.SetParam("TargetVal", System.Single.NaN);
 }
