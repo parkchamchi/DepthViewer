@@ -22,6 +22,9 @@ public static class DepthFileUtils {
 	
 	public const string DepthExt = ".depthviewer";
 
+	private const string _metadataFilename = "METADATA.txt";
+	private const string _paramsFilename = "PARAMS.txt";
+
 	private static string _savedir;
 	public static string SaveDir {
 		set {
@@ -53,8 +56,6 @@ public static class DepthFileUtils {
 	private static long _framecount;
 	private static long _count;
 	private static bool _isFull;
-
-	
 
 	static DepthFileUtils() {
 		_savedir = Application.persistentDataPath;
@@ -176,9 +177,9 @@ public static class DepthFileUtils {
 	public static void UpdateDepthFileMetadata(string metadata) {
 		if (metadata == null) return;
 
-		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
+		ZipArchiveEntry metadataEntry = _archive.GetEntry(_metadataFilename);
 		if (metadataEntry == null)
-			metadataEntry = _archive.CreateEntry("METADATA.txt");
+			metadataEntry = _archive.CreateEntry(_metadataFilename);
 		using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
 			sw.Write(metadata);
 	}
@@ -247,6 +248,10 @@ public static class DepthFileUtils {
 	}
 
 	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
+		return ReadDepthFile(path, out framecount, out metadata, out _, readOnlyMode);
+	}
+
+	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, out Dictionary<long, string> paramsDict, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
@@ -256,8 +261,8 @@ public static class DepthFileUtils {
 
 		framecount = -1;
 		
-		//x = y = 0;
 		metadata = null;
+		paramsDict = null;
 
 		if (!path.EndsWith(DepthExt)) {
 			Debug.LogError("File " + path + " is not a valid format.");
@@ -276,15 +281,27 @@ public static class DepthFileUtils {
 
 		//Read the metadata
 		string metadataStr;
-		ZipArchiveEntry metadataEntry = _archive.GetEntry("METADATA.txt");
+		ZipArchiveEntry metadataEntry = _archive.GetEntry(_metadataFilename);
 		using (StreamReader br = new StreamReader(metadataEntry.Open()))
 			metadataStr = br.ReadToEnd();
 		metadata = ReadMetadata(metadataStr);
-		
-		//x = int.Parse(metadata["width"]);
-		//y = int.Parse(metadata["height"]);
 
 		framecount = _framecount = int.Parse(metadata["framecount"]);
+
+		//Read the params, if it exists
+		string paramsStr;
+		ZipArchiveEntry paramsEntry = _archive.GetEntry(_paramsFilename);
+		if (paramsEntry != null) {
+			using (StreamReader br = new StreamReader(paramsEntry.Open()))
+				paramsStr = br.ReadToEnd();
+
+			try {
+				paramsDict = ReadParams(paramsStr);
+			}
+			catch (Exception exc) {
+				Debug.LogWarning($"Falied to read the params: {exc}");
+			}
+		}
 
 		//Check if it is full. This sets _isFull, _count.
 		IsFull();
@@ -354,7 +371,7 @@ public static class DepthFileUtils {
 		return depths;
 	}
 
-	public static Dictionary<string, string> ReadMetadata(string metadataStr) {
+	private static Dictionary<string, string> ReadMetadata(string metadataStr) {
 		Dictionary<string, string> metadata = new Dictionary<string, string>();
 
 		foreach (string line in metadataStr.Split('\n')) {
@@ -373,9 +390,83 @@ public static class DepthFileUtils {
 		return metadata;
 	}
 
-	/*public static float[] ReadPGM(byte[] pgm) {
-		return ReadPGM(pgm, out _, out _);
-	}*/
+	private static Dictionary<long, string> ReadParams(string paramsStr) {
+		/*
+		!PARAMSVERSION=1
+
+		!FRAME=0
+		...=...
+		...=...
+		!ENDFRAME
+
+		...
+		*/
+
+		Dictionary<long, string> paramsDict = new Dictionary<long, string>();
+		StringBuilder frameParams = null;
+		bool in_substr = false;
+
+		long framenum = -1;
+
+		foreach (string line in paramsStr.Split('\n')) {
+			//Lines not starting with '!'
+			if (!line.StartsWith('!')) {
+				if (in_substr) {
+					//part of params -- append
+					frameParams.Append(line);
+					frameParams.Append('\n');
+
+					continue;
+				}
+				else {
+					Debug.LogWarning($"Got illegal params string: line without '!': {line}");
+					return null;
+				}
+			}
+
+			//Lines staring with '!'
+			string key, value;
+
+			int sep_i = line.IndexOf('=');
+			if (sep_i < 0) {
+				//if the delimiter is not in the line, key is the whole line
+				key = line.Substring(1);
+				value = null;
+			}
+			else {
+				key = line.Substring(1, sep_i).Trim();
+				value = line.Substring(sep_i + 1).Trim();
+			}
+
+			switch (key) {
+			case "PARMSVERSION":
+				if (value != "1")
+					Debug.LogWarning($"Higher params version: {value}");
+				break;
+
+			case "FRAME":
+				//Start of the frame
+				in_substr = true;
+
+				framenum = long.Parse(key);
+				frameParams = new StringBuilder();
+
+				break;
+			
+			case "ENDFRAME":
+				in_substr = false;
+				paramsDict[framenum] = frameParams.ToString();
+
+				break;
+
+			default:
+				Debug.LogWarning($"Unknown params statement {key}");
+				break;
+			}
+		}
+
+		return paramsDict;
+	}
 
 	public static float[] ReadPGM(byte[] pgm, out int x, out int y) {
 		int idx = 0;

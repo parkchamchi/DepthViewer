@@ -66,6 +66,9 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private bool _shouldCapture;
 	private string _recordPath;
 
+	/* Parameters for the mesh */
+	private Dictionary<long, string> _paramsDict;
+
 	public ImgVidDepthTexInputs(
 		FileTypes ftype,
 		IDepthMesh dmesh,
@@ -696,6 +699,11 @@ public class ImgVidDepthTexInputs : TexInputs {
 		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
+	private void ExportParams() {
+		Debug.Log(_currentFrame);
+		Debug.Log(_dmesh.ExportParams());
+	}
+
 	public void SendMsg(string msg) {
 		switch (msg) {
 		case "DepthFileShow":
@@ -717,6 +725,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 		
 		case "PausePlay": //TODO: if there's another input that can be paused, move this to the interface
 			PausePlay();
+			break;
+
+		case "e":
+			ExportParams();
 			break;
 
 		default:
