@@ -31,8 +31,24 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 
 		//Add itself to MeshSlidersParents
 		MeshSliderParents.Add(_paramname, this);
+
+		//Add itself to mesh's ParamChanged event
+		_dmesh.ParamChanged += OnParamChanged;
 	}
 
 	private void OnValueChanged() =>
 		_dmesh.SetParam(_paramname, Slider.value);
+
+	private void OnParamChanged(string paramname, float value) {
+		/* This method is invoked when the mesh's property is changed, either by this slider or by external actor */
+
+		if (paramname != _paramname)
+			return;
+
+		if (value == Slider.value)
+			return;
+		
+		//Value changed by other object
+		Slider.value = value;
+	}
 }

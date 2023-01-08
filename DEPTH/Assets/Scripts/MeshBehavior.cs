@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,8 @@ public interface IDepthMesh {
 
 	void SetParam(string paramname, float value);
 	void ToDefault();
+
+	event System.Action<string, float> ParamChanged; //paramname, value
 }
 
 public class MeshBehavior : MonoBehaviour, IDepthMesh {
@@ -38,6 +41,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private bool _shouldUpdateDepth = false;
 	public bool ShouldUpdateDepth {set {_shouldUpdateDepth = value;}} //Depth has to be updated when an image is being shown
 
+	public event System.Action<string, float> ParamChanged;
+
 	public const float DefaultAlpha = 1f;
 	private float _alpha = DefaultAlpha;
 	public float Alpha {
@@ -48,6 +53,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			}
 			_alpha = value;
 			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("Alpha", value);
 		}
 	}
 
@@ -61,6 +68,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			}
 			_beta = value;
 			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("Beta", value);
 		}
 	}
 
@@ -70,28 +79,40 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		set {
 			_depthMult = value;
 			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("DepthMult", value);
 		}
 	}
 
 	public const float DefaultMeshLoc = 0f;
 	public float MeshLoc {
-		set {transform.position = new Vector3(transform.position.x, transform.position.y, _defaultZ - value);}
+		set {
+			transform.position = new Vector3(transform.position.x, transform.position.y, _defaultZ - value);
+			ParamChanged?.Invoke("MeshLoc", value);
+		}
 	}
 
 	public const float DefaultMeshX = 0f;
 	public float MeshX {
-		set {transform.position = new Vector3(_defaultX - value, transform.position.y, transform.position.z);}
+		set {
+			transform.position = new Vector3(_defaultX - value, transform.position.y, transform.position.z);
+			ParamChanged?.Invoke("MeshX", value);
+		}
 	}
 
 	public const float DefaultMeshY = 0f;
 	public float MeshY {
-		set {transform.position = new Vector3(transform.position.x, _defaultY - value, transform.position.z);}
+		set {
+			transform.position = new Vector3(transform.position.x, _defaultY - value, transform.position.z);
+			ParamChanged?.Invoke("MeshY", value);
+		}
 	}
 
 	public const float DefaultScale = 1f;
 	public float Scale {
 		set {
 			transform.localScale = new Vector3(value, value, transform.localScale.z);
+			ParamChanged?.Invoke("Scale", value);
 		}
 	}
 
@@ -125,13 +146,14 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	}
 
 	public void ToDefault() {
-		//Does not reset MeshX, MeshY
-
 		Alpha = DefaultAlpha;
 		Beta = DefaultBeta;
 		DepthMult = DefaultDepthMult;
 		MeshLoc = DefaultMeshLoc;
 		Scale = DefaultScale;
+
+		MeshX = DefaultMeshX;
+		MeshY = DefaultMeshY;
 
 		ResetRotation();
 	}
