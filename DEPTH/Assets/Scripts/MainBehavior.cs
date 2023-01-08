@@ -131,6 +131,8 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
 		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
 
+		DebugLogConsole.AddCommandInstance("dbg", "Temporary method for debugging.", "DebugTmp", this);
+
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
 		_donnx = _depthModelBehav.GetBuiltIn();
 	}
@@ -601,12 +603,6 @@ public class MainBehavior : MonoBehaviour {
 		_vp.playbackSpeed = mult;
 	}
 
-	public void SetMeshX(float val) =>
-		_meshBehav.MeshX = val;
-
-	public void SetMeshY(float val) =>
-		_meshBehav.MeshY = val;
-
 	public void SetLightIntensity(float val) =>
 		MainLight.intensity = val;
 
@@ -630,6 +626,13 @@ public class MainBehavior : MonoBehaviour {
 		xrss.TryRecenter();
 	}
 	*/
+
+	/* A method for debugging, called by the console method `dbg` */
+	public void DebugTmp() {
+		Debug.Log("DebugTmp() called.");
+
+		Debug.Log("DebugTmp() exiting.");
+	}
 } 
 
 public static class Exts {

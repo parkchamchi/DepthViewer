@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public interface IDepthMesh {
 	bool ShouldUpdateDepth {set;} //whether the depth has to be updated when the parameters (alpha, ...) is changed
 	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
+
+	void SetParam(string paramname, float value);
 }
 
 public class MeshBehavior : MonoBehaviour, IDepthMesh {
@@ -285,4 +287,14 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public void ResetRotation() =>
 		transform.rotation = Quaternion.identity;
+
+	public void SetParam(string paramname, float value) {
+		var pinfo = this.GetType().GetProperty(paramname);
+		if (pinfo == null) {
+			Debug.LogError($"SetParam(): Got invalid paramname {paramname}");
+			return;
+		}
+
+		pinfo.SetValue(this, value);
+	}
 }

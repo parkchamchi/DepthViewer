@@ -6,9 +6,9 @@ using UnityEngine.UI;
 using TMPro;
 
 public class SliderParentBehavior : MonoBehaviour {
-	public Slider _slider;
-	public TMP_Text _labelText;
-	public TMP_Text _valueText;
+	public Slider Slider;
+	public TMP_Text LabelText;
+	public TMP_Text ValueText;
 
 	void Start() {
 		ChangeValueText(); //init
@@ -16,6 +16,6 @@ public class SliderParentBehavior : MonoBehaviour {
 
 	public void ChangeValueText() {
 		//_valueText.text = $"{_slider.value:f2}";
-		_valueText.text = _slider.value.ToString("0.##");
+		ValueText.text = Slider.value.ToString("0.##");
 	}
 }

@@ -72,34 +72,6 @@ public class OptionsBehavior : MonoBehaviour {
 		OutputDirStatusText.text = "O";
 	}
 
-	public void SetMeshX() {
-		float val;
-
-		try {
-			val = float.Parse(MeshXInputField.text);
-		} catch (System.FormatException) {
-			MeshXStatusText.text = "!";
-			return;
-		}
-
-		_mainBehav.SetMeshX(val);
-		MeshXStatusText.text = "O";
-	}
-
-	public void SetMeshY() {
-		float val;
-
-		try {
-			val = float.Parse(MeshYInputField.text);
-		} catch (System.FormatException) {
-			MeshYStatusText.text = "!";
-			return;
-		}
-
-		_mainBehav.SetMeshY(val);
-		MeshYStatusText.text = "O";
-	}
-
 	public void SetLightIntesity() {
 		float val;
 
