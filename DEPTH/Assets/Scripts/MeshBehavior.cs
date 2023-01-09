@@ -63,7 +63,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 				//Debug.LogError($"Got negative alpha {value}.");
 				//return;
 
-				value = 0;
+				value = 0.00001f; //epsilon glitches
 			}
 			_alpha = value;
 			if (_shouldUpdateDepth) UpdateDepth();
@@ -82,7 +82,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 				//Debug.LogError($"Got negative beta {value}.");
 				//return;
 
-				value = 0;
+				value = 0.00001f;
 			}
 			_beta = value;
 			if (_shouldUpdateDepth) UpdateDepth();
