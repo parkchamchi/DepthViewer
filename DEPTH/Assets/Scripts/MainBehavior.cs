@@ -88,8 +88,6 @@ public class MainBehavior : MonoBehaviour {
 		ToggleOutputSave(); //initializing _canUpdateArchive
 		ToggleSearchCache(); //init. _searchCache
 
-		ParamUtils.Dmesh = _meshBehav;
-
 		/* Check the first arguement */
 		string[] args = System.Environment.GetCommandLineArgs();
 		if (args.Length > 1) {
@@ -620,6 +618,9 @@ public class MainBehavior : MonoBehaviour {
 
 	public void MeshToDefault() =>
 		_meshBehav.ToDefault();
+
+	public void SetTargetValToNaN() =>
+		_meshBehav.TargetVal = System.Single.NaN;
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

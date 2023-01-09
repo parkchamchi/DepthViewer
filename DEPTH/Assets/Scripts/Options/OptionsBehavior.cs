@@ -85,7 +85,4 @@ public class OptionsBehavior : MonoBehaviour {
 		_mainBehav.SetLightIntensity(val);
 		LightStatusText.text = "O";
 	}
-
-	public void SetTargetValToNaN() =>
-		ParamUtils.SetTargetValToNaN();
 }

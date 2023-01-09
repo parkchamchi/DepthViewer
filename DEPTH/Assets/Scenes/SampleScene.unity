@@ -22589,8 +22589,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 686225971}
-        m_TargetAssemblyTypeName: OptionsBehavior, Assembly-CSharp
+      - m_Target: {fileID: 2128267913}
+        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
         m_MethodName: SetTargetValToNaN
         m_Mode: 1
         m_Arguments:
