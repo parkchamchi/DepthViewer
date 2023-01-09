@@ -509,6 +509,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 			_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 			ImgVidDepthGOs.DepthFilePanel.SetActive(true);
+
+			/* Set the params */
+			if (_paramsDict != null && _paramsDict.ContainsKey(0))
+				_dmesh.ImportParams(_paramsDict[0]);
 		}
 	}
 
