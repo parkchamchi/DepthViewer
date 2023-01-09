@@ -18,7 +18,7 @@ public enum ModelTypes : int {
 }
 
 public static class DepthFileUtils {
-	public const string Version = "v0.7.5-beta";
+	public const string Version = "v0.7.6-beta";
 	
 	public const string DepthExt = ".depthviewer";
 
