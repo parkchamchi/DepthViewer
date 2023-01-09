@@ -128,6 +128,9 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
 		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
 
+		DebugLogConsole.AddCommandInstance("e", "Save the parameters for image/video inputs (shorthand for `send_msg e`)", "SendMsgE", this);
+		DebugLogConsole.AddCommandInstance("ef", "Save the parameters for image/video inputs (force) (shorthand for `send_msg ef`)", "SendMsgEF", this);
+
 		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
 		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
 
@@ -615,6 +618,12 @@ public class MainBehavior : MonoBehaviour {
 
 		_texInputs.SendMsg(msg);
 	}
+
+	public void SendMsgE() =>
+		SendMsgToTexInputs("e");
+
+	public void SendMsgEF() =>
+		SendMsgToTexInputs("ef");
 
 	public void MeshToDefault() =>
 		_meshBehav.ToDefault();

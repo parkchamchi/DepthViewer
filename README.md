@@ -121,6 +121,13 @@ Open the console with the backtick ` key and execute (url is for the project abo
 httpinput localhost:5000/screencaptureserver/jpg?monitor_num=2
 ```
 
+## Importing/Exporting parameters for the mesh
+After loading an image or a video while the `Save the output` toggle is on, enter the console command
+```
+e
+```
+This saves the current parameters (`Scale`, ...) into the depthfile so that it can be used later.
+
 ## Tested formats:
 ### Images
 - .jpg
