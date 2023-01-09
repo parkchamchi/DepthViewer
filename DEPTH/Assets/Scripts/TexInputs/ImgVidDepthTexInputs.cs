@@ -409,8 +409,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
 		//Check if the params exist in current frame
-		if (_paramsDict != null && _paramsDict.ContainsKey(_currentFrame))
-			_dmesh.ImportParams(_paramsDict[_currentFrame]);
+		if (_paramsDict != null && _paramsDict.ContainsKey(actualFrame))
+			_dmesh.ImportParams(_paramsDict[actualFrame]);
 	}
 
 	public void HaltVideo() {
@@ -676,7 +676,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			else {
 				/* Pause */
 				_vp.Pause();
-				UITextSet.StatusText.text = $"#{_currentFrame}/{_framecount}";
+				UITextSet.StatusText.text = $"#{_currentFrame-_startFrame}/{_framecount-_startFrame}";
 
 				if (_asyncDmodel != null && _asyncDmodel.IsAvailable &&
 					ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn) 
@@ -720,12 +720,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 		if (_paramsDict == null)
 			_paramsDict = new Dictionary<long, string>();
 
+		long actualFrame = _currentFrame - _startFrame;
 
-		Debug.Log($"Exporting params, #{_currentFrame}/{_framecount}");
-		if (_paramsDict.ContainsKey(_currentFrame)) {
+		Debug.Log($"Exporting params, #{actualFrame}/{_framecount-_startFrame}");
+		if (_paramsDict.ContainsKey(actualFrame)) {
 			if (overwrite) {
 				Debug.Log("Overwriting.");
-				_paramsDict.Remove(_currentFrame);
+				_paramsDict.Remove(actualFrame);
 			}
 			else {
 				Debug.LogWarning("Already exists, use `ef` to overwrite it.");
@@ -733,7 +734,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			}
 		}
 
-		_paramsDict.Add(_currentFrame, _dmesh.ExportParams());
+		_paramsDict.Add(actualFrame, _dmesh.ExportParams());
 		_paramsDictChanged = true;
 
 		if (!_canUpdateArchive)

@@ -501,8 +501,15 @@ public static class DepthFileUtils {
 		*/
 		ZipArchiveMode origMode = _archiveMode;
 		_archiveMode = ZipArchiveMode.Update;
-		if (origMode != _archiveMode)
-			Reopen();
+		if (origMode != _archiveMode) {
+			try {
+				Reopen();
+			}
+			catch (System.IO.IOException) {
+				Debug.LogError("Couldn't save params: failed to reopen the depthfile as Write mode (is it opened by other software?)");
+				return;
+			}
+		}
 		
 		ZipArchiveEntry paramsEntry = _archive.GetEntry(_paramsFilename);
 		if (paramsEntry == null)
