@@ -146,6 +146,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private float _scale = DefaultScale;
 	public float Scale {
 		set {
+			_scale = value;
 			transform.localScale = new Vector3(value, value, transform.localScale.z);
 			ParamChanged?.Invoke("Scale", value);
 		}

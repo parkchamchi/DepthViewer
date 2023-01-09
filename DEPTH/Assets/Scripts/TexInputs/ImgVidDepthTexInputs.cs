@@ -44,7 +44,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private int _x, _y; //is this needed?
 
 	private bool _searchCache;
-	private bool _shouldUpdateArchive;
+	private bool _canUpdateArchive; //user option; The params will be saved if this is `true`.
+	private bool _shouldUpdateArchive; //Always `false` if `_canUpdateArchive` is `false`. If it's true the archive will be opened as mode `Update`, if not `Read`
 	private bool _hasCreatedArchive;
 	private List<Task> _processedFrames;
 
@@ -68,6 +69,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	/* Parameters for the mesh */
 	private Dictionary<long, string> _paramsDict;
+	private bool _paramsDictChanged;
 
 	public ImgVidDepthTexInputs(
 		FileTypes ftype,
@@ -92,6 +94,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_orig_filepath = filepath;
 
 		_searchCache = searchCache;
+		_shouldUpdateArchive = _canUpdateArchive = canUpdateArchive;
 		_vrrecord = vrrecord;
 		_asyncDmodel = asyncDmodel;
 
@@ -102,15 +105,18 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		_texInputBehav = new TexInputBehav(this);
 
+		//_paramsDict = new Dictionary<long, string>();
+		_paramsDictChanged = false;
+
 		_processedFrames = new List<Task>();
 		/* Img & Vid can be cached */
 		if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
-			if (_shouldUpdateArchive = canUpdateArchive) //assign & compare
+			if (_canUpdateArchive) //assign & compare
 				UITextSet.OutputSaveText.text = "Will be saved.";
 			else
 				UITextSet.OutputSaveText.text = "Won't be saved.";
 
-			if (_searchCache || _shouldUpdateArchive) {
+			if (_searchCache || _canUpdateArchive) {
 				UITextSet.StatusText.text = "Hashing.";
 				_hashval = Utils.GetHashval(filepath);
 				UITextSet.StatusText.text = "Hashed.";
@@ -167,8 +173,12 @@ public class ImgVidDepthTexInputs : TexInputs {
 			_depthFilePath = null; //redundant, set in Cleanup()
 
 		if (_depthFilePath != null) {
-			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, readOnlyMode: true);
+			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, out _paramsDict, readOnlyMode: true);
 			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
+
+			/* Set the params */
+			if (_paramsDict != null && _paramsDict.ContainsKey(0))
+				_dmesh.ImportParams(_paramsDict[0]);
 
 			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 			UITextSet.StatusText.text = "read from archive";
@@ -212,6 +222,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		}
 
 		_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+
+		
 	}
 
 	private void OnImageError(string filepath) {
@@ -255,10 +267,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 			//Should not save if the loaded depth's modeltypeval is higher than the program is using
 			if (modelTypeVal != _dmodel.ModelTypeVal) {//for now just use !=
 				_shouldUpdateArchive = false;
-				UITextSet.OutputSaveText.text = "Not saving.";
+				UITextSet.OutputSaveText.text = "Not saving depths.";
 			}
 
-			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, readOnlyMode: !_shouldUpdateArchive);
+			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, out _paramsDict, readOnlyMode: !_shouldUpdateArchive);
 			if (isFull)
 				UITextSet.OutputSaveText.text = "Full.";
 
@@ -395,6 +407,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 			UITextSet.StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
 		
 		_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+
+		//Check if the params exist in current frame
+		if (_paramsDict != null && _paramsDict.ContainsKey(_currentFrame))
+			_dmesh.ImportParams(_paramsDict[_currentFrame]);
 	}
 
 	public void HaltVideo() {
@@ -441,7 +457,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_orig_filepath = textureFilepath;
 
 		/* Read the depthfile */
-		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out _metadata, readOnlyMode: true); //let _framecount be read from the texture input
+		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out _metadata, out _paramsDict, readOnlyMode: true); //let _framecount be read from the texture input
 		_hashval = _metadata["hashval"]; //_hashval will use the metadata
 
 		/*
@@ -660,6 +676,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			else {
 				/* Pause */
 				_vp.Pause();
+				UITextSet.StatusText.text = $"#{_currentFrame}/{_framecount}";
 
 				if (_asyncDmodel != null && _asyncDmodel.IsAvailable &&
 					ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn) 
@@ -699,9 +716,28 @@ public class ImgVidDepthTexInputs : TexInputs {
 		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
-	private void ExportParams() {
-		Debug.Log(_currentFrame);
-		Debug.Log(_dmesh.ExportParams());
+	private void ExportParams(bool overwrite=false) {
+		if (_paramsDict == null)
+			_paramsDict = new Dictionary<long, string>();
+
+
+		Debug.Log($"Exporting params, #{_currentFrame}/{_framecount}");
+		if (_paramsDict.ContainsKey(_currentFrame)) {
+			if (overwrite) {
+				Debug.Log("Overwriting.");
+				_paramsDict.Remove(_currentFrame);
+			}
+			else {
+				Debug.LogWarning("Already exists, use `ef` to overwrite it.");
+				return;
+			}
+		}
+
+		_paramsDict.Add(_currentFrame, _dmesh.ExportParams());
+		_paramsDictChanged = true;
+
+		if (!_canUpdateArchive)
+			Debug.LogWarning("This will not be saved.");
 	}
 
 	public void SendMsg(string msg) {
@@ -728,7 +764,11 @@ public class ImgVidDepthTexInputs : TexInputs {
 			break;
 
 		case "e":
-			ExportParams();
+			ExportParams(overwrite: false);
+			break;
+
+		case "ef": //force
+			ExportParams(overwrite: true);
 			break;
 
 		default:
@@ -746,6 +786,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		SaveDepth();
 		HaltVideo();
+
+		/* Save the params, if it changed */
+		if (_canUpdateArchive && _paramsDictChanged) {
+			DepthFileUtils.WriteParams(_paramsDict);
+			_paramsDictChanged = false; //not needed
+		}
+
 		DepthFileUtils.Dispose();
 
 		ImgVidDepthGOs.DepthFilePanel.SetActive(false);

@@ -166,7 +166,7 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.ShouldUpdateDepth = false; //only true in images
 	}
 
-	public void Quit() {
+	void OnApplicationQuit() {
 #if UNITY_WEBGL
 		StatusText.text = "Quitting.";
 #endif
@@ -182,10 +182,11 @@ public class MainBehavior : MonoBehaviour {
 		if (_meshBehav != null)
 			Destroy(_meshBehav);
 
-		Debug.Log("Disposed.");
-
-		Application.Quit();
+		Debug.Log("Disposed.");		
 	}
+
+	public void Quit() =>
+		Application.Quit();
 
 	public void CheckFileExists() {
 		string filepath = FilepathInputField.text;

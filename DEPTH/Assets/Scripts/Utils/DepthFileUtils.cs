@@ -247,10 +247,6 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, bool readOnlyMode=false) {
-		return ReadDepthFile(path, out framecount, out metadata, out _, readOnlyMode);
-	}
-
 	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, out Dictionary<long, string> paramsDict, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
@@ -296,7 +292,7 @@ public static class DepthFileUtils {
 				paramsStr = br.ReadToEnd();
 
 			try {
-				paramsDict = ReadParams(paramsStr);
+				paramsDict = ReadParamsStr(paramsStr);
 			}
 			catch (Exception exc) {
 				Debug.LogWarning($"Falied to read the params: {exc}");
@@ -390,7 +386,7 @@ public static class DepthFileUtils {
 		return metadata;
 	}
 
-	private static Dictionary<long, string> ReadParams(string paramsStr) {
+	private static Dictionary<long, string> ReadParamsStr(string paramsStr) {
 		/*
 		!PARAMSVERSION=1
 
@@ -409,19 +405,20 @@ public static class DepthFileUtils {
 		long framenum = -1;
 
 		foreach (string line in paramsStr.Split('\n')) {
+			if (line == "")	continue;
+
 			//Lines not starting with '!'
 			if (!line.StartsWith('!')) {
 				if (in_substr) {
 					//part of params -- append
 					frameParams.Append(line);
 					frameParams.Append('\n');
-
-					continue;
 				}
 				else {
 					Debug.LogWarning($"Got illegal params string: line without '!': {line}");
-					return null;
 				}
+
+				continue;
 			}
 
 			//Lines staring with '!'
@@ -434,12 +431,12 @@ public static class DepthFileUtils {
 				value = null;
 			}
 			else {
-				key = line.Substring(1, sep_i).Trim();
+				key = line.Substring(1, sep_i-1).Trim();
 				value = line.Substring(sep_i + 1).Trim();
 			}
 
 			switch (key) {
-			case "PARMSVERSION":
+			case "PARAMSVERSION":
 				if (value != "1")
 					Debug.LogWarning($"Higher params version: {value}");
 				break;
@@ -448,7 +445,7 @@ public static class DepthFileUtils {
 				//Start of the frame
 				in_substr = true;
 
-				framenum = long.Parse(key);
+				framenum = long.Parse(value);
 				frameParams = new StringBuilder();
 
 				break;
@@ -466,6 +463,54 @@ public static class DepthFileUtils {
 		}
 
 		return paramsDict;
+	}
+
+	private static string WriteParamsStr(Dictionary<long, string> paramsDict) {
+		if (paramsDict == null) return null;
+
+		StringBuilder output = new StringBuilder();
+		output.Append("!PARAMSVERSION=1\n\n");
+
+		foreach (var item in paramsDict) {
+			output.Append($"!FRAME={item.Key}\n");
+			output.Append(item.Value);
+			output.Append("\n!ENDFRAME\n\n");
+		}
+
+		return output.ToString();
+	}
+
+	public static void WriteParams(Dictionary<long, string> paramsDict) {
+		//Write to depthfile
+
+		if (_archive == null) {
+			Debug.LogError("WriteParams() called when _archive == null");
+			return;
+		}
+		if (paramsDict == null || paramsDict.Count <= 0) {
+			Debug.LogError("WriteParams() called when (paramsDict == null || paramsDict.Count <= 0)");
+			return;
+		}
+
+		string paramsStr = WriteParamsStr(paramsDict);
+
+		/*
+		Save the original archive mode, which can be `Read`...
+		Albeit this is not needed since this method is called in ImgVidDepthTexInputs.Dispose()
+			and the _archive is disposed right after this
+		*/
+		ZipArchiveMode origMode = _archiveMode;
+		_archiveMode = ZipArchiveMode.Update;
+		if (origMode != _archiveMode)
+			Reopen();
+		
+		ZipArchiveEntry paramsEntry = _archive.GetEntry(_paramsFilename);
+		if (paramsEntry == null)
+			paramsEntry = _archive.CreateEntry(_paramsFilename);
+		using (StreamWriter sw = new StreamWriter(paramsEntry.Open()))
+			sw.Write(paramsStr);
+
+		_archiveMode = origMode;
 	}
 
 	public static float[] ReadPGM(byte[] pgm, out int x, out int y) {
