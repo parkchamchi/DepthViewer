@@ -71,10 +71,8 @@ public static class MeshSliderParents {
 				continue;
 			}
 
-			if (!_dict.ContainsKey(paramname)) {
-				Debug.LogWarning($"ImportMinMax(): Unknown paramter: {paramname}");
+			if (!_dict.ContainsKey(paramname))
 				continue;
-			}
 
 			Slider target = _dict[paramname].Slider;
 			target.minValue = minValue;
@@ -88,7 +86,9 @@ public static class MeshSliderParents {
 			Scale 0.5 1.5
 			Beta 0.25 0.75
 			Alpha 0.01 2
+			MeshY -10 10
 			MeshLoc -50 50
+			MeshX -10 10
 			DepthMult 0 100
 		";
 

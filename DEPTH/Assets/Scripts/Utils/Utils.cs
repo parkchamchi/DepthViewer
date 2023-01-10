@@ -8,8 +8,9 @@ using UnityEngine;
 
 using IngameDebugConsole;
 
-public class Utils {
-	public static string PythonPath {get; set;} = "python";
+public static class Utils {
+	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
+	public static string PythonPath {get; set;} = "python"; //virtually not used anymore
 
 	[ConsoleMethod("set_python_path", "Set the path for python, which were used for the Call Python buttons (replaced by `send_msg CallPythonHybrid` and `...Large`)")]
 	public static void SetPythonPath(string path) =>
@@ -70,5 +71,32 @@ public class Utils {
 			Debug.LogError("Couldn't get the DummyBehavior!");
 			
 		return behav;
+	}
+
+	//just two boolean vars
+	public static void ReadOptionsString(out bool searchCache, out bool saveOutput) {
+		searchCache = saveOutput = false;
+
+		if (!File.Exists(OptionsPath)) return;
+		string str = File.ReadAllText(OptionsPath);
+
+		foreach (string line in str.Split('\n')) {
+			switch (line) {
+			case "searchCache":
+				searchCache = true;
+				break;
+			case "saveOutput":
+				saveOutput = true;
+				break;
+			}
+		}
+	}
+
+	public static void WriteOptionsString(bool searchCache, bool saveOutput) {
+		string output = "";
+		if (searchCache) output += "searchCache\n";
+		if (saveOutput) output += "saveOutput\n";
+
+		File.WriteAllText(OptionsPath, output);
 	}
 }

@@ -138,6 +138,19 @@ public class MainBehavior : MonoBehaviour {
 
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
 		_donnx = _depthModelBehav.GetBuiltIn();
+
+		//Try to load the options
+		try {
+			MeshSliderParents.ImportMinMax();
+
+			bool searchCache, saveOutput;
+			Utils.ReadOptionsString(out searchCache, out saveOutput);
+			SearchCacheToggle.isOn = searchCache;
+			OutputSaveToggle.isOn = saveOutput;
+		}
+		catch (Exception exc) {
+			Debug.LogError($"Failed to load the options: {exc}");
+		}
 	}
 
 	void Update() {
@@ -183,6 +196,17 @@ public class MainBehavior : MonoBehaviour {
 		if (_meshBehav != null)
 			Destroy(_meshBehav);
 
+		//Try to save the options
+		try {
+			MeshSliderParents.ExportMinMax();
+
+			Utils.WriteOptionsString(SearchCacheToggle.isOn, OutputSaveToggle.isOn);
+		}
+		catch (Exception e) {
+			//will not be shown on the build
+			Debug.LogError($"Error saving the options: {e}");
+		}
+
 		Debug.Log("Disposed.");		
 	}
 
@@ -192,38 +216,8 @@ public class MainBehavior : MonoBehaviour {
 	public void CheckFileExists() {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
-		string output = "DEBUG: Default value, should not be seen.";
 
-		/*
-		//Check if the file exists
-		switch (ftype) {
-		case FileTypes.NotExists:
-			output = "File does not exist.";
-			break;
-		case FileTypes.Dir:
-			output = "Directory.";
-			break;
-		case FileTypes.Img:
-			output = "Image.";
-			break;
-		case FileTypes.Vid:
-			output = "Video.";
-			break;
-		case FileTypes.Depth:
-			output = "Depth file.";
-			break;
-		case FileTypes.Gif:
-			output = "GIF file.";
-			break;
-		case FileTypes.Unsupported:
-		default:
-			output = "Unsupported.";
-			break;
-		}
-		*/
-
-		output = $"Type: {ftype}";
-
+		string output = $"Type: {ftype}";
 		UITextSet.FilepathResultText.text = output;
 	}
 

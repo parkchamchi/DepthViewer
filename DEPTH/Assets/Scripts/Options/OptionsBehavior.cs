@@ -17,16 +17,8 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_InputField OutputDirInputField;
 	public TMP_Text OutputDirStatusText;
 
-	public TMP_InputField MeshXInputField;
-	public TMP_Text MeshXStatusText;
-
-	public TMP_InputField MeshYInputField;
-	public TMP_Text MeshYStatusText;
-
 	public TMP_InputField LightInputField;
 	public TMP_Text LightStatusText;
-
-	public GameObject ModelSettingsGO;
 
 	private MainBehavior _mainBehav;
 
@@ -85,4 +77,7 @@ public class OptionsBehavior : MonoBehaviour {
 		_mainBehav.SetLightIntensity(val);
 		LightStatusText.text = "O";
 	}
+
+	public void ResetMinMax() =>
+		MeshSliderParents.ResetMinMax();
 }
