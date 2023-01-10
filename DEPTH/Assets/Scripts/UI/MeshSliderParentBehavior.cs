@@ -1,9 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.IO;
+
 using UnityEngine;
+using UnityEngine.UI;
+
+using IngameDebugConsole;
 
 public static class MeshSliderParents {
 	private static Dictionary<string, MeshSliderParentBehavior> _dict;
+
+	private static string MinMaxPath {get {return $"{DepthFileUtils.SaveDir}/minmax.txt";}}
 
 	static MeshSliderParents() {
 		_dict = new Dictionary<string, MeshSliderParentBehavior>();
@@ -14,6 +22,78 @@ public static class MeshSliderParents {
 
 	public static MeshSliderParentBehavior Get(string paramname) =>
 		_dict[paramname];
+
+	[ConsoleMethod("minmax_export", "Export current min/max values for the mesh sliders")]
+	public static void ExportMinMax() {
+		/*
+		param1 min max
+		param2 min max
+		...
+		*/
+
+		StringBuilder output = new StringBuilder();
+
+		foreach (var item in _dict) {
+			string paramname = item.Key;
+			
+			Slider targetSlider = item.Value.Slider;
+			float minValue = targetSlider.minValue;
+			float maxValue = targetSlider.maxValue;
+
+			output.Append($"{paramname} {minValue} {maxValue}\n");
+		}
+
+		File.WriteAllText(MinMaxPath, output.ToString());
+	}
+
+	[ConsoleMethod("minmax_import", "Import the min/max values for the mesh sliders")]
+	public static void ImportMinMax() {
+		if (!File.Exists(MinMaxPath)) return;
+		string input = File.ReadAllText(MinMaxPath);
+
+		ImportMinMax(input);
+	}
+
+	public static void ImportMinMax(string input) {
+		foreach (string line in input.Split('\n')) {
+			string[] tokens = line.Split(' ');
+			if (tokens.Length < 3)
+				continue;
+
+			string paramname = tokens[0].Trim();
+			float minValue, maxValue;
+			try {
+				minValue = float.Parse(tokens[1]);
+				maxValue = float.Parse(tokens[2]);
+			}
+			catch (System.FormatException exc) {
+				Debug.LogWarning($"ImportMinMax(): Failed to parse: `{line}`, {exc}");
+				continue;
+			}
+
+			if (!_dict.ContainsKey(paramname)) {
+				Debug.LogWarning($"ImportMinMax(): Unknown paramter: {paramname}");
+				continue;
+			}
+
+			Slider target = _dict[paramname].Slider;
+			target.minValue = minValue;
+			target.maxValue = maxValue;
+		}
+	}
+
+	[ConsoleMethod("minmax_reset", "Reset the min/max values for the mesh sliders")]
+	public static void ResetMinMax() {
+		string input = @"
+			Scale 0.5 1.5
+			Beta 0.25 0.75
+			Alpha 0.01 2
+			MeshLoc -50 50
+			DepthMult 0 100
+		";
+
+		ImportMinMax(input);
+	}
 }
 
 public class MeshSliderParentBehavior : SliderParentBehavior {
