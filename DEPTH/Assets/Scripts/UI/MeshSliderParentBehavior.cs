@@ -61,6 +61,8 @@ public static class MeshSliderParents {
 				continue;
 
 			string paramname = tokens[0].Trim();
+			if (paramname == "Threshold" || paramname == "TargetVal") continue; //ignore
+
 			float minValue, maxValue;
 			try {
 				minValue = float.Parse(tokens[1]);
@@ -71,10 +73,24 @@ public static class MeshSliderParents {
 				continue;
 			}
 
-			if (!_dict.ContainsKey(paramname))
-				continue;
+			Slider target;
 
-			Slider target = _dict[paramname].Slider;
+			if (!_dict.ContainsKey(paramname)) {
+				//This can happen when this method is called before the _dict is prepared (i.e. at startup)
+				//This only happens on the build not the editor. Why?
+
+				//Try to find it manually
+				target = GameObject.Find($"{paramname}SliderParent")?.GetComponent<MeshSliderParentBehavior>()?.Slider;
+
+				if (target == null) {
+					Debug.LogWarning($"Couldn't find the slider: {paramname}");
+					continue;
+				}
+			}
+			else {
+				target = _dict[paramname].Slider;
+			}
+
 			target.minValue = minValue;
 			target.maxValue = maxValue;
 		}

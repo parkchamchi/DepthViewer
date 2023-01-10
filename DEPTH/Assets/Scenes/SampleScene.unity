@@ -14766,7 +14766,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: AlphaLocSliderParent
+      value: AlphaSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -15893,7 +15893,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: BetaMultSliderParent
+      value: BetaSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
