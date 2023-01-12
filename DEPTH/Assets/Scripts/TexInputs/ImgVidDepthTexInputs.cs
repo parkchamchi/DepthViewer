@@ -105,7 +105,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		_texInputBehav = new TexInputBehav(this);
 
-		//_paramsDict = new Dictionary<long, string>();
 		_paramsDictChanged = false;
 
 		_processedFrames = new List<Task>();
@@ -176,9 +175,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, out _paramsDict, readOnlyMode: true);
 			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 
-			/* Set the params */
-			if (_paramsDict != null && _paramsDict.ContainsKey(0))
-				_dmesh.ImportParams(_paramsDict[0]);
+			/*
+				Import the params
+				Between `-1` (init) and `0`, load the largest one
+			*/
+			foreach (var targetFrame in new long[] {-1, 0})
+				if (_paramsDict != null && _paramsDict.ContainsKey(targetFrame))
+					_dmesh.ImportParams(_paramsDict[targetFrame]);
 
 			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 			UITextSet.StatusText.text = "read from archive";
@@ -280,6 +283,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 			_orig_width = int.Parse(_metadata["original_width"]);
 			_orig_height = int.Parse(_metadata["original_height"]);
 			_vp.sendFrameReadyEvents = (_startFrame < 0) ? true : false;
+
+			//Check if the params exist on the init -- and if it does apply it
+			try {
+				if (_paramsDict != null && _paramsDict.ContainsKey(-1))
+					_dmesh.ImportParams(_paramsDict[-1]);
+			}
+			catch (Exception exc) {
+				Debug.LogError($"FromVideo(): error importing the parameters on init: {exc}");
+			}
 
 			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
 		}
@@ -481,6 +493,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
+
+		//Check if the params exist on the init -- and if it does apply it
+		try {
+			if (_paramsDict != null && _paramsDict.ContainsKey(-1))
+				_dmesh.ImportParams(_paramsDict[-1]);
+		}
+		catch (Exception exc) {
+			Debug.LogError($"FromVideo(): error importing the parameters on init: {exc}");
+		}
 	
 		if (ftype == FileTypes.Vid) {
 			/* Check framecount */
@@ -510,7 +531,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 			ImgVidDepthGOs.DepthFilePanel.SetActive(true);
 
-			/* Set the params */
+			/* Set the params for frame 0 (-1 is set above) */
 			if (_paramsDict != null && _paramsDict.ContainsKey(0))
 				_dmesh.ImportParams(_paramsDict[0]);
 		}
@@ -720,20 +741,29 @@ public class ImgVidDepthTexInputs : TexInputs {
 		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
-	private void ExportParams(bool overwrite=false) {
+	private void ExportParams(bool overwrite=false, bool init=false) {
+		//If init == true, it will be loaded on the load (and will not be loaded later)
+
 		if (_paramsDict == null)
 			_paramsDict = new Dictionary<long, string>();
 
-		long actualFrame = _currentFrame - _startFrame;
-
-		Debug.Log($"Exporting params, #{actualFrame}/{_framecount-_startFrame}");
+		long actualFrame;
+		if (init) {
+			Debug.Log("Exporting params, at init");
+			actualFrame = -1;
+		}
+		else {
+			actualFrame = _currentFrame - _startFrame;
+			Debug.Log($"Exporting params, #{actualFrame}/{_framecount-_startFrame}");
+		}
+		
 		if (_paramsDict.ContainsKey(actualFrame)) {
 			if (overwrite) {
 				Debug.Log("Overwriting.");
 				_paramsDict.Remove(actualFrame);
 			}
 			else {
-				Debug.LogWarning("Already exists, use `ef` to overwrite it.");
+				Debug.LogWarning("Already exists, use `ecf` to overwrite it.");
 				return;
 			}
 		}
@@ -743,6 +773,14 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		if (!_canUpdateArchive)
 			Debug.LogWarning("This will not be saved.");
+	}
+
+	private void ClearParams() {
+		Debug.Log("Clearing the parameters...");
+		if (_paramsDict == null) return;
+
+		_paramsDict.Clear();
+		_paramsDictChanged = true;
 	}
 
 	public void SendMsg(string msg) {
@@ -768,16 +806,24 @@ public class ImgVidDepthTexInputs : TexInputs {
 			PausePlay();
 			break;
 
-		case "e":
-			ExportParams(overwrite: false);
+		case "e": //save on the first frame
+			ExportParams(overwrite: true, init: true);
 			break;
 
-		case "ef": //force
-			ExportParams(overwrite: true);
+		case "ec": //save on the current frame
+			ExportParams(overwrite: false, init: false);
+			break;	
+
+		case "ecf": //save on the current frame, force
+			ExportParams(overwrite: true, init: false);
+			break;
+		
+		case "eclear": //clear the parameters
+			ClearParams();
 			break;
 
 		default:
-			Debug.LogError("Got msg: " + msg);
+			Debug.LogError("Got unknown msg: " + msg);
 			break;
 		}
 	}

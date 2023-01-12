@@ -487,8 +487,8 @@ public static class DepthFileUtils {
 			Debug.LogError("WriteParams() called when _archive == null");
 			return;
 		}
-		if (paramsDict == null || paramsDict.Count <= 0) {
-			Debug.LogError("WriteParams() called when (paramsDict == null || paramsDict.Count <= 0)");
+		if (paramsDict == null) {
+			Debug.LogError("WriteParams() called when paramsDict == null");
 			return;
 		}
 
@@ -512,10 +512,20 @@ public static class DepthFileUtils {
 		}
 		
 		ZipArchiveEntry paramsEntry = _archive.GetEntry(_paramsFilename);
-		if (paramsEntry == null)
-			paramsEntry = _archive.CreateEntry(_paramsFilename);
-		using (StreamWriter sw = new StreamWriter(paramsEntry.Open()))
-			sw.Write(paramsStr);
+
+		if (paramsDict.Count > 0) {
+			//Write the params
+
+			if (paramsEntry == null)
+				paramsEntry = _archive.CreateEntry(_paramsFilename);
+			using (StreamWriter sw = new StreamWriter(paramsEntry.Open()))
+				sw.Write(paramsStr);
+		}
+		else {
+			//Nothing to write -- just delete it (if it exists)
+			if (paramsEntry != null)
+				paramsEntry.Delete();
+		}
 
 		_archiveMode = origMode;
 	}
