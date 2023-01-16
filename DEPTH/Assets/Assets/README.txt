@@ -1,4 +1,4 @@
-DepthViewer v0.7.9-beta
+DepthViewer v0.7.10-beta
 
 Right mouse key: hides the UI.
 WASD: rotate the mesh.
