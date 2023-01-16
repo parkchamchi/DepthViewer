@@ -488,7 +488,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_depthfileCompareText += $"Model type: {modelType}\n";
 
 		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
-		Utils.CreateDirectory(_recordPath);
 
 		//Check if the params exist on the init -- and if it does apply it
 		try {
@@ -575,6 +574,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	public void DepthFileStartRecording(int size=2048) {
 		_vrrecord.Size = size;
+
+		Utils.CreateDirectory(_recordPath);
 
 		if (_framecount <= 1) {
 			//Image --> capture and exit (scene is already set)
