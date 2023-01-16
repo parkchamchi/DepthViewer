@@ -68,7 +68,6 @@ print_model_type
 
 ### Using depth.py and depthserver.py (OPTIONAL)
 `depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer.
-It can be executed independently from the command console or called from the main program using the console command `send_msg CallPythonHybrid` or `send_msg CallPythonLarge` (replaces the `Call Python` buttons). 
 
 #### Dependencies for depth.py
 
@@ -83,9 +82,10 @@ Also check the [MiDaS github page](https://github.com/isl-org/MiDaS).
 5. Install [timm](https://pypi.org/project/timm/) for MiDaS. <br>
 `pip install timm`
 6. Go to the directory `depthpy` and run <br>
-`python depth.py -h` <br>
+`python depth.py --help` <br>
 and see if it prints the manual without any error.
-7. Get `dpt_hybrid` and `dpt_large` models from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
+7. Get `dpt_beit_large_512` model (and others) from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
+(Other models can be loaded by adding the `-t` argument, see `--help` for more.)
 8. Place any image in the `depthpy` directory, rename it to `test.jpg` (or `test.png`) and run <br>
 `python depth.py test.jpg out.depthviewer -i` <br>
 See if it generates an output. Also check if `depth.py` is using CUDA by checking `device: cuda` line.
