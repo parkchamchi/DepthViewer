@@ -60,7 +60,7 @@ public class DepthModelBehavior : MonoBehaviour {
 		return _donnx;
 	}
 
-	public DepthModel GetDepthModel(string onnxpath, string modelType, int modelTypeVal=0, bool useOnnxRuntime=false) {
+	public DepthModel GetDepthModel(string onnxpath, string modelType, bool useOnnxRuntime=false) {
 		_donnx?.Dispose();
 		_donnx = null;
 
