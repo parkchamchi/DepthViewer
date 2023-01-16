@@ -59,7 +59,13 @@ class Runner():
 		self.model_params = self.model_type = None
 
 	def model_exists(self, model_type):
-		return model_type in default_models
+		orig_cwd = os.getcwd()
+		os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+		res = model_type in default_models
+
+		os.chdir(orig_cwd)
+		return res
 
 	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None):
 		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
