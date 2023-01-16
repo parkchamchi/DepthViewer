@@ -14,8 +14,6 @@ public static class UITextSet {
 }
 
 public static class ImgVidDepthGOs {
-	public static GameObject DepthFilePanel;
-	public static TMP_Text DepthFileCompareText;
 	public static Toggle CallServerOnPauseToggle;
 }
 
@@ -40,8 +38,6 @@ public class UIStaticClassSetter : MonoBehaviour {
 		UITextSet.StatusText = StatusText;
 		UITextSet.OutputSaveText = OutputSaveText;
 
-		ImgVidDepthGOs.DepthFilePanel = DepthFilePanel;
-		ImgVidDepthGOs.DepthFileCompareText = DepthFileCompareText;
 		ImgVidDepthGOs.CallServerOnPauseToggle = CallServerOnPauseToggle;
 
 		/*

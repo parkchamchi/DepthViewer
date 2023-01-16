@@ -63,6 +63,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private Dictionary<string, string> _metadata;
 
 	/* For depthfile input */
+	private string _depthfileCompareText;
+	private int _recordSize; //if positive, it will generate a sequence of images
 	private bool _recording;
 	private bool _shouldCapture;
 	private string _recordPath;
@@ -439,8 +441,11 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private void FromDepthFile(string filepath) {
 		UITextSet.StatusText.text = "INPUT TEXTURE";
 
+		_recordSize = -1;
 		_recording = false;
 		_orig_filepath = filepath;
+
+		Debug.Log("Depthfile input: use `send_msg record2048` or `... record4096` to make a sequence of image files");
 	}
 
 	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
@@ -451,7 +456,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		/* Invalid filetypes */
 		if (ftype != FileTypes.Img && ftype != FileTypes.Vid) {
 			UITextSet.StatusText.text = "INVALID INPUT.";
-			ImgVidDepthGOs.DepthFilePanel.SetActive(false);
 			_ftype = FileTypes.Unsupported;
 			return;
 		}
@@ -473,16 +477,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 			isfull
 		*/
 
-		ImgVidDepthGOs.DepthFileCompareText.text = "";
+		_depthfileCompareText = "";
 
 		/* Check hashval */
 #if !UNITY_WEBGL
 		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
-		ImgVidDepthGOs.DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
+		_depthfileCompareText += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
 #endif
-
 		/* Show modeltype */
-		ImgVidDepthGOs.DepthFileCompareText.text += $"Model type: {modelType}\n";
+		_depthfileCompareText += $"Model type: {modelType}\n";
 
 		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
@@ -522,16 +525,28 @@ public class ImgVidDepthTexInputs : TexInputs {
 			float[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 			_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
 
-			ImgVidDepthGOs.DepthFilePanel.SetActive(true);
-
 			/* Set the params for frame 0 (-1 is set above) */
 			if (_paramsDict != null && _paramsDict.ContainsKey(0))
 				_dmesh.ImportParams(_paramsDict[0]);
+			
+			DepthFileShowOrRecord();
 		}
 	}
 
+	private void DepthFileShowOrRecord() {
+		//Called after it is ready to show/record
+
+		//print the compretext
+		Debug.Log(_depthfileCompareText);
+
+		if (_recordSize <= 0)
+			DepthFileShow();
+		else
+			DepthFileStartRecording(_recordSize);
+	}
+
 	private void DepthFileAfterFirstFrame() {
-		/* Called after the first frame is received, so that _framecount is set. */
+		/* Called after the first frame is received, so that _framecount is set. (by OnFrameReady())*/
 
 		/* Check framecount */
 		long framecount_metadata = long.Parse(_metadata["framecount"]);
@@ -539,23 +554,23 @@ public class ImgVidDepthTexInputs : TexInputs {
 		long framecountDelta = (actual_framecount_input - framecount_metadata);
 
 		if (framecountDelta == 0) {
-			ImgVidDepthGOs.DepthFileCompareText.text += $"Framecount equals: ({_framecount})\n";
+			_depthfileCompareText += $"Framecount equals: ({_framecount})\n";
 		}
 		else if (framecountDelta < 0) { //depthfile has more frames -> leave it be
-			ImgVidDepthGOs.DepthFileCompareText.text += $"FRAMECOUNT DOES NOT EQUAL: (depth > input) : ({framecount_metadata}:{actual_framecount_input})\n";
+			_depthfileCompareText += $"FRAMECOUNT DOES NOT EQUAL: (depth > input) : ({framecount_metadata}:{actual_framecount_input})\n";
 		}
 		else {
-			ImgVidDepthGOs.DepthFileCompareText.text += $"FRAMECOUNT DOES NOT EQUAL: (depth < input) : ({framecount_metadata}:{actual_framecount_input})\n";
-			ImgVidDepthGOs.DepthFileCompareText.text += $"-> #{framecountDelta} FRAMES WILL BE TRIMMED.\n";
+			_depthfileCompareText += $"FRAMECOUNT DOES NOT EQUAL: (depth < input) : ({framecount_metadata}:{actual_framecount_input})\n";
+			_depthfileCompareText += $"-> #{framecountDelta} FRAMES WILL BE TRIMMED.\n";
 			
 			_framecount -= framecountDelta;
 		}
 
 		/* Check if the depth file is full */
 		bool isDepthFull = DepthFileUtils.IsFull();
-		ImgVidDepthGOs.DepthFileCompareText.text += (isDepthFull) ? "Depthfile is full.\n" : "DEPTHFILE IS NOT FULL.\n";
+		_depthfileCompareText += (isDepthFull) ? "Depthfile is full.\n" : "DEPTHFILE IS NOT FULL.\n";
 
-		ImgVidDepthGOs.DepthFilePanel.SetActive(true);
+		DepthFileShowOrRecord();
 	}
 
 	public void DepthFileStartRecording(int size=2048) {
@@ -566,7 +581,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 			DepthFileCapture();
 			UITextSet.StatusText.text = "Captured!";
 
-			ImgVidDepthGOs.DepthFilePanel.SetActive(false);
 			_ftype = FileTypes.Unsupported;
 			return; //code below will not execused.
 		}
@@ -575,8 +589,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_recording = true;
 		_shouldCapture = false;
 		
-		ImgVidDepthGOs.DepthFilePanel.SetActive(false);
-
 		_vp.sendFrameReadyEvents = true;
 		_vp.Play();
 	}
@@ -631,7 +643,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 			return;
 		}
 
-		ImgVidDepthGOs.DepthFilePanel.SetActive(false);
 		UITextSet.OutputSaveText.text = "Not saving.";
 
 		if (_framecount > 1) {
@@ -764,18 +775,20 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		_paramsDict.Clear();
 		_paramsDictChanged = true;
+
+		if (!_canUpdateArchive)
+			Debug.LogWarning("This will not be saved.");
 	}
 
 	public void SendMsg(string msg) {
 		switch (msg) {
-		case "DepthFileShow":
-			DepthFileShow();
+		case "record2048":
+			Debug.Log("Will generate a sequence of images. (2048px)");
+			_recordSize = 2048;
 			break;
-		case "DepthFileStartRecording_2048":
-			DepthFileStartRecording(2048);
-			break;
-		case "DepthFileStartRecording_4096":
-			DepthFileStartRecording(4096);
+		case "record4096":
+			Debug.Log("Will generate a sequence of images. (4096px)");
+			_recordSize = 4096;
 			break;
 
 		case "CallPythonHybrid":
@@ -828,7 +841,5 @@ public class ImgVidDepthTexInputs : TexInputs {
 		}
 
 		DepthFileUtils.Dispose();
-
-		ImgVidDepthGOs.DepthFilePanel.SetActive(false);
 	}
 }
