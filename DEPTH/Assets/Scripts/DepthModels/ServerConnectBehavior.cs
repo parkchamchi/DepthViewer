@@ -43,14 +43,13 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 	}
 
 	private IEnumerator GetRequest(string url, string modelType) {
-		using (UnityWebRequest req = UnityWebRequest.Get(url + "/modeltypeval")) {
+		using (UnityWebRequest req = UnityWebRequest.Get(url)) {
 			yield return req.SendWebRequest();
 
 			if (req.result == UnityWebRequest.Result.Success) {
 				ServerStatusText.text = "OK";
 				ModelStatusText.text = url;
-				int modelTypeVal = int.Parse(req.downloadHandler.text);
-				SetModel(url, modelType, modelTypeVal);
+				SetModel(url, modelType);
 			}
 			else {
 				ServerStatusText.text = "Failed to connect";
@@ -58,9 +57,9 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		}
 	}
 
-	private void SetModel(string url, string modelType, int modelTypeVal) {
+	private void SetModel(string url, string modelType) {
 		/* Called by GetRequest() */
-		_model = new DepthServerModel(url, modelType, modelTypeVal, this);
+		_model = new DepthServerModel(url, modelType, this);
 	}
 
 	public void Run(Texture tex, AsyncDepthModel.DepthReadyCallback callback) {
@@ -91,21 +90,15 @@ public class DepthServerModel {
 	private string _modelType;
 	public string ModelType {get {return _modelType;}}
 
-	private int _modelTypeVal;
-	public int ModelTypeVal {get {return _modelTypeVal;}}
-
 	private string _url;
 	private CanRunCoroutine _behav;
 	private AsyncDepthModel.DepthReadyCallback _callback;
 
 	private RenderTexture _rt;
 
-	public DepthServerModel(string url, string modeltype, int modelTypeVal, CanRunCoroutine behav) {
+	public DepthServerModel(string url, string modeltype, CanRunCoroutine behav) {
 		_url = url + "/pgm";
-
-		_modelTypeVal = modelTypeVal;
 		_modelType = modeltype;
-
 		_behav = behav;
 	}
 
