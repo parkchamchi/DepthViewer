@@ -16,36 +16,38 @@ import traceback
 import numpy as np
 import cv2
 import torch
-from torchvision.transforms import Compose
 
-from midas.dpt_depth import DPTDepthModel
-from midas.midas_net import MidasNet
-from midas.midas_net_custom import MidasNet_small
-from midas.transforms import Resize, NormalizeImage, PrepareForNet
+from midas.model_loader import default_models, load_model
 
 VERSION = "v0.7.9-beta"
 
+class ModelParams():
+	#this might as well just be a dictionary rather than a class
+
+	def __init__(self, optimize=False, height=None, square=None):
+		self.optimize = optimize #to half floats
+		self.height = height #inference encoder image height
+		self.square = square #resize to a square resolution?
+
+	def __eq__(self, other):
+		return (
+			self.optimize == other.optimize 
+			and self.height == other.height
+			and self.square == other.square
+		)
+
+	def __str__(self):
+		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}}}" #pseudo-dictionary
+
 class Runner():
 	
-	def __init__(self, model_path=None):
-		#path to model and model_type_val -- see DepthFileUtils.cs for explanation
-		self.default_models = { 
-			"MidasV21Small": ("midas_v21_small-70d6b9c8.pt", 100),
-			"MidasV21": ("midas_v21-f6b98070.pt", 200),
-			"MidasV3DptHybrid": ("dpt_hybrid-midas-501f0c75.pt", 300),
-			"MidasV3DptLarge": ("dpt_large-midas-2f21e586.pt", 400),
-		}
-		
-		if model_path:
-			self.model_path = model_path
-		else:
-			self.model_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "weights")
+	def __init__(self):
 
 		# set torch options
 		torch.backends.cudnn.enabled = True
 		torch.backends.cudnn.benchmark = True
 
-		print("initialize")
+		print("Initialize")
 
 		# select device
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,93 +56,31 @@ class Runner():
 		self.framecount = 1 #for video
 		self.framerate = 0
 
-		self.optimize = self.model_type = None
+		self.model_params = self.model_type = None
 
 	def model_exists(self, model_type):
-		if model_type not in self.default_models:
-			return False
-		
-		return self.default_models[model_type][1] #modeltypeval
+		return model_type in default_models
 
-	def load_model(self, model_type="MidasV3DptLarge", optimize=True):
-		if self.model_type == model_type and self.optimize == optimize:
+	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None):
+		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
+
+		#check if the model exists
+		if not self.model_exists(model_type):
+			raise ValueError(f"Model not found: {model_type}")
+
+		#check if it's the already loaded
+		if self.model_type == model_type and self.model_params == new_model_params:
 			return
 
-		print("Loading model {}...".format(model_type))
-		model_weight_path = os.path.join(self.model_path, self.default_models[model_type][0])
-		model_type_val = self.default_models[model_type][1]
+		print(f"Loading model {model_type}...")
+		print(new_model_params)
 
-		# load network
-		self.model = None
-		if model_type == "MidasV3DptLarge": # DPT-Large
-			model = DPTDepthModel(
-				path=model_weight_path,
-				backbone="vitl16_384",
-				non_negative=True,
-			)
-			net_w, net_h = 384, 384
-			resize_mode = "minimal"
-			normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-		elif model_type == "MidasV3DptHybrid": #DPT-Hybrid
-			model = DPTDepthModel(
-				path=model_weight_path,
-				backbone="vitb_rn50_384",
-				non_negative=True,
-			)
-			net_w, net_h = 384, 384
-			resize_mode="minimal"
-			normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-		elif model_type == "MidasV21":
-			model = MidasNet(model_weight_path, non_negative=True)
-			net_w, net_h = 384, 384
-			resize_mode="upper_bound"
-			normalization = NormalizeImage(
-				mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-			)
-		elif model_type == "MidasV21Small":
-			model = MidasNet_small(model_weight_path, features=64, backbone="efficientnet_lite3", exportable=True, non_negative=True, blocks={'expand': True})
-			net_w, net_h = 256, 256
-			resize_mode="upper_bound"
-			normalization = NormalizeImage(
-				mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-			)
-		else:
-			print(f"model_type '{model_type}' not implemented, use: --model_type large")
-			assert False
-
-		transform = Compose(
-			[
-				Resize(
-					net_w,
-					net_h,
-					resize_target=None,
-					keep_aspect_ratio=True,
-					ensure_multiple_of=32,
-					resize_method=resize_mode,
-					image_interpolation_method=cv2.INTER_CUBIC,
-				),
-				normalization,
-				PrepareForNet(),
-			]
-		)
+		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, default_models[model_type], model_type, optimize, height, square)
 
 		print("Loaded the model.")
 
-		model.eval()
-
-		if optimize==True:
-			if self.device == torch.device("cuda"):
-				model = model.to(memory_format=torch.channels_last)  
-				model = model.half()
-
-		model.to(self.device)
-
-		self.model = model
-		self.transform = transform
-		self.optimize = optimize
-
 		self.model_type = model_type
-		self.model_type_val = model_type_val
+		self.model_params = new_model_params
 
 	def run_frame(self, img):
 		# input
@@ -148,12 +88,17 @@ class Runner():
 
 		# compute
 		with torch.no_grad():
-			sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
-			if self.optimize==True and self.device == torch.device("cuda"):
-				sample = sample.to(memory_format=torch.channels_last)  
-				sample = sample.half()
-			prediction = self.model.forward(sample)
-			prediction = prediction.squeeze().cpu().numpy()
+			if "openvino" in self.model_type:
+				#not tested
+				sample = [np.reshape(img_input, (1, 3, self.net_w, self.net_h))]
+				prediction = self.model(sample)[self.model.output(0)][0]
+			else:
+				sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
+				if self.model_params.optimize == True and self.device == torch.device("cuda"):
+					sample = sample.to(memory_format=torch.channels_last)  
+					sample = sample.half()
+				prediction = self.model.forward(sample)
+				prediction = prediction.squeeze().cpu().numpy()
 
 		# output
 		out = self.normalize(prediction)
@@ -241,9 +186,9 @@ class Runner():
 				program = "depthpy"
 
 				model_type = self.model_type
-				model_type_val = self.model_type_val
+				model_params = self.model_params
 
-				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_type_val=model_type_val, 
+				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_params=model_params, 
 					original_name=original_name, original_width=original_width, original_height=original_height, original_framerate=original_framerate, timestamp=timestamp, program=program, version=version)
 				zout.writestr("METADATA.txt", metadata, compresslevel=0)
 
@@ -297,7 +242,7 @@ class Runner():
 
 		return b"P5\n" + "{} {} {}\n".format(width, height, 255).encode("ascii") + image.tobytes()
 
-	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_type_val, original_name, original_width, original_height, original_framerate, timestamp, program, version) -> str:
+	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_params, original_name, original_width, original_height, original_framerate, timestamp, program, version) -> str:
 
 		metadata = '\n'.join([
 			f"DEPTHVIEWER",
@@ -307,7 +252,8 @@ class Runner():
 			f"width={width}",
 			f"height={height}",
 			f"model_type={model_type}",
-			f"model_type_val={model_type_val}",
+			f"model_type_val=0", #model_type_val is not used anymore
+			f"model_params={model_params}",
 			f"original_name={original_name}",
 			f"original_width={original_width}",
 			f"original_height={original_height}",
@@ -372,6 +318,7 @@ class Runner():
 	def as_input(self, img):
 		"""
 		Set img for the input format
+		as [0, 1]
 		"""
 
 		if img.ndim == 2:
@@ -388,15 +335,6 @@ class Runner():
 		img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
 		img = self.as_input(img)
 		return img
-
-	def check_ascii_string(self, string):
-		"""
-		Returns true is string is comprised of ASCII, otherwise false.
-		Not used
-		"""
-
-		return all(c <= 127 for c in string)
-
 
 #######################
 
@@ -418,9 +356,9 @@ if __name__ == "__main__":
 		)
 
 		parser.add_argument('-t', '--model_type',
-			default="MidasV3DptLarge",
+			default="dpt_beit_large_512",
 			help="model type",
-			choices=["MidasV3DptLarge", "MidasV3DptHybrid", "MidasV21", "MidasV21Small"]
+			choices=default_models.keys()
 		)
 
 		parser.add_argument("--zip_in_memory",
@@ -433,17 +371,40 @@ if __name__ == "__main__":
 			action="store_true"
 		)
 
+		parser.add_argument("--optimize",
+			help="Use the half-precision float. (Use with caution, because models like Swin require float precision to work properly and may yield non-finite depth values to some extent for half-floats.)",
+			action="store_true"
+		)
+
+		parser.add_argument('--height',
+			type=int, default=None,
+			help='Preferred height of images feed into the encoder during inference. Note that the '
+			'preferred height may differ from the actual height, because an alignment to multiples of '
+			'32 takes place. Many models support only the height chosen during training, which is '
+			'used automatically if this parameter is not set.'
+		)
+		parser.add_argument('--square',
+			action='store_true',
+			help='Option to resize images to a square resolution by changing their widths when images are '
+			'fed into the encoder during inference. If this parameter is not set, the aspect ratio of '
+			'images is tried to be preserved if supported by the model.'
+		)
+
 		args = parser.parse_args()
 
 		print(f"input: {args.input}")
 		print(f"output: {args.output}")
 
+		#Check if the input is of image ext but (not args.image)
+		if any(map(args.input.endswith, [".jpg", ".png"])) and not args.image:
+			print("Warning: input has an image ext but `-i` was not given.")
+
 		if not args.noupdate and args.image and os.path.exists(args.output):
-			print("Image: already exists.")
+			print(f"Image: already exists: {args.output}. Use --noupdate to replace it.")
 			exit(0)
 
 		runner = Runner()
-		runner.load_model(model_type=args.model_type)
+		runner.load_model(model_type=args.model_type, optimize=args.optimize, height=args.height, square=args.square)
 
 		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
