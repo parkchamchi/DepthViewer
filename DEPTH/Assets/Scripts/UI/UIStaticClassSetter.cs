@@ -47,14 +47,14 @@ public class UIStaticClassSetter : MonoBehaviour {
 		if (PlaceholderTexture != null)
 			StaticGOs.PlaceholderTexture = PlaceholderTexture;
 		else {
-			Debug.LogWarning("PlaceholderTexture is not loaded! Something wrong with UIStaticClassSetter.cs");
+			//Debug.LogWarning("PlaceholderTexture is not loaded! Something wrong with UIStaticClassSetter.cs");
 
 			/* Manually loading the alternative placeholder */
 			StaticGOs.PlaceholderTexture = Resources.Load<Texture2D>("placeholder_alt");
 			if (StaticGOs.PlaceholderTexture != null)
-				Debug.LogWarning("PlaceholderTexture loaded manually.");
+				Debug.Log("PlaceholderTexture loaded manually.");
 			else
-				Debug.LogWarning("Couldn't load the alternative placeholder manually.");
+				Debug.LogError("Couldn't load the alternative placeholder manually.");
 		}
 	}
 }
