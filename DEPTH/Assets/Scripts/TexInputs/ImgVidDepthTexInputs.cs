@@ -719,9 +719,9 @@ public class ImgVidDepthTexInputs : TexInputs {
 		string isImage = (_ftype == FileTypes.Img) ? " -i " : " ";
 		string modelTypeString = modelType.ToString();
 
-		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval);
+		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval, modelTypeVal: 1);
 
-		System.Diagnostics.Process.Start(Utils.PythonPath, $"-i \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
+		System.Diagnostics.Process.Start(Utils.PythonPath, $"\"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
 	private void ExportParams(bool overwrite=false, bool init=false) {

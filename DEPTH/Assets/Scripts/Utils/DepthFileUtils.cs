@@ -118,15 +118,14 @@ public static class DepthFileUtils {
 		_isFull = false;
 	}
 
-	public static string GetDepthFileName(string orig_basename, string hashval) {
+	public static string GetDepthFileName(string orig_basename, string hashval, int modelTypeVal=0) {
+		//If there are several depthfiles with the same hashval, the one with the highest model_type_val is loaded. Since it's not used anymore just set it to 0.
+
 		orig_basename = Path.GetFileName(orig_basename);
 		
-		//If there were several depthfiles with the same hashval, the one with the highest model_type_val was loaded. Sinec it's not used anymore just set it to 0.
-		int model_type_val = 0; 
-
-		string output_filepath = $"{orig_basename}.{model_type_val}.{hashval}{DepthExt}";
+		string output_filepath = $"{orig_basename}.{modelTypeVal}.{hashval}{DepthExt}";
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
-			output_filepath = $"{model_type_val}.{hashval}{DepthExt}";
+			output_filepath = $"{modelTypeVal}.{hashval}{DepthExt}";
 
 		output_filepath = DepthDir + '/' + output_filepath;
 

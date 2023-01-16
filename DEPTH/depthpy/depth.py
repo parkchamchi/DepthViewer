@@ -75,7 +75,10 @@ class Runner():
 		print(f"Loading model {model_type}...")
 		print(new_model_params)
 
+		orig_cwd = os.getcwd()
+		os.chdir(os.path.dirname(os.path.abspath(__file__)))
 		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, default_models[model_type], model_type, optimize, height, square)
+		os.chdir(orig_cwd)
 
 		print("Loaded the model.")
 
