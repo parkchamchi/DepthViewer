@@ -162,17 +162,17 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_startFrame = 0;
 		_framecount = 1;
 
-		int modelTypeVal = -1;
 		float[] depths = null;
 
 		//Check if the file was processed
 		if (_searchCache)
-			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval);
 		else
 			_depthFilePath = null; //redundant, set in Cleanup()
 
 		if (_depthFilePath != null) {
-			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, out _paramsDict, readOnlyMode: true);
+			string modelType;
+			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out modelType, out _metadata, out _paramsDict, readOnlyMode: true);
 			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
 
 			/*
@@ -183,7 +183,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 				if (_paramsDict != null && _paramsDict.ContainsKey(targetFrame))
 					_dmesh.ImportParams(_paramsDict[targetFrame]);
 
-			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
+			UITextSet.FilepathResultText.text = $"Depth file read! ModelType: {modelType}";
 			UITextSet.StatusText.text = "read from archive";
 
 			UITextSet.OutputSaveText.text = "Full."; //Image depth file is implicitly full.
@@ -197,7 +197,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 					return false;
 	
 				if (_shouldUpdateArchive) {
-					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _asyncDmodel.ModelType, _asyncDmodel.ModelTypeVal);
+					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _asyncDmodel.ModelType);
 
 					//depths = (float[]) depths.Clone();
 					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, x, y)));
@@ -214,7 +214,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 			/* Save */
 			if (_shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType, _dmodel.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType);
 
 				depths = (float[]) depths.Clone();
 				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
@@ -258,22 +258,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private void FromVideo(string filepath) {
 		/* _orig_width, _orig_height, & framecount should be set when the frame is recieved!*/
 
-		int modelTypeVal = -1;
-
 		/* Check if the processed file exists */
 		if (_searchCache)
-			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out modelTypeVal);
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval);
 		else
 			_depthFilePath = null; //redundant, set in Cleanup()
 
 		if (_depthFilePath != null) {
-			//Should not save if the loaded depth's modeltypeval is higher than the program is using
-			if (modelTypeVal != _dmodel.ModelTypeVal) {//for now just use !=
-				_shouldUpdateArchive = false;
-				UITextSet.OutputSaveText.text = "Not saving depths.";
-			}
-
-			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out _metadata, out _paramsDict, readOnlyMode: !_shouldUpdateArchive);
+			string modelType;
+			bool isFull = DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out modelType, out _metadata, out _paramsDict, readOnlyMode: !_shouldUpdateArchive);
 			if (isFull)
 				UITextSet.OutputSaveText.text = "Full.";
 
@@ -293,7 +286,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 				Debug.LogError($"FromVideo(): error importing the parameters on init: {exc}");
 			}
 
-			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelTypeVal}";
+			UITextSet.FilepathResultText.text = $"Depth file read! ModelTypeVal: {modelType}";
 		}
 		else {
 			_framecount = 0; //set on update
@@ -402,7 +395,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType, _dmodel.ModelTypeVal);
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType);
 				_hasCreatedArchive = true;
 			}
 
@@ -469,7 +462,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_orig_filepath = textureFilepath;
 
 		/* Read the depthfile */
-		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out _metadata, out _paramsDict, readOnlyMode: true); //let _framecount be read from the texture input
+		string modelType;
+		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out modelType, out _metadata, out _paramsDict, readOnlyMode: true); //let _framecount be read from the texture input
 		_hashval = _metadata["hashval"]; //_hashval will use the metadata
 
 		/*
@@ -487,9 +481,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		ImgVidDepthGOs.DepthFileCompareText.text += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
 #endif
 
-		/* Show modeltypeval */
-		string modelTypeVal = _metadata["model_type_val"];
-		ImgVidDepthGOs.DepthFileCompareText.text += $"Model type val: {modelTypeVal}\n";
+		/* Show modeltype */
+		ImgVidDepthGOs.DepthFileCompareText.text += $"Model type: {modelType}\n";
 
 		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
 		Utils.CreateDirectory(_recordPath);
@@ -717,28 +710,18 @@ public class ImgVidDepthTexInputs : TexInputs {
 		}
 	}
 
-	public void CallPythonHybrid() {
-		CallPython(ModelTypes.MidasV3DptHybrid);
-	}
-
-	public void CallPythonLarge() {
-		CallPython(ModelTypes.MidasV3DptLarge);
-	}
-
-	private void CallPython(ModelTypes modelType) {
+	private void CallPython(string modelType) {
 		if (_ftype != FileTypes.Img && _ftype != FileTypes.Vid)
 			return;
 
 		const string pythonTarget = @"./depthpy/depth.py";
 
 		string isImage = (_ftype == FileTypes.Img) ? " -i " : " ";
-
-		int modelTypeVal = (int) modelType;
 		string modelTypeString = modelType.ToString();
 
-		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), modelTypeVal, _hashval);
+		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval);
 
-		System.Diagnostics.Process.Start(Utils.PythonPath, $" \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
+		System.Diagnostics.Process.Start(Utils.PythonPath, $"-i \"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}
 
 	private void ExportParams(bool overwrite=false, bool init=false) {
@@ -796,10 +779,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 			break;
 
 		case "CallPythonHybrid":
-			CallPythonHybrid();
+			CallPython("dpt_large_384");
 			break;
 		case "CallPythonLarge":
-			CallPythonLarge();
+			CallPython("dpt_hybrid_384");
 			break;
 		
 		case "PausePlay": //TODO: if there's another input that can be paused, move this to the interface

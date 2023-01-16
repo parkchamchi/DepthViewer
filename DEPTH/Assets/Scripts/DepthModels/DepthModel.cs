@@ -4,7 +4,6 @@ using UnityEngine;
 
 public interface BaseDepthModel : IDisposable {
 	string ModelType {get;}
-	int ModelTypeVal {get;}
 }
 
 public interface DepthModel : BaseDepthModel {

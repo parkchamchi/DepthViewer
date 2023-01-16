@@ -57,7 +57,6 @@ Used https://github.com/lewiji/godot-midas-depth/blob/master/src/Inference/Infer
 
 public class OnnxRuntimeDepthModel : DepthModel {
 	public string ModelType {get; private set;}
-	public int ModelTypeVal {get; private set;}
 
 	private InferenceSession _infsession;
 	private int _width, _height;
@@ -67,9 +66,8 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, int modelTypeVal, bool useCuda=false, int gpuid=0) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, bool useCuda=false, int gpuid=0) {
 		ModelType = modelType;
-		ModelTypeVal = modelTypeVal;
 
 		SessionOptions sessionOptions;
 		if (!useCuda)

@@ -49,15 +49,13 @@ public class DepthModelBehavior : MonoBehaviour {
 	public int OnnxRuntimeGpuId {get; private set;} = 0;
 
 	private static DepthModel _donnx;
-	private const ModelTypes _builtInModelType = ModelTypes.MidasV21Small;
 
 	public DepthModel GetBuiltIn() {
 		_donnx?.Dispose();
 
-		string modelType = _builtInModelType.ToString();
-		int modelTypeVal = (int) _builtInModelType;
+		string modelType = "MidasV21Small";
 
-		_donnx = new BarracudaDepthModel(BuiltIn, modelType, modelTypeVal);
+		_donnx = new BarracudaDepthModel(BuiltIn, modelType);
 
 		return _donnx;
 	}
@@ -67,14 +65,14 @@ public class DepthModelBehavior : MonoBehaviour {
 		_donnx = null;
 
 		if (!useOnnxRuntime)
-			_donnx = new BarracudaDepthModel(onnxpath, modelType, modelTypeVal);
+			_donnx = new BarracudaDepthModel(onnxpath, modelType);
 		else {
 
 #if !UNITY_STANDALONE_WIN && !UNITY_EDITOR_WIN
 			Debug.LogError("Not using onnxruntime but got useOnnxRuntime=true!");
 			return null;
 #else			
-			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, modelTypeVal, useCuda: OnnxRuntimeUseCuda, gpuid: OnnxRuntimeGpuId);
+			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, useCuda: OnnxRuntimeUseCuda, gpuid: OnnxRuntimeGpuId);
 #endif
 
 		}
@@ -101,7 +99,6 @@ public class DepthModelBehavior : MonoBehaviour {
 
 public class BarracudaDepthModel : DepthModel {
 	public string ModelType {get; private set;}
-	public int ModelTypeVal {get; private set;}
 
 	private RenderTexture _input;
 	private float[] _output;
@@ -109,17 +106,16 @@ public class BarracudaDepthModel : DepthModel {
 	private IWorker _engine;
 	private Model _model;
 
-	public BarracudaDepthModel(NNModel nnm, string modelType, int modelTypeVal) {
+	public BarracudaDepthModel(NNModel nnm, string modelType) {
 		_model = ModelLoader.Load(nnm);
 
 		ModelType = modelType;
-		ModelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();
 	}
 
-	public BarracudaDepthModel(string onnxpath, string modelType, int modelTypeVal) {
+	public BarracudaDepthModel(string onnxpath, string modelType) {
 		/*
 		Currently not used.
 		Args:
@@ -130,7 +126,6 @@ public class BarracudaDepthModel : DepthModel {
 		_model = onnx_conv.Convert(onnxpath);
 
 		ModelType = modelType;
-		ModelTypeVal = modelTypeVal;
 
 		InitializeNetwork();
 		AllocateObjects();

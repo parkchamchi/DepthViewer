@@ -8,15 +8,6 @@ using System.Threading.Tasks;
 
 using UnityEngine;
 
-//Values are arbitrarily set relative numbers
-//So that the highest quality of depth file would be loaded
-public enum ModelTypes : int {
-	MidasV21Small = 100,
-	MiDasV21 = 200,
-	MidasV3DptHybrid = 300,
-	MidasV3DptLarge = 400,
-}
-
 public static class DepthFileUtils {
 	public const string Version = "v0.7.9-beta";
 	
@@ -75,7 +66,7 @@ public static class DepthFileUtils {
 		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
-	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, string model_type, int model_type_val) {
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, string model_type) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
@@ -92,10 +83,8 @@ public static class DepthFileUtils {
 		orig_basename = Path.GetFileName(orig_basename);
 
 		if (model_type == null) {
-			if (Enum.IsDefined(typeof (ModelTypes), model_type_val))
-				model_type = Enum.GetName(typeof (ModelTypes), model_type_val);
-			else
-				model_type = $"unknown_{model_type_val}";
+			Debug.LogError("CreateDepthFile(): model_type == null!");
+			model_type = "unknown";
 		}
 
 		string metadata = WriteMetadata(
@@ -105,7 +94,7 @@ public static class DepthFileUtils {
 			width: x.ToString(),
 			height: y.ToString(),
 			model_type: model_type,
-			model_type_val: model_type_val.ToString(),
+			model_type_val: "0",
 			original_name: orig_basename,
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
@@ -115,7 +104,7 @@ public static class DepthFileUtils {
 			version: Version
 		);
 
-		string output_filepath = GetDepthFileName(orig_basename, model_type_val, hashval);
+		string output_filepath = GetDepthFileName(orig_basename, hashval);
 		if (_archive != null) _archive.Dispose();
 
 		_archiveMode = ZipArchiveMode.Update;
@@ -129,8 +118,11 @@ public static class DepthFileUtils {
 		_isFull = false;
 	}
 
-	public static string GetDepthFileName(string orig_basename, int model_type_val, string hashval) {
+	public static string GetDepthFileName(string orig_basename, string hashval) {
 		orig_basename = Path.GetFileName(orig_basename);
+		
+		//If there were several depthfiles with the same hashval, the one with the highest model_type_val was loaded. Sinec it's not used anymore just set it to 0.
+		int model_type_val = 0; 
 
 		string output_filepath = $"{orig_basename}.{model_type_val}.{hashval}{DepthExt}";
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
@@ -183,6 +175,9 @@ public static class DepthFileUtils {
 		using (StreamWriter sw = new StreamWriter(metadataEntry.Open()))
 			sw.Write(metadata);
 	}
+
+	public static string ProcessedDepthFileExists(string hashval) =>
+		ProcessedDepthFileExists(hashval, out _);
 
 	public static string ProcessedDepthFileExists(string hashval, out int maxModelTypeVal) {
 		/* 
@@ -247,7 +242,7 @@ public static class DepthFileUtils {
 		return pgm;
 	}
 
-	public static bool ReadDepthFile(string path, out long framecount, out Dictionary<string, string> metadata, out Dictionary<long, string> paramsDict, bool readOnlyMode=false) {
+	public static bool ReadDepthFile(string path, out long framecount, out string modelType, out Dictionary<string, string> metadata, out Dictionary<long, string> paramsDict, bool readOnlyMode=false) {
 		/*
 			out x, y: pixel count of DEPTH.
 			out orig_ratio: ratio of ORIGINAL INPUT.
@@ -283,6 +278,7 @@ public static class DepthFileUtils {
 		metadata = ReadMetadata(metadataStr);
 
 		framecount = _framecount = int.Parse(metadata["framecount"]);
+		modelType = metadata["model_type"];
 
 		//Read the params, if it exists
 		string paramsStr;

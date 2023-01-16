@@ -24,17 +24,6 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		}
 	}
 
-	public int ModelTypeVal {
-		get {
-			if (_model == null) {
-				Debug.LogError("ServerConnectBehavior.ModelTypeVal called when _model == null");
-				return 0;
-			}
-
-			return _model.ModelTypeVal;
-		}
-	}
-
 	private DepthServerModel _model;
 	public bool IsAvailable {get {return (_model != null);}}
 	public bool IsWaiting {get; private set;}
