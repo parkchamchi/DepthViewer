@@ -25,11 +25,12 @@ def model_index(model_type):
 	else:
 		flask.abort(404)
 
+#model_type_val is not used anymore! just return 0 when the model exists
 @app.route("/depthpy/models/<model_type>/modeltypeval")
 def model_type_val(model_type):
 	res = runner.model_exists(model_type)
 	if res:
-		return str(res)
+		return "0"
 	else:
 		flask.abort(404)
 
