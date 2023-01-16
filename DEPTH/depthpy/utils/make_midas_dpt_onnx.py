@@ -1,11 +1,16 @@
 """
+    This file was for the midas v3 and won't work for v3.1.
+    Use
+        https://github.com/parkchamchi/MiDaS/releases/tag/22.12.07
+    intead.
+
     Modified from:
         https://github.com/isl-org/MiDaS/blob/master/tf/make_onnx_model.py (MIT License, see ./midas/LICENSE)
     imitating https://github.com/isl-org/MiDaS/issues/182
     ONNX file this script creates is not official.
     Disclaimer: I don't know how this code works or whether this actually works.
 
-    The output's opset level is 11, which barracuda does not support.
+    Barracuda does not support the output.
 """
 import os
 import torch

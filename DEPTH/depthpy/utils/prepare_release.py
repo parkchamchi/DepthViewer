@@ -35,17 +35,28 @@ for filename in ["depth.py", "depthserver.py"]:
 print("Making the midas directory")
 midasdir = os.path.join(depthpydir, "midas")
 os.mkdir(midasdir)
+os.mkdir(os.path.join(midasdir, "backbones"))
 
 #copy the midas
+#might as well just glob "*.py" and "LICENSE"... later
 midasfiles = [
 	"base_model.py",
 	"blocks.py",
 	"dpt_depth.py",
 	"midas_net_custom.py",
 	"midas_net.py",
+	"model_loader.py",
 	"transforms.py",
-	"vit.py",
-	"LICENSE"
+	"LICENSE",
+
+	"backbones/beit.py",
+	"backbones/levit.py",
+	"backbones/next_vit.py",
+	"backbones/swin.py",
+	"backbones/swin2.py",
+	"backbones/swin_common.py",
+	"backbones/utils.py",
+	"backbones/vit.py",
 ]
 for midasfile in midasfiles:
 	fromfile = os.path.join("../midas", midasfile)
