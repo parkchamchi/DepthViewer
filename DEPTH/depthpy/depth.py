@@ -91,7 +91,7 @@ class Runner():
 		self.model_type = model_type
 		self.model_params = new_model_params
 
-	def run_frame(self, img):
+	def run_frame(self, img, no_pgm=False):
 		# input
 		img_input = self.transform({"image": img})["image"]
 
@@ -111,6 +111,9 @@ class Runner():
 
 		# output
 		out = self.normalize(prediction)
+		if no_pgm:
+			return out
+
 		height, width = out.shape[:2]
 		return self.get_pgm(out), width, height #width and height can be ignored
 
