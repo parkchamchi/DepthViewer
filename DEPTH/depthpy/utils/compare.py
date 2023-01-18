@@ -37,6 +37,7 @@ for model_type, model_path in default_models.items():
 
 print()
 grid_size = math.ceil(math.sqrt(len(available_models)))
+plt.inferno()
 
 for model_type in available_models:
 	print('-'*32)
