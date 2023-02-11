@@ -5,9 +5,30 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
+public class MeshShaders {
+	public string Name {get; private set;}
+	public bool ShouldSetVertexColors {get; private set;}
+
+	public MeshShaders(string name, bool shouldSetVertexColors) {
+		Name = name;
+		ShouldSetVertexColors = shouldSetVertexColors;
+	}
+
+	public static MeshShaders GetStandard() =>
+		new MeshShaders("Standard", false);
+
+	public static MeshShaders GetPointCloudDisk() =>
+		new MeshShaders("Point Cloud/Disk", true);
+		
+	public static MeshShaders GetPointCloudPoint() =>
+		new MeshShaders("Point Cloud/Point", true);
+}
+
 public interface IDepthMesh {
 	bool ShouldUpdateDepth {set;} //whether the depth has to be updated when the parameters (alpha, ...) is changed
 	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
+
+	void SetShader(MeshShaders shader);
 
 	void SetParam(string paramname, float value);
 	void ToDefault();
@@ -52,6 +73,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private bool _shouldUpdateDepth = false;
 	public bool ShouldUpdateDepth {set {_shouldUpdateDepth = value;}} //Depth has to be updated when an image is being shown
+
+	private MeshShaders _shader = MeshShaders.GetStandard();
 
 	public event System.Action<string, float> ParamChanged;
 
@@ -344,12 +367,46 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			SetMeshSize(x, y, ratio:ratio);
 		SetDepth(depths);
 
-		if (texture)
-			_material.mainTexture = texture;
+		if (texture) {
+			if (!_shader.ShouldSetVertexColors) //standard shader -> just put the texture
+				_material.mainTexture = texture;
+
+			else {
+				//Set vertex color instead of setting texture (for point clouds)
+
+				if (!(texture is Texture2D)) {
+					Debug.LogWarning("Point Cloud requires Texture2D as input, but the texture given is not. This will result in non-textured mesh.");
+					return;
+				}
+
+				Texture2D tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
+				Color[] colors = new Color[x*y];
+				for (int i = 0; i < y; i++)
+					for (int j = 0; j < x; j++)
+						colors[(y-1 - i)*x + j] = tex2d.GetPixel((int) ((float) j/x * tex2d.width), (int) ((float) i/y * tex2d.height)); //Why is this flipped by y-axis?
+
+				_mesh.colors = colors;
+			}
+		}
 	}
 
 	public void ResetRotation() =>
 		transform.rotation = Quaternion.identity;
+
+	public void SetShader(MeshShaders shader) {
+		Shader targetshader = Shader.Find(shader.Name);
+		if (targetshader == null) {
+			Debug.LogError($"Mesh.SetShader(): couldn't find shader {shader.Name}");
+			return;
+		}
+
+		_shader = shader;
+		_material.shader = targetshader;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Params
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public void SetParam(string paramname, float value) {
 		var pinfo = this.GetType().GetProperty(paramname);

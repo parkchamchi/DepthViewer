@@ -630,6 +630,8 @@ public class MainBehavior : MonoBehaviour {
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
+		_meshBehav.SetShader(MeshShaders.GetPointCloudDisk());
+
 		Debug.Log("DebugTmp() exiting.");
 	}
 } 
