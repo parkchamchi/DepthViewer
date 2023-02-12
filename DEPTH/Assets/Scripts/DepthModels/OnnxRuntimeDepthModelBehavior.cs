@@ -70,8 +70,10 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		ModelType = modelType;
 
 		SessionOptions sessionOptions;
-		if (!useCuda)
+		if (!useCuda) {
+			Debug.Log("OnnxRuntime is not using CUDA. Insert `set_onnxruntime_params true 0` and reload to enable it.");
 			sessionOptions = new SessionOptions();
+		}
 		else
 			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
 

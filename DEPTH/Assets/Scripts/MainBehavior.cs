@@ -331,7 +331,7 @@ public class MainBehavior : MonoBehaviour {
 
 		Debug.Log($"Loading model: {onnxpath}");
 
-		string modelTypeStr = onnxpath;
+		string modelTypeStr = Path.GetFileName(onnxpath);
 		if (useOnnxRuntime) {
 			modelTypeStr += ":OnnxRuntime";
 
