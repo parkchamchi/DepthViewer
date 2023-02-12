@@ -83,6 +83,14 @@ public class OptionsBehavior : MonoBehaviour {
 	public void ResetMinMax() =>
 		MeshSliderParents.ResetMinMax();
 
+	public void OnShaderButtonClicked(string shadername) {
+		//Set the PC Size Slider's value to the default value.
+		//This also activates when the standard shader is selected, where it has no effect...
+		PCSizeSlider.value = MeshShaders.DefaultPointCloudSize;
+
+		_mainBehav.SetMeshShader(shadername);
+	}
+
 	public void OnPCSizeSliderValueChanged() =>
 		_mainBehav.SetPointCloudSize(PCSizeSlider.value);
 }

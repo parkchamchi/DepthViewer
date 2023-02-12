@@ -555,8 +555,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -28.398895, y: -25}
-  m_SizeDelta: {x: 905.1763, y: 130.0117}
+  m_AnchoredPosition: {x: -196.56, y: -32.587296}
+  m_SizeDelta: {x: 568.85, y: 114.8371}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &44379060
 MonoBehaviour:
@@ -580,16 +580,13 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Note:
 
-    Image inputs may need to be reloaded after the shader change
+    Image inputs need to be reloaded after the point cloud is selected
 
     Point
-    Cloud (Point) won''t work
+    Cloud (Point) won''t work on Direct3D
 
-    Point Cloud will have a significant overhead for
-    video inputs
-
-    The value of PC Size Slider is not real-time and will reset
-    to the default value after the shader is changed'
+    Point Cloud will have a significant
+    overhead for video inputs'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
   m_sharedMaterial: {fileID: 5431520781831604485, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
@@ -4236,9 +4233,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2128267913}
-        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: SetMeshShader
+      - m_Target: {fileID: 686225971}
+        m_TargetAssemblyTypeName: OptionsBehavior, Assembly-CSharp
+        m_MethodName: OnShaderButtonClicked
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -8008,11 +8005,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 211
+      value: 261
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -15
+      value: -27
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: e1ad4d341747f0040899d64238b1650b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -10486,9 +10483,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2128267913}
-        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: SetMeshShader
+      - m_Target: {fileID: 686225971}
+        m_TargetAssemblyTypeName: OptionsBehavior, Assembly-CSharp
+        m_MethodName: OnShaderButtonClicked
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -21649,9 +21646,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2128267913}
-        m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: SetMeshShader
+      - m_Target: {fileID: 686225971}
+        m_TargetAssemblyTypeName: OptionsBehavior, Assembly-CSharp
+        m_MethodName: OnShaderButtonClicked
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
