@@ -102,6 +102,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public bool ShouldUpdateDepth {set {_shouldUpdateDepth = value;}} //Depth has to be updated when an image is being shown
 
 	private MeshShaders _shader = MeshShaders.GetStandard();
+	private RenderTexture _rt; //for resizing texture (for point clouds)
 
 	public event System.Action<string, float> ParamChanged;
 
@@ -386,40 +387,32 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		//Set vertex color instead of setting texture (for point clouds)
 		if (_shader.ShouldSetVertexColors) {
-			Texture2D tex2d;
-			bool shouldDestroyTex2d = false;
 
-			if (!(texture is Texture2D)) {
-				/*
-					The given texture is not Texture2D (i.e. it's RenderTexture) thus it has to be converted to one.
-					This is mostly from the VideoPlayer input...
-					It will have a significant overhead.
-				*/
-
-				if (!(texture is RenderTexture)) {
-					Debug.LogError("texture is neither Texture2D nor RenderTexture (not likely to happen)");
-					return;
-				}
-				RenderTexture rendertex = (RenderTexture) texture;
-
-				tex2d = new Texture2D(rendertex.width, rendertex.height);
-				RenderTexture.active = rendertex;
-				tex2d.ReadPixels(new Rect(0, 0, rendertex.width, rendertex.height), 0, 0);
-				RenderTexture.active = null;
-
-				shouldDestroyTex2d = true;
+			//Prepare the RenderTexture
+			if (_rt == null || _rt.width != _x || _rt.height != _y) {
+				_rt?.Release();
+				_rt = new RenderTexture(_x, _y, 16);
 			}
-			else {
-				tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
-				shouldDestroyTex2d = false;
-			}
+	
+			//Resize
+			Graphics.Blit(texture, _rt);
+
+			//Prepare the resized Texture2D
+			Texture2D tex2d = new Texture2D(_rt.width, _rt.height);
+
+			//Move the resized texture
+			RenderTexture.active = _rt;
+			tex2d.ReadPixels(new Rect(0, 0, _rt.width, _rt.height), 0, 0);
+			RenderTexture.active = null;
+
+			//Extract the vertex colors...
 			Color[] colors = new Color[_x*_y];
 			for (int i = 0; i < _y; i++)
 				for (int j = 0; j < _x; j++)
-					colors[(_y-1 - i)*_x + j] = tex2d.GetPixel((int) ((float) j/_x * tex2d.width), (int) ((float) i/_y * tex2d.height)); //Why is this flipped by y-axis?
+					colors[(_y-1 - i)*_x + j] = tex2d.GetPixel(j, i); //Why is this flipped by y-axis?
 
-			if (shouldDestroyTex2d)
-				Destroy(tex2d);
+			//Destroy the Texture2D
+			Destroy(tex2d);
 
 			_mesh.colors = colors;
 		}
