@@ -626,11 +626,32 @@ public class MainBehavior : MonoBehaviour {
 	public void SetTargetValToNaN() =>
 		_meshBehav.TargetVal = System.Single.NaN;
 
+	public void SetMeshShader(string shadername) {
+		MeshShaders meshShader;
+
+		switch (shadername) {
+		case "standard":
+			meshShader = MeshShaders.GetStandard();
+			break;
+		case "pointCloudDisk":
+			meshShader = MeshShaders.GetPointCloudDisk();
+			break;
+		case "pointCloudPoint":
+			meshShader = MeshShaders.GetPointCloudPoint();
+			break;
+		default:
+			Debug.LogError($"SetMeshShader(): Got unknown shader name {shadername}");
+			return;
+		}
+
+		_meshBehav.SetShader(meshShader);
+	}
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		_meshBehav.SetShader(MeshShaders.GetPointCloudDisk());
+		Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}

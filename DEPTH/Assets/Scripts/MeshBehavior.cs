@@ -9,19 +9,44 @@ public class MeshShaders {
 	public string Name {get; private set;}
 	public bool ShouldSetVertexColors {get; private set;}
 
-	public MeshShaders(string name, bool shouldSetVertexColors) {
+	//The initial property values for materials
+	public Dictionary<string, float> MaterialProperties {get; private set;} = null;
+
+	//For point clouds
+	private static readonly Dictionary<string, float> _pointCloudMatProps = new Dictionary<string, float> {
+		{"_PointSize", 0.6f}		
+	};
+
+	public Shader Shader {
+		get {
+			/*
+				The target shader should be under "Always Included Shaders" list in ProjectSettings/Graphics
+				https://docs.unity3d.com/ScriptReference/Shader.Find.html
+			*/
+
+			Shader targetshader = Shader.Find(this.Name);
+			if (targetshader == null)
+				Debug.LogError($"MeshShaders.Shader: couldn't find shader {this.Name}");
+			
+			return targetshader;
+		}
+	}
+
+	public MeshShaders(string name, bool shouldSetVertexColors, Dictionary<string, float> materialProperties=null) {
 		Name = name;
 		ShouldSetVertexColors = shouldSetVertexColors;
+
+		MaterialProperties = materialProperties;
 	}
 
 	public static MeshShaders GetStandard() =>
 		new MeshShaders("Standard", false);
 
 	public static MeshShaders GetPointCloudDisk() =>
-		new MeshShaders("Point Cloud/Disk", true);
+		new MeshShaders("Point Cloud/Disk", true, _pointCloudMatProps);
 		
 	public static MeshShaders GetPointCloudPoint() =>
-		new MeshShaders("Point Cloud/Point", true);
+		new MeshShaders("Point Cloud/Point", true, _pointCloudMatProps);
 }
 
 public interface IDepthMesh {
@@ -29,6 +54,7 @@ public interface IDepthMesh {
 	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
 
 	void SetShader(MeshShaders shader);
+	void SetMaterialFloat(string propertyname, float value); //wrapper for Material.SetFloat()
 
 	void SetParam(string paramname, float value);
 	void ToDefault();
@@ -349,6 +375,31 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		_mesh.vertices = _vertices;
 	}
 
+	private void SetTexture(Texture texture) {
+		if (texture == null) {
+			Debug.LogError("SetTexture(): Got null texture");
+			return;
+		}
+
+		_material.mainTexture = texture; //This won't be seen on point clouds (can be omitted)
+
+		//Set vertex color instead of setting texture (for point clouds)
+		if (_shader.ShouldSetVertexColors) {
+			if (!(texture is Texture2D)) {
+				Debug.LogWarning("Point Cloud requires Texture2D as input, but the texture given is not. This will result in non-textured mesh.");
+				return;
+			}
+
+			Texture2D tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
+			Color[] colors = new Color[_x*_y];
+			for (int i = 0; i < _y; i++)
+				for (int j = 0; j < _x; j++)
+					colors[(_y-1 - i)*_x + j] = tex2d.GetPixel((int) ((float) j/_x * tex2d.width), (int) ((float) i/_y * tex2d.height)); //Why is this flipped by y-axis?
+
+			_mesh.colors = colors;
+		}
+	}
+
 	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
 		if (depths == null) {
 			Debug.LogError("SetScene(): depths == null");
@@ -367,27 +418,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			SetMeshSize(x, y, ratio:ratio);
 		SetDepth(depths);
 
-		if (texture) {
-			if (!_shader.ShouldSetVertexColors) //standard shader -> just put the texture
-				_material.mainTexture = texture;
-
-			else {
-				//Set vertex color instead of setting texture (for point clouds)
-
-				if (!(texture is Texture2D)) {
-					Debug.LogWarning("Point Cloud requires Texture2D as input, but the texture given is not. This will result in non-textured mesh.");
-					return;
-				}
-
-				Texture2D tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
-				Color[] colors = new Color[x*y];
-				for (int i = 0; i < y; i++)
-					for (int j = 0; j < x; j++)
-						colors[(y-1 - i)*x + j] = tex2d.GetPixel((int) ((float) j/x * tex2d.width), (int) ((float) i/y * tex2d.height)); //Why is this flipped by y-axis?
-
-				_mesh.colors = colors;
-			}
-		}
+		if (texture != null)
+			SetTexture(texture);
 	}
 
 	public void ResetRotation() =>
@@ -402,7 +434,15 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		_shader = shader;
 		_material.shader = targetshader;
+
+		//Set the initial property values, if they exist
+		if (_shader.MaterialProperties != null)
+			foreach (KeyValuePair<string, float> item in _shader.MaterialProperties)
+				_material.SetFloat(item.Key, item.Value);
 	}
+
+	public void SetMaterialFloat(string propertyname, float value) =>
+		_material.SetFloat(propertyname, value);
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Params
