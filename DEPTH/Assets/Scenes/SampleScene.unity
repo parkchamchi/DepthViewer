@@ -585,8 +585,8 @@ MonoBehaviour:
     Point
     Cloud (Point) won''t work on Direct3D
 
-    Point Cloud will have a significant
-    overhead for video inputs'
+    Point Cloud has some overhead for
+    video inputs'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
   m_sharedMaterial: {fileID: 5431520781831604485, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}

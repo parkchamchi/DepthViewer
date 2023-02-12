@@ -386,16 +386,40 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		//Set vertex color instead of setting texture (for point clouds)
 		if (_shader.ShouldSetVertexColors) {
-			if (!(texture is Texture2D)) {
-				Debug.LogWarning("Point Cloud requires Texture2D as input, but the texture given is not. This will result in non-textured mesh.");
-				return;
-			}
+			Texture2D tex2d;
+			bool shouldDestroyTex2d = false;
 
-			Texture2D tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
+			if (!(texture is Texture2D)) {
+				/*
+					The given texture is not Texture2D (i.e. it's RenderTexture) thus it has to be converted to one.
+					This is mostly from the VideoPlayer input...
+					It will have a significant overhead.
+				*/
+
+				if (!(texture is RenderTexture)) {
+					Debug.LogError("texture is neither Texture2D nor RenderTexture (not likely to happen)");
+					return;
+				}
+				RenderTexture rendertex = (RenderTexture) texture;
+
+				tex2d = new Texture2D(rendertex.width, rendertex.height);
+				RenderTexture.active = rendertex;
+				tex2d.ReadPixels(new Rect(0, 0, rendertex.width, rendertex.height), 0, 0);
+				RenderTexture.active = null;
+
+				shouldDestroyTex2d = true;
+			}
+			else {
+				tex2d = (Texture2D) texture; //This does not make a new object, no need to Destroy()
+				shouldDestroyTex2d = false;
+			}
 			Color[] colors = new Color[_x*_y];
 			for (int i = 0; i < _y; i++)
 				for (int j = 0; j < _x; j++)
 					colors[(_y-1 - i)*_x + j] = tex2d.GetPixel((int) ((float) j/_x * tex2d.width), (int) ((float) i/_y * tex2d.height)); //Why is this flipped by y-axis?
+
+			if (shouldDestroyTex2d)
+				Destroy(tex2d);
 
 			_mesh.colors = colors;
 		}
