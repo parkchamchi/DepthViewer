@@ -20,6 +20,8 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_InputField LightInputField;
 	public TMP_Text LightStatusText;
 
+	public Slider PCSizeSlider;
+
 	private MainBehavior _mainBehav;
 
 	void Start() {
@@ -80,4 +82,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void ResetMinMax() =>
 		MeshSliderParents.ResetMinMax();
+
+	public void OnPCSizeSliderValueChanged() =>
+		_mainBehav.SetPointCloudSize(PCSizeSlider.value);
 }
