@@ -441,7 +441,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	}
 
 	public void ResetRotation() =>
-		transform.rotation = Quaternion.identity;
+		transform.localRotation = Quaternion.identity;
 
 	public void SetShader(MeshShaders shader) {
 		Shader targetshader = Shader.Find(shader.Name);
