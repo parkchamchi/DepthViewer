@@ -35,6 +35,15 @@ SOFTWARE.
 Uses MiDaS model:
 https://github.com/isl-org/MiDaS
 
+@ARTICLE {Ranftl2022,
+    author  = "Ren\'{e} Ranftl and Katrin Lasinger and David Hafner and Konrad Schindler and Vladlen Koltun",
+    title   = "Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-Shot Cross-Dataset Transfer",
+    journal = "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+    year    = "2022",
+    volume  = "44",
+    number  = "3"
+}
+
 License for MiDaS:
 
 MIT License
@@ -302,3 +311,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
+
+-----------------------------------------------------------------------
+
+The modified Disk.cginc file of Pcx is from here:
+https://github.com/keijiro/Pcx/issues/66

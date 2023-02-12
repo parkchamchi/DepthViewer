@@ -176,7 +176,21 @@ They are in the nuget package files (.nupkg), get them from <br>
 - `Microsoft.ML.OnnxRuntime.dll`
 
 ## Misc
+
 ### Libraries used
+
+- [MiDaS](https://github.com/isl-org/MiDaS) (MIT License)
+```
+@article {Ranftl2022,
+    author  = "Ren\'{e} Ranftl and Katrin Lasinger and David Hafner and Konrad Schindler and Vladlen Koltun",
+    title   = "Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-Shot Cross-Dataset Transfer",
+    journal = "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+    year    = "2022",
+    volume  = "44",
+    number  = "3"
+}
+```
+
 - [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
 - [Unity Simple File Browser](https://github.com/yasirkula/UnitySimpleFileBrowser) (MIT License)
 - [WebXR Export](https://github.com/De-Panther/unity-webxr-export) (Apache License 2.0)

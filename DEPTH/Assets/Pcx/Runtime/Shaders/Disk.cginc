@@ -16,6 +16,7 @@ StructuredBuffer<float4> _PointBuffer;
 // Vertex input attributes
 struct Attributes
 {
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 #if _COMPUTE_BUFFER
     uint vertexID : SV_VertexID;
 #else
@@ -32,6 +33,7 @@ struct Varyings
     half3 color : COLOR;
     UNITY_FOG_COORDS(0)
 #endif
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 // Vertex phase
@@ -59,6 +61,10 @@ Varyings Vertex(Attributes input)
 
     // Set vertex output.
     Varyings o;
+    UNITY_SETUP_INSTANCE_ID(input); //Insert
+    UNITY_INITIALIZE_OUTPUT(Varyings, o); //Insert
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o); //Insert
+
     o.position = UnityObjectToClipPos(pos);
 #if !PCX_SHADOW_CASTER
     o.color = col;
