@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -233,6 +234,14 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			if (_shouldUpdateDepth) UpdateDepth();
 		}
 	}
+	
+	private bool _project = true;
+	public bool Project {
+		set {_project = value; if (_shouldUpdateDepth) UpdateDepth();}
+		get {return _project;}
+	}
+
+	private float _cameraOffset = 150f; //How far the camera is from the mesh
 
 	public void ToDefault() {
 		Alpha = DefaultAlpha;
@@ -374,7 +383,50 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
 			_vertices[i].z = z * _depthMult;
 		}
-		_mesh.vertices = _vertices;
+
+		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
+		Vector3[] targetVertices = _vertices;
+
+		if (_project) {
+			/*
+			Project vertices on camera
+			TODO: move this to the iteration above, and make `targetVertices` a member of this class so that it doesn't have to be cloned for every input
+
+			For vertex p, we want the distance between p and z-axis (i.e. how far will p be from the center on camera) to be linearly related to the distance between p and the camera.
+			The difference between p.z and Camera.z is
+				p.cam_z_dist := _camOffset - MeshLoc + p.z
+
+			Let's fix the location of vertices whose z are 0.
+			Let p' be the projection of p on plane z = (_camOffset - MeshLoc) (i.e. z_p = 0)
+			Since p.x = p'.x and p.y = p'.y,
+				tan (theta_p') = sqrt(p.x^2 + p.y^2) / (_camOffset - MeshLoc)
+			
+			Using the same angle, if we let p" the projection of p' on the original xy-plane of p,
+				tan (theta_p') = tan (theta_p") = p".r / p.cam_z_dist
+				=> p".r = tan (theta_p') * p.cam_z_dist
+			p".r being the distance between p" and z-axis.
+
+			Thus the (x, y) of p" can be calculated from (p.x, p.y).normalized * p".r
+			*/
+
+			//Create the new vertex array, since (x, y) keeps changing
+			targetVertices = (Vector3[]) _vertices.Clone();
+
+			for (int i = 0; i < _depths.Length; i++) {
+				Vector3 p = targetVertices[i];
+
+				float prop = (p.z - MeshLoc + _cameraOffset) / (-MeshLoc + _cameraOffset);
+				float orig_rad = MathF.Sqrt(p.x*p.x + p.y*p.y);
+				if (orig_rad == 0) orig_rad = 0.00001f; //Avoid divide-by-zero
+				float new_rad = prop * orig_rad;
+
+				Vector3 newXY = new Vector3(p.x, p.y) / orig_rad * new_rad;
+
+				targetVertices[i] = new Vector3(newXY.x, newXY.y, p.z);
+			}
+		}
+
+		_mesh.vertices = targetVertices;
 	}
 
 	private void SetTexture(Texture texture) {
