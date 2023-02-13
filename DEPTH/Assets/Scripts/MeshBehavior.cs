@@ -79,6 +79,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private Mesh _mesh;
 	private Vector3[] _vertices;
+	private Vector3[] _vertices_proj; //Projected vertices using (x, y) of _vertices
 	private Vector2[] _uv;
 	private	int[] _triangles;
 	private Material _material;
@@ -145,7 +146,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _beta;}
 	}
 
-	public const float DefaultDepthMult = 50f;
+	public const float DefaultDepthMult = 125f;
 	private float _depthMult = DefaultDepthMult;
 	public float DepthMult {
 		set {
@@ -206,6 +207,19 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _scale;}
 	}
 
+	public const float DefaultProjRatio = 0.5f;
+	private float _projRatio = DefaultProjRatio;
+	public float ProjRatio {
+		set {
+			_projRatio = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("ProjRatio", value);
+		}
+
+		get {return _projRatio;}
+	}
+
 	private bool _isThresholdSet = false;
 	private float _threshold = 0f;
 	public float Threshold {
@@ -234,12 +248,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			if (_shouldUpdateDepth) UpdateDepth();
 		}
 	}
-	
-	private bool _project = true;
-	public bool Project {
-		set {_project = value; if (_shouldUpdateDepth) UpdateDepth();}
-		get {return _project;}
-	}
 
 	private float _cameraOffset = 150f; //How far the camera is from the mesh
 
@@ -249,6 +257,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		DepthMult = DefaultDepthMult;
 		MeshLoc = DefaultMeshLoc;
 		Scale = DefaultScale;
+
+		ProjRatio = DefaultProjRatio;
 
 		MeshX = DefaultMeshX;
 		MeshY = DefaultMeshY;
@@ -313,6 +323,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		float y_gap = (float) imheight / y;			
 
 		_vertices = new Vector3[x*y]; //<65k for uint16
+		_vertices_proj = new Vector3[_vertices.Length];
 		_uv = new Vector2[_vertices.Length];
 		for (int i = 0; i < _vertices.Length; i++) {
 			_vertices[i] = new Vector3(x_start + i%x * x_gap, y_start - i/x * y_gap, 0);
@@ -374,6 +385,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		if (_vertices == null || _depths == null) return;
 
+		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
+		Vector3[] targetVertices = (_projRatio == 0) ? _vertices : _vertices_proj;
+
 		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
 			float z = _depths[i];
 			if (_isThresholdSet && (z < _threshold))
@@ -382,15 +396,12 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			z = (1 / (_alpha * z + _beta)); //inverse
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
 			_vertices[i].z = z * _depthMult;
-		}
 
-		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
-		Vector3[] targetVertices = _vertices;
+			if (_projRatio == 0) 
+				continue; //Continue without projecting
 
-		if (_project) {
 			/*
 			Project vertices on camera
-			TODO: move this to the iteration above, and make `targetVertices` a member of this class so that it doesn't have to be cloned for every input
 
 			For vertex p, we want the distance between p and z-axis (i.e. how far will p be from the center on camera) to be linearly related to the distance between p and the camera.
 			The difference between p.z and Camera.z is
@@ -401,29 +412,27 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			Since p.x = p'.x and p.y = p'.y,
 				tan (theta_p') = sqrt(p.x^2 + p.y^2) / (_camOffset - MeshLoc)
 			
-			Using the same angle, if we let p" the projection of p' on the original xy-plane of p,
+			Using the same angle, if we let p" be the projection of p' on the original xy-plane of p,
 				tan (theta_p') = tan (theta_p") = p".r / p.cam_z_dist
 				=> p".r = tan (theta_p') * p.cam_z_dist
 			p".r being the distance between p" and z-axis.
 
 			Thus the (x, y) of p" can be calculated from (p.x, p.y).normalized * p".r
 			*/
+			/*
+			Use parameter ProjRatio [0, 1] to set the magnitude
+			*/
 
-			//Create the new vertex array, since (x, y) keeps changing
-			targetVertices = (Vector3[]) _vertices.Clone();
+			Vector3 p = _vertices[i];
 
-			for (int i = 0; i < _depths.Length; i++) {
-				Vector3 p = targetVertices[i];
+			float prop = (p.z * _projRatio - MeshLoc + _cameraOffset) / (-MeshLoc + _cameraOffset);
+			float orig_rad = MathF.Sqrt(p.x*p.x + p.y*p.y);
+			if (orig_rad == 0) orig_rad = 0.00001f; //Avoid divide-by-zero
+			float new_rad = prop * orig_rad;
 
-				float prop = (p.z - MeshLoc + _cameraOffset) / (-MeshLoc + _cameraOffset);
-				float orig_rad = MathF.Sqrt(p.x*p.x + p.y*p.y);
-				if (orig_rad == 0) orig_rad = 0.00001f; //Avoid divide-by-zero
-				float new_rad = prop * orig_rad;
+			Vector2 newXY = new Vector2(p.x, p.y) / orig_rad * new_rad;
 
-				Vector3 newXY = new Vector3(p.x, p.y) / orig_rad * new_rad;
-
-				targetVertices[i] = new Vector3(newXY.x, newXY.y, p.z);
-			}
+			targetVertices[i] = new Vector3(newXY.x, newXY.y, p.z);
 		}
 
 		_mesh.vertices = targetVertices;
@@ -540,7 +549,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public string ExportParams() {
 		string[] toexports = new string[] {
-			"Alpha", "Beta", "Scale", "MeshLoc", "DepthMult", "MeshX", "MeshY"
+			"Alpha", "Beta", "Scale", "MeshLoc", "DepthMult", "MeshX", "MeshY", "ProjRatio"
 		};
 
 		StringBuilder output = new StringBuilder();
