@@ -235,7 +235,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 	
-	private bool _project = false;
+	private bool _project = true;
 	public bool Project {
 		set {_project = value; if (_shouldUpdateDepth) UpdateDepth();}
 		get {return _project;}

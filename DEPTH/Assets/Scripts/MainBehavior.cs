@@ -650,9 +650,6 @@ public class MainBehavior : MonoBehaviour {
 	public void SetPointCloudSize(float val) =>
 		_meshBehav.SetMaterialFloat("_PointSize", val);
 
-	public void SetMeshProject(bool val) =>
-		_meshBehav.Project = val;
-
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");

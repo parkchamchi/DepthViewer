@@ -22,8 +22,6 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public Slider PCSizeSlider;
 
-	public Toggle ProjectToggle;
-
 	private MainBehavior _mainBehav;
 
 	void Start() {
@@ -95,7 +93,4 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnPCSizeSliderValueChanged() =>
 		_mainBehav.SetPointCloudSize(PCSizeSlider.value);
-
-	public void OnProjectToggleValueChanged() =>
-		_mainBehav.SetMeshProject(ProjectToggle.isOn);
 }
