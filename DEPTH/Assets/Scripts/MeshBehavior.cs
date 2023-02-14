@@ -317,8 +317,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		float x_start = -imwidth/2;
 		float y_start = imheight/2;
 
-		float x_gap = (float) imwidth / x;
-		float y_gap = (float) imheight / y;			
+		float x_gap = (float) imwidth / (x-1);
+		float y_gap = (float) imheight / (y-1);			
 
 		_vertices = new Vector3[x*y]; //<65k for uint16
 		_vertices_proj = new Vector3[_vertices.Length];
