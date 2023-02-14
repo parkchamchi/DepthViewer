@@ -108,6 +108,10 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public event System.Action<string, float> ParamChanged;
 
+	//TODO: Generalize the properties
+	//Now all properties calls UpdateDepth() (due to projecting)
+	//Also emits ParamChanged
+
 	public const float DefaultAlpha = 1f;
 	private float _alpha = DefaultAlpha;
 	public float Alpha {
@@ -159,12 +163,16 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _depthMult;}
 	}
 
+	private void LocalPositionUpdate() =>
+		transform.localPosition = new Vector3(_defaultX - _meshX, _defaultY - _meshY, _defaultZ - _meshLoc);
+
 	public const float DefaultMeshLoc = 0f;
 	private float _meshLoc = DefaultMeshLoc;
 	public float MeshLoc {
 		set {
 			_meshLoc = value;
-			transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, _defaultZ - value);
+			LocalPositionUpdate();
+			if (_shouldUpdateDepth) UpdateDepth();
 			ParamChanged?.Invoke("MeshLoc", value);
 		}
 
@@ -176,7 +184,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public float MeshX {
 		set {
 			_meshX = value;
-			transform.localPosition = new Vector3(_defaultX - value, transform.localPosition.y, transform.localPosition.z);
+			LocalPositionUpdate();
+			if (_shouldUpdateDepth) UpdateDepth();
 			ParamChanged?.Invoke("MeshX", value);
 		}
 
@@ -188,7 +197,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public float MeshY {
 		set {
 			_meshY = value;
-			transform.localPosition = new Vector3(transform.localPosition.x, _defaultY - value, transform.localPosition.z);
+			LocalPositionUpdate();
+			if (_shouldUpdateDepth) UpdateDepth();
 			ParamChanged?.Invoke("MeshY", value);
 		}
 
@@ -201,6 +211,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		set {
 			_scale = value;
 			transform.localScale = new Vector3(value, value, transform.localScale.z);
+			//if (_shouldUpdateDepth) UpdateDepth();
 			ParamChanged?.Invoke("Scale", value);
 		}
 

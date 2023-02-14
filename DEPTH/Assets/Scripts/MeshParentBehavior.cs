@@ -14,8 +14,19 @@ public class MeshParentBehavior : MonoBehaviour {
 	private bool _moveMeshByMouse = true;
 	private Vector3 _lastMousePos; //can't be null
 
+	private MeshBehavior _dmesh;
+	private float _scale {get {return (_dmesh != null) ? _dmesh.Scale : 1;}}
+
 	void Start() {
 		DebugLogConsole.AddCommandInstance("set_moveMeshByMouse", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
+
+		//Find the mesh
+		try {
+			_dmesh = transform.GetChild(0).GetComponent<MeshBehavior>();
+		}
+		catch (Exception exc) {
+			Debug.LogError($"MeshParentBehavior: couldn't find the mesh: {exc}");
+		}
 	}
 
 	void Update() {
@@ -27,7 +38,7 @@ public class MeshParentBehavior : MonoBehaviour {
 		Vector3 diff = currentMousePos - _lastMousePos;
 		_lastMousePos = currentMousePos;
 		
-		diff = new Vector3(-diff.y, diff.x) / 32;
+		diff = new Vector3(-diff.y, diff.x) * _scale / 32;
 		transform.Rotate(diff);
 	}
 

@@ -105,7 +105,7 @@ public static class MeshSliderParents {
 			MeshY -10 10
 			MeshLoc -50 50
 			MeshX -10 10
-			DepthMult 0 100
+			DepthMult 0 250
 		";
 
 		ImportMinMax(input);
