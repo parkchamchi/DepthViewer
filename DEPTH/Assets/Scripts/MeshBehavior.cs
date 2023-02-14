@@ -220,7 +220,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _projRatio;}
 	}
 
-	private bool _isThresholdSet = false;
 	private float _threshold = 0f;
 	public float Threshold {
 		set {
@@ -229,7 +228,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 				return;
 			}
 			_threshold = value;
-			_isThresholdSet = (_threshold != 0) ? true : false;
 
 			if (_shouldUpdateDepth) UpdateDepth();
 		}
@@ -388,9 +386,12 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
 		Vector3[] targetVertices = (_projRatio == 0) ? _vertices : _vertices_proj;
 
+		bool isThresholdSet = (_threshold > 0);
+		
 		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
 			float z = _depths[i];
-			if (_isThresholdSet && (z < _threshold))
+
+			if (isThresholdSet && z < _threshold)
 				z = _targetVal;
 
 			z = (1 / (_alpha * z + _beta)); //inverse
