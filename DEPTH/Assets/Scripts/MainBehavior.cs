@@ -64,6 +64,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _searchCache;
 	private bool _canUpdateArchive; //User option, toggled in UI; can be ignored
 
+	private KeyCode[] _sendMsgKeyCodes; //When a key in the array is pressed, it is sent to _texInputs using SendMsg().
+
 	private ExtensionFilter[] _extFilters;
 
 	private string[] _dirFilenames; //set by BrowseDir()
@@ -99,6 +101,11 @@ public class MainBehavior : MonoBehaviour {
 				SelectFile();
 			}
 		}
+
+		/* If this key is pressed, _texInputs is informed. */
+		_sendMsgKeyCodes = new KeyCode[] {
+			KeyCode.Keypad4, KeyCode.Keypad5, KeyCode.Keypad6
+		};
 
 		/* Set ExtensionFilter for StandalonFileBrowser */
 		//remove '.'
@@ -162,8 +169,13 @@ public class MainBehavior : MonoBehaviour {
 		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
 			SetBrowseDir(Input.mouseScrollDelta.y < 0);
 
-		if (_texInputs != null)
+		if (_texInputs != null) {
 			_texInputs.UpdateTex();
+
+			foreach (var key in _sendMsgKeyCodes)
+				if (Input.GetKeyDown(key))
+					SendMsgToTexInputs(key.ToString());
+		}
 	}
 
 	private void Cleanup() {

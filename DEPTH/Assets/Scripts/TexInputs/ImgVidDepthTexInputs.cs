@@ -385,8 +385,14 @@ public class ImgVidDepthTexInputs : TexInputs {
 		float[] depths = null;
 		
 		//If depth file exists, try to read from it
-		if (_depthFilePath != null)
-			depths = DepthFileUtils.ReadFromArchive(actualFrame, out _x, out _y);
+		if (_depthFilePath != null) {
+			try {
+				depths = DepthFileUtils.ReadFromArchive(actualFrame, out _x, out _y);
+			}
+			catch (InvalidOperationException exc) {
+				Debug.LogWarning($"Couldn't read the frame from the depthfile: {exc}");
+			}
+		}
 
 		if (depths != null) 
 			UITextSet.StatusText.text = "read from archive";
@@ -690,36 +696,49 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	public void PausePlay() {
-		if (_ftype == FileTypes.Vid) {
-			if (_vp == null) return;
+		//Might as well would just delete the call-the-server-on-pause behavior later
 
-			if (_vp.isPaused) {
-				/* Play */
-				if (_asyncDmodel != null && _asyncDmodel.IsWaiting) {
-					UITextSet.StatusText.text = "Waiting for the server.";
-					return;
-				}
+		if (_ftype != FileTypes.Vid) return;
+		if (_vp == null) return;
 
-				_dmesh.ShouldUpdateDepth = false;
-				_vp.Play();
+		if (_vp.isPaused) {
+			/* Play */
+			if (_asyncDmodel != null && _asyncDmodel.IsWaiting) {
+				UITextSet.StatusText.text = "Waiting for the server.";
+				return;
 			}
-			else {
-				/* Pause */
-				_vp.Pause();
-				UITextSet.StatusText.text = $"#{_currentFrame-_startFrame}/{_framecount-_startFrame}";
 
-				if (_asyncDmodel != null && _asyncDmodel.IsAvailable &&
-					ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn) 
-				{
-					_serverTexture = _vp.texture;
-
-					if (_serverTexture != null)
-						_asyncDmodel.Run(_serverTexture, OnDepthReady);
-				}
-
-				_dmesh.ShouldUpdateDepth = true;
-			}
+			_dmesh.ShouldUpdateDepth = false;
+			_vp.Play();
 		}
+		else {
+			/* Pause */
+			_vp.Pause();
+			UITextSet.StatusText.text = $"#{_currentFrame-_startFrame}/{_framecount-_startFrame}";
+
+			if (_asyncDmodel != null && _asyncDmodel.IsAvailable &&
+				ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn) 
+			{
+				_serverTexture = _vp.texture;
+
+				if (_serverTexture != null)
+					_asyncDmodel.Run(_serverTexture, OnDepthReady);
+			}
+
+			_dmesh.ShouldUpdateDepth = true;
+		}
+	}
+
+	public void Skip(float seconds) {
+		if (_ftype != FileTypes.Vid)
+			return;
+
+		if (seconds < 0 && _shouldUpdateArchive) {
+			Debug.LogWarning("Can't rewind the video when output is being saved and the depthfile is not full");
+			return;
+		}
+
+		_vp.time += seconds;
 	}
 
 	private void CallPython(string modelType) {
@@ -783,6 +802,19 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	public void SendMsg(string msg) {
 		switch (msg) {
+		case "Keypad4":
+			Skip(-5f);
+			break;
+
+		case "Keypad5":
+		case "PausePlay":
+			PausePlay();
+			break;
+
+		case "Keypad6":
+			Skip(+5f);
+			break;
+
 		case "record2048":
 			Debug.Log("Will generate a sequence of images. (2048px)");
 			_recordSize = 2048;
@@ -799,10 +831,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 			CallPython("dpt_hybrid_384");
 			break;
 		
-		case "PausePlay": //TODO: if there's another input that can be paused, move this to the interface
-			PausePlay();
-			break;
-
 		case "e": //save on the first frame
 			ExportParams(overwrite: true, init: true);
 			break;

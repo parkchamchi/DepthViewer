@@ -34,6 +34,7 @@ The depthmaps can be cached to a file so that it can be loaded later.
 - Right mouse key: hides the UI.
 - WASD: rotate the mesh.
 - Backtick `: opens the console.
+- Numpad 4/5/6: pause/skip the video.
 
 ## Models
 The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/releases/tag/v2_1), which is ideal for real-time rendering.

@@ -2,6 +2,8 @@ DepthViewer v0.8.2-beta
 
 Right mouse key: hides the UI.
 WASD: rotate the mesh.
+`: opens the console
+Numpad 4/5/6: Pause/Skip the video.
 
 For more, see:
 https://github.com/parkchamchi/DepthViewer
