@@ -623,6 +623,14 @@ public class MainBehavior : MonoBehaviour {
 	public void MeshToDefault() =>
 		_meshBehav.ToDefault();
 
+	public void MeshToPreset2() {
+		_meshBehav.ImportParams(
+			"ProjRatio=1\n"
+			+ "Scale=0.1\n"
+			+ "MeshLoc=140\n"
+		);
+	}
+
 	public void SetTargetValToNaN() =>
 		_meshBehav.TargetVal = System.Single.NaN;
 

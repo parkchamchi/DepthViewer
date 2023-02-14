@@ -116,6 +116,9 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 	private IDepthMesh _dmesh;
 	private string _paramname;
 
+	private ColorBlock _normalColorBlock;
+	private ColorBlock _outOfRangeColorBlock; //Set of colors for sliders whose value if out-of-range.
+
 	void Start() {
 		_dmesh = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_paramname = LabelText.text;
@@ -130,10 +133,18 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 
 		//Add itself to mesh's ParamChanged event
 		_dmesh.ParamChanged += OnParamChanged;
+
+		_normalColorBlock = ColorBlock.defaultColorBlock;
+		//Replace the color with the disabled one.
+		_outOfRangeColorBlock = ColorBlock.defaultColorBlock;
+		_outOfRangeColorBlock.normalColor = _outOfRangeColorBlock.pressedColor = _outOfRangeColorBlock.highlightedColor
+			= _outOfRangeColorBlock.disabledColor;
 	}
 
-	private void OnValueChanged() =>
+	private void OnValueChanged() {
 		_dmesh.SetParam(_paramname, Slider.value);
+		Slider.colors = _normalColorBlock;
+	}
 
 	private void OnParamChanged(string paramname, float value) {
 		/* This method is invoked when the mesh's property is changed, either by this slider or by external actor */
@@ -141,15 +152,21 @@ public class MeshSliderParentBehavior : SliderParentBehavior {
 		if (paramname != _paramname)
 			return;
 
-		if (value == Slider.value)
+		if (value == Slider.value) {
+			//The code below is for when the formal value was out-of-range
+			ValueText.text = value.ToString("0.##");
+			Slider.colors = _normalColorBlock;
 			return;
+		}
 		
 		//Value changed by other object
 		//Check if it is in the range of the slider
 		if (Slider.minValue <= value && value <= Slider.maxValue)
 			Slider.value = value;
-		else
+		else {
 			//otherwise just change the label
 			ValueText.text = value.ToString("0.##") + "*";
+			Slider.colors = _outOfRangeColorBlock; //Change the color
+		}
 	}
 }
