@@ -164,7 +164,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public float MeshLoc {
 		set {
 			_meshLoc = value;
-			transform.position = new Vector3(transform.position.x, transform.position.y, _defaultZ - value);
+			transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, _defaultZ - value);
 			ParamChanged?.Invoke("MeshLoc", value);
 		}
 
@@ -176,7 +176,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public float MeshX {
 		set {
 			_meshX = value;
-			transform.position = new Vector3(_defaultX - value, transform.position.y, transform.position.z);
+			transform.localPosition = new Vector3(_defaultX - value, transform.localPosition.y, transform.localPosition.z);
 			ParamChanged?.Invoke("MeshX", value);
 		}
 
@@ -188,7 +188,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	public float MeshY {
 		set {
 			_meshY = value;
-			transform.position = new Vector3(transform.position.x, _defaultY - value, transform.position.z);
+			transform.localPosition = new Vector3(transform.localPosition.x, _defaultY - value, transform.localPosition.z);
 			ParamChanged?.Invoke("MeshY", value);
 		}
 
