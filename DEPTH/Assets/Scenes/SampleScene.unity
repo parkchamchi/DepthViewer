@@ -1061,15 +1061,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Value
-      value: 125
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MaxValue
-      value: 250
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MinValue
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613530005837, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1085,11 +1085,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614509926141, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_text
-      value: DepthMult
+      value: DepthMultRL
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: DepthMultSliderParent
+      value: DepthMultRLSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -9702,11 +9702,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614509926141, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_text
-      value: MeshX
+      value: MeshHor
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: MeshXSliderParent
+      value: MeshHorSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -12853,7 +12853,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &999344021
 Transform:
   m_ObjectHideFlags: 0
@@ -13399,12 +13399,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
+      propertyPath: m_Value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MaxValue
-      value: 50
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MinValue
-      value: -50
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613530005837, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_AnchorMax.x
@@ -13420,11 +13424,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614509926141, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_text
-      value: MeshLoc
+      value: ScaleR
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: MeshLocSliderParent
+      value: ScaleRSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -14018,11 +14022,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614509926141, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_text
-      value: MeshY
+      value: MeshVer
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: MeshYSliderParent
+      value: MeshVerSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -19043,11 +19047,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &1535216244 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6266702184318999922, guid: 7d6393445d3fe504d8296e33f2e00969, type: 3}
-  m_PrefabInstance: {fileID: 6266702184984141250}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1535601163
 GameObject:
   m_ObjectHideFlags: 0
@@ -21816,7 +21815,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8870614494832623412, guid: dc691186236831241b1d54719d70a5b3, type: 3}
       propertyPath: m_Name
-      value: MeshLocMinMaxSetPanel
+      value: CamDistLMinMaxSetPanel
       objectReference: {fileID: 0}
     - target: {fileID: 8870614494832623413, guid: dc691186236831241b1d54719d70a5b3, type: 3}
       propertyPath: m_Pivot.x
@@ -21904,7 +21903,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8870614494936561884, guid: dc691186236831241b1d54719d70a5b3, type: 3}
       propertyPath: m_text
-      value: MeshLoc
+      value: CamDistL
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dc691186236831241b1d54719d70a5b3, type: 3}
@@ -23212,7 +23211,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1877760525}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -150}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -23876,51 +23875,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1970789043}
   m_CullTransparentMesh: 1
---- !u!1 &2006351292
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2006351293}
-  - component: {fileID: 2006351294}
-  m_Layer: 0
-  m_Name: DepthPlaneParent
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2006351293
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2006351292}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1535216244}
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2006351294
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2006351292}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67c891c16f3aaea4f94870c170316724, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2018748127
 GameObject:
   m_ObjectHideFlags: 0
@@ -24253,11 +24207,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MaxValue
-      value: 1.5
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613222316410, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_MinValue
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7186516613530005837, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_AnchorMax.x
@@ -24273,11 +24227,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614509926141, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_text
-      value: Scale
+      value: CamDistL
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463240, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Name
-      value: ScaleSliderParent
+      value: CamDistLSliderParent
       objectReference: {fileID: 0}
     - target: {fileID: 7186516614525463241, guid: bf7ab9ff2fc758c4bba741fa61c21173, type: 3}
       propertyPath: m_Pivot.x
@@ -25592,7 +25546,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
-    m_TransformParent: {fileID: 2006351293}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6266702184318999918, guid: 7d6393445d3fe504d8296e33f2e00969, type: 3}
       propertyPath: m_Name
@@ -25600,7 +25554,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6266702184318999922, guid: 7d6393445d3fe504d8296e33f2e00969, type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6266702184318999922, guid: 7d6393445d3fe504d8296e33f2e00969, type: 3}
       propertyPath: m_LocalPosition.x

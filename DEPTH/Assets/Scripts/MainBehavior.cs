@@ -134,6 +134,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
 		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
 		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
+		DebugLogConsole.AddCommandInstance("set_moveMeshByMouse", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
 
 		DebugLogConsole.AddCommandInstance("e", "Save the parameters for image/video inputs (on the first frame, force) (shorthand for `send_msg e`)", "SendMsgE", this);
 		DebugLogConsole.AddCommandInstance("ec", "Save the parameters for image/video inputs (on the current frame) (shorthand for `send_msg ec`)", "SendMsgEc", this);
@@ -675,6 +676,11 @@ public class MainBehavior : MonoBehaviour {
 	//Wrapper 
 	public void SetOnnxRuntimeParams(bool useCuda, int gpuId) =>
 		_depthModelBehav.SetOnnxRuntimeParams(useCuda, gpuId);
+
+	public void SetMoveMeshByMouse(bool value) {
+		Debug.Log($"Setting MoveMeshByMouse = {value}");
+		_meshBehav.MoveMeshByMouse = value;
+	}
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

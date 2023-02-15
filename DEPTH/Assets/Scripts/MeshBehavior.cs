@@ -86,15 +86,19 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private float[] _depths; //for UpdateDepth()
 
-	private float _width = 320; //canvas size
-	private float _height = 180;
+	private const float _width = 320; //canvas size
+	private const float _height = 180;
+	private const float _depthLength = 100; //i.e. 16:9:5
 
 	private int _x = 320; //pixels of the input
 	private int _y = 180;
 
 	private float _ratio = -1;
 
+	private Quaternion _rotation = Quaternion.identity;
 	private float _rotateSpeed = 75f;
+	public bool MoveMeshByMouse {set; private get;} = true;
+	private Vector3 _lastMousePos; //can't be null
 
 	private float _defaultZ;
 	private float _defaultX;
@@ -150,73 +154,91 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _beta;}
 	}
 
-	public const float DefaultDepthMult = 125f;
-	private float _depthMult = DefaultDepthMult;
-	public float DepthMult {
-		set {
-			_depthMult = value;
-			if (_shouldUpdateDepth) UpdateDepth();
-
-			ParamChanged?.Invoke("DepthMult", value);
-		}
-
-		get {return _depthMult;}
-	}
-
+	private float _localScaleZ {get {return transform.localScale.z;}} //should be same for all axis
 	private void LocalPositionUpdate() =>
-		transform.localPosition = new Vector3(_defaultX - _meshX, _defaultY - _meshY, _defaultZ - _meshLoc);
+		transform.position = new Vector3(_defaultX + _meshHor * _localScaleZ, _defaultY - _meshVer * _localScaleZ, _defaultZ + _camDist);
 
-	public const float DefaultMeshLoc = 0f;
-	private float _meshLoc = DefaultMeshLoc;
-	public float MeshLoc {
+	private const float _scalePerCamDist = (0.96f/150); //Scale (legacy) (shrinked a little (96%)) was 1 when CamDist (MeshLoc=0) was 150
+
+	public const float DefaultCamDist = 10f;
+	private float _camDist = DefaultCamDist;
+	public float CamDist {
 		set {
-			_meshLoc = value;
+			_camDist = value;
+			LocalPositionUpdate();
+
+			float localScale = _scalePerCamDist * value * _scaleR;
+			transform.localScale = Vector3.one * localScale;
+
+			if (_shouldUpdateDepth) UpdateDepth();
+			ParamChanged?.Invoke("CamDist", value);
+			ParamChanged?.Invoke("CamDistL", MathF.Log10(CamDist));
+		}
+
+		get {return _camDist;}
+	}
+	public float CamDistL {set {CamDist = MathF.Pow(10, value);} get {return MathF.Log10(CamDist);}} //Log10 version
+	public float MeshLoc {set {CamDist = 150 - value;}} //Legacy
+
+	public const float DefaultScaleR = 1f; //Relative
+	private float _scaleR = DefaultScaleR;
+	public float ScaleR {
+		set {
+			_scaleR = value;
+			float localScale = value * _scalePerCamDist * _camDist; //TODO: same as CamDist, can use a same subroutine
+			transform.localScale = Vector3.one * localScale;
+
+			if (_shouldUpdateDepth) UpdateDepth();
+			ParamChanged?.Invoke("ScaleR", value);
+		}
+
+		get {return _scaleR;}
+	}
+	public float Scale {set {ScaleR = value / _scalePerCamDist * _camDist;}} //Legacy
+	
+	public const float DefaultDepthMultR = 1f;
+	private float _depthMultR = DefaultDepthMultR;
+	public float DepthMultR {
+		set {
+			_depthMultR = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("DepthMultR", value);
+			ParamChanged?.Invoke("DepthMultRL", (value == 0) ? float.NegativeInfinity : MathF.Log10(value));
+		}
+
+		get {return _depthMultR;}
+	}
+	public float DepthMultRL {set {DepthMultR = (value <= -1) ? 0 : MathF.Pow(10, value);} get {return MathF.Log10(DepthMultR);}} //Log10 version. If value <= -1, just set to 0.
+	public float DepthMult {set {DepthMultR = value / transform.localScale.z;}} //Legacy: DepthMult was unity unit value, independent from Scale
+
+	public const float DefaultMeshHor = 0f;
+	private float _meshHor = DefaultMeshHor;
+	public float MeshHor {
+		set {
+			_meshHor = value;
 			LocalPositionUpdate();
 			if (_shouldUpdateDepth) UpdateDepth();
-			ParamChanged?.Invoke("MeshLoc", value);
+			ParamChanged?.Invoke("MeshHor", value);
 		}
 
-		get {return _meshLoc;}
+		get {return _meshHor;}
 	}
+	public float MeshX {set {MeshHor = value * _localScaleZ;}} //Legacy //TODO: const/property -ize the scale 
 
-	public const float DefaultMeshX = 0f;
-	private float _meshX = DefaultMeshX;
-	public float MeshX {
+	public const float DefaultMeshVer = 0f;
+	private float _meshVer = DefaultMeshVer;
+	public float MeshVer {
 		set {
-			_meshX = value;
+			_meshVer = value;
 			LocalPositionUpdate();
 			if (_shouldUpdateDepth) UpdateDepth();
-			ParamChanged?.Invoke("MeshX", value);
+			ParamChanged?.Invoke("MeshVer", value);
 		}
 
-		get {return _meshX;}
+		get {return _meshVer;}
 	}
-
-	public const float DefaultMeshY = 0f;
-	private float _meshY = DefaultMeshY;
-	public float MeshY {
-		set {
-			_meshY = value;
-			LocalPositionUpdate();
-			if (_shouldUpdateDepth) UpdateDepth();
-			ParamChanged?.Invoke("MeshY", value);
-		}
-
-		get {return _meshY;}
-	}
-
-	public const float DefaultScale = 1f;
-	private float _scale = DefaultScale;
-	public float Scale {
-		set {
-			_scale = value;
-			transform.localScale = new Vector3(value, value, transform.localScale.z);
-			//if (_shouldUpdateDepth) UpdateDepth();
-			ParamChanged?.Invoke("Scale", value);
-		}
-
-		get {return _scale;}
-	}
+	public float MeshY {set {MeshVer = value * _localScaleZ;}} //Legacy
 
 	public const float DefaultProjRatio = 0.5f;
 	private float _projRatio = DefaultProjRatio;
@@ -258,21 +280,18 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 
-	private float _cameraOffset = 150f; //How far the camera is from the mesh
-
 	public void ToDefault() {
 		Alpha = DefaultAlpha;
 		Beta = DefaultBeta;
-		DepthMult = DefaultDepthMult;
-		MeshLoc = DefaultMeshLoc;
-		Scale = DefaultScale;
-
 		ProjRatio = DefaultProjRatio;
+		CamDist = DefaultCamDist;
+		ScaleR = DefaultScaleR;
+		DepthMultR = DefaultDepthMultR;
+		
+		MeshHor = DefaultMeshHor;
+		MeshVer = DefaultMeshVer;
 
-		MeshX = DefaultMeshX;
-		MeshY = DefaultMeshY;
-
-		ResetRotation();
+		_rotation = Quaternion.identity;
 	}
 
 	void Start() {
@@ -283,17 +302,39 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		_material = GetComponent<MeshRenderer>().GetComponent<Renderer>().material;
 
-		_defaultZ = transform.position.z;
-		_defaultX = transform.position.x;
-		_defaultY = transform.position.y;
+		_defaultZ = transform.localPosition.z;
+		_defaultX = transform.localPosition.x;
+		_defaultY = transform.localPosition.y;
+
+		ToDefault();
 	}
 
 	void Update() {
 		float vInput = Input.GetAxis("Vertical") * _rotateSpeed;
 		float hInput = Input.GetAxis("Horizontal") * _rotateSpeed;
 
-		transform.Rotate(Vector3.left * vInput * Time.deltaTime);
-		transform.Rotate(Vector3.up * hInput * Time.deltaTime);
+		//The target rotation
+		if (vInput != 0 || hInput != 0) {
+			_rotation *= Quaternion.Euler(Vector3.left * vInput * Time.deltaTime);
+			_rotation *= Quaternion.Euler(Vector3.up * hInput * Time.deltaTime);
+			transform.localRotation = _rotation;
+		}
+
+		//Moving by mouse
+		if (MoveMeshByMouse) {
+			//Get the diff
+			Vector3 currentMousePos = Input.mousePosition;
+			Vector3 diff = currentMousePos - _lastMousePos;
+			_lastMousePos = currentMousePos;
+
+			diff = new Vector3(-diff.y, diff.x) / 32;
+			transform.Rotate(diff);
+		}
+	}
+
+	void FixedUpdate() {
+		//Restore rotation
+		transform.localRotation = Quaternion.Slerp(transform.localRotation, _rotation, .05f);
 	}
 
 	private void SetMeshSize(int x, int y, float ratio) {
@@ -397,7 +438,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
 		Vector3[] targetVertices = (_projRatio == 0) ? _vertices : _vertices_proj;
 
+		//Micro-optimizations...
 		bool isThresholdSet = (_threshold > 0);
+		float scale = _localScaleZ;
 		
 		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
 			float z = _depths[i];
@@ -407,7 +450,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			z = (1 / (_alpha * z + _beta)); //inverse
 			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
-			_vertices[i].z = z * _depthMult;
+			_vertices[i].z = z * _depthLength * _depthMultR;
 
 			if (_projRatio == 0) 
 				continue; //Continue without projecting
@@ -417,12 +460,12 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			For vertex p, we want the distance between p and z-axis (i.e. how far will p be from the center on camera) to be linearly related to the distance between p and the camera.
 			The difference between p.z and Camera.z is
-				p.cam_z_dist := _camOffset - MeshLoc + p.z
+				p.cam_z_dist := CamDist + p.z
 
 			Let's fix the location of vertices whose z are 0.
-			Let p' be the projection of p on plane z = (_camOffset - MeshLoc) (i.e. z_p = 0)
+			Let p' be the projection of p on plane z = CamDist (i.e. z_p = 0)
 			Since p.x = p'.x and p.y = p'.y,
-				tan (theta_p') = sqrt(p.x^2 + p.y^2) / (_camOffset - MeshLoc)
+				tan (theta_p') = sqrt(p.x^2 + p.y^2) / CamDist
 			
 			Using the same angle, if we let p" be the projection of p' on the original xy-plane of p,
 				tan (theta_p') = tan (theta_p") = p".r / p.cam_z_dist
@@ -437,7 +480,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			Vector3 p = _vertices[i];
 
-			float prop = (p.z * _projRatio - MeshLoc + _cameraOffset) / (-MeshLoc + _cameraOffset);
+			float prop = (p.z * scale * _projRatio + CamDist) / (CamDist); //multiply p.z by scale to get the absolute value
 			float orig_rad = MathF.Sqrt(p.x*p.x + p.y*p.y);
 			if (orig_rad == 0) orig_rad = 0.00001f; //Avoid divide-by-zero
 			float new_rad = prop * orig_rad;
@@ -513,9 +556,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			SetTexture(texture);
 	}
 
-	public void ResetRotation() =>
-		transform.localRotation = Quaternion.identity;
-
 	public void SetShader(MeshShaders shader) {
 		Shader targetshader = Shader.Find(shader.Name);
 		if (targetshader == null) {
@@ -561,7 +601,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public string ExportParams() {
 		string[] toexports = new string[] {
-			"Alpha", "Beta", "Scale", "MeshLoc", "DepthMult", "MeshX", "MeshY", "ProjRatio"
+			"Alpha", "Beta", "CamDistL", "ScaleR", "DepthMultR", "MeshX", "MeshY", "ProjRatio"
 		};
 
 		StringBuilder output = new StringBuilder();
