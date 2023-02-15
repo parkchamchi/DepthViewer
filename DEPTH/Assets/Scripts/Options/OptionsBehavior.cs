@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using TMPro;
 
 public class OptionsBehavior : MonoBehaviour {
-	//TODO: codes below repeats itself, make a seperate script to attach to each options & make them emit events or something
+	//TODO: remove wrappers in _mainBehav if it's not needed and generalize inputs
 
 	public GameObject ScrollView;
 
@@ -22,6 +22,8 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public Slider PCSizeSlider;
 
+	public Toggle OrtCudaToggle;
+
 	private MainBehavior _mainBehav;
 
 	void Start() {
@@ -33,7 +35,6 @@ public class OptionsBehavior : MonoBehaviour {
 	public void TogglePanel() {
 		ScrollView.SetActive(!ScrollView.activeSelf);
 	}
-
 
 	public void SetVideoSpeed() {
 		float mult;
@@ -93,4 +94,16 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnPCSizeSliderValueChanged() =>
 		_mainBehav.SetPointCloudSize(PCSizeSlider.value);
+
+	public void OpenRepoPage() =>
+		Application.OpenURL("https://github.com/parkchamchi/DepthViewer#models");
+
+	public void LoadBuiltin() =>
+		_mainBehav.LoadBuiltIn();
+	
+	public void LoadMidasV21() =>
+		_mainBehav.LoadModel("./onnx/model-f6b98070.onnx", true);
+
+	public void OnOrtCudaToggleValueChanged() =>
+		_mainBehav.SetOnnxRuntimeParams(OrtCudaToggle.isOn, 0);
 }

@@ -88,4 +88,4 @@ Assets/Packages.meta
 
 Assets/Plugins/OnnxRuntimeDlls/*/*.dll
 
-weights/*
+onnx/*

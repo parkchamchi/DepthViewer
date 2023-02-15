@@ -670,6 +670,10 @@ public class MainBehavior : MonoBehaviour {
 	public void SetPointCloudSize(float val) =>
 		_meshBehav.SetMaterialFloat("_PointSize", val);
 
+	//Wrapper 
+	public void SetOnnxRuntimeParams(bool useCuda, int gpuId) =>
+		_depthModelBehav.SetOnnxRuntimeParams(useCuda, gpuId);
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
