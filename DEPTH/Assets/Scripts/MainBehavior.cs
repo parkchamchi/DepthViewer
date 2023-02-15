@@ -329,6 +329,8 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 		_donnx?.Dispose();
 
+		UITextSet.StatusText.text = "RELOAD";
+
 		_donnx = _depthModelBehav.GetBuiltIn();
 
 		Debug.Log("Loaded the built-in model.");

@@ -21,7 +21,23 @@ shutil.copyfile(readmetxtpath, os.path.join(builddir, "README.txt"))
 
 print()
 
-print("#3. Locating the depthpy")
+print("#3. Making the onnx directory")
+
+onnxdir = os.path.join(builddir, "onnx")
+print(f"Creating {onnxdir}")
+os.mkdir(onnxdir)
+
+onnxdir_readme = os.path.join(onnxdir, "put onnx files here.txt")
+print(f"Creating {onnxdir_readme}")
+with open(onnxdir_readme, "wt") as fout:
+	fout.write('\n'.join([
+		"MiDaS v2.1 384 model (model-f6b98070.onnx) is here: https://github.com/isl-org/MiDaS/releases/tag/v2_1",
+		"See the GitHub Repo https://github.com/parkchamchi/DepthViewer#models for more.",
+	]))
+
+print()
+
+print("#4. Locating the depthpy")
 
 depthpydir = os.path.join(builddir, "depthpy")
 os.mkdir(depthpydir)
