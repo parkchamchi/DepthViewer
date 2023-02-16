@@ -3,10 +3,12 @@
 Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
 ## Try Now
-- [WebGL Demo](https://parkchamchi.github.io/DepthViewer/) ([WebXR version](https://parkchamchi.github.io/DepthViewer/vr_version/))
 - [Releases](https://github.com/parkchamchi/DepthViewer/releases)
 - [Steam Page](https://store.steampowered.com/app/2218510/DepthViewer/)
-- [Play Store (Yes, you can use your $5 cardboard)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
+
+### Outdated builds
+- [WebGL Demo](https://parkchamchi.github.io/DepthViewer/) ([WebXR version](https://parkchamchi.github.io/DepthViewer/vr_version/))
+- [Play Store (For Cardboards)](https://play.google.com/store/apps/details?id=com.parkchamchi.DepthViewer)
 
 ## Examples
 
