@@ -51,7 +51,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 	}
 
 	public void TogglePanel() {
-		MainPanel.SetActive(!MainPanel.activeSelf);
+		WindowManager.SetCurrentWindow(MainPanel);
 
 		if (MainPanel.activeSelf)
 			SetPanel();

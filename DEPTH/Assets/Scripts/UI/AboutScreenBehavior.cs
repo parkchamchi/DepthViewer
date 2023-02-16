@@ -15,7 +15,6 @@ public class AboutScreenBehavior : MonoBehaviour {
 		AboutText.text = AboutTextAsset.text;
 	}
 
-	public void ToggleScreen() {
-		AboutScreen.SetActive(!AboutScreen.activeSelf);
-	}
+	public void ToggleScreen() =>
+		WindowManager.SetCurrentWindow(AboutScreen);
 }

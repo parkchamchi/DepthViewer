@@ -37,9 +37,8 @@ public class OptionsBehavior : MonoBehaviour {
 		_mainBehav = GameObject.Find("MainManager").GetComponent<MainBehavior>();
 	}
 
-	public void TogglePanel() {
-		ScrollView.SetActive(!ScrollView.activeSelf);
-	}
+	public void TogglePanel() =>
+		WindowManager.SetCurrentWindow(ScrollView);
 
 	public void SetVideoSpeed() {
 		float mult;

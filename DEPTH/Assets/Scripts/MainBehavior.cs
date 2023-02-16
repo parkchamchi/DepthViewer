@@ -486,9 +486,8 @@ public class MainBehavior : MonoBehaviour {
 
 #endif
 
-	public void ToggleBrowseDirPanel() {
-		BrowseDirPanel.SetActive(!BrowseDirPanel.activeSelf);
-	}
+	public void ToggleBrowseDirPanel() =>
+		WindowManager.SetCurrentWindow(BrowseDirPanel);
 
 	public void ToggleBrowseDirRandom() {
 		_dirRandom = BrowseDirRandomToggle.isOn;
