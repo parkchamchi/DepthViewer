@@ -110,6 +110,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private MeshShaders _shader = MeshShaders.GetStandard();
 	private RenderTexture _rt; //for resizing texture (for point clouds)
 
+	private float _disappearRemainingSec = 0f; //for this seconds, make the mesh disappear (just set them aside)
+	private const float _disappearMaxSec = 0.2f;
+
 	public event System.Action<string, float> ParamChanged;
 
 	//TODO: Generalize the properties
@@ -156,7 +159,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private float _localScaleZ {get {return transform.localScale.z;}} //should be same for all axis
 	private void LocalPositionUpdate() =>
-		transform.position = new Vector3(_defaultX + _meshHor * _width * _localScaleZ, _defaultY - _meshVer * _height * _localScaleZ, _defaultZ + _camDist);
+		transform.localPosition = new Vector3(_defaultX + _meshHor * _width * _localScaleZ, _defaultY - _meshVer * _height * _localScaleZ, _defaultZ + _camDist);
 
 	private const float _scalePerCamDist = (0.96f/150); //Scale (legacy) (shrinked a little (96%)) was 1 when CamDist (MeshLoc=0) was 150
 
@@ -169,6 +172,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			float localScale = _scalePerCamDist * value * _scaleR;
 			transform.localScale = Vector3.one * localScale;
+
+			_disappearRemainingSec = _disappearMaxSec; //Make the mesh disappear for a moment
 
 			if (_shouldUpdateDepth) UpdateDepth();
 			ParamChanged?.Invoke("CamDist", value);
@@ -310,6 +315,15 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	}
 
 	void Update() {
+		if (_disappearRemainingSec > 0) {
+			_disappearRemainingSec -= Time.deltaTime; //This can be a negative value, but since it's always assigned from const it wouldn't matter
+
+			if (_disappearRemainingSec > 0)
+				transform.localPosition = new Vector3(_defaultX, _defaultY + 500, _defaultZ - 500); //Just move it to the back of the camera
+			else
+				LocalPositionUpdate(); //Restore
+		}
+
 		float vInput = Input.GetAxis("Vertical") * _rotateSpeed;
 		float hInput = Input.GetAxis("Horizontal") * _rotateSpeed;
 
