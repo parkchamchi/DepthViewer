@@ -167,7 +167,7 @@ public class MainBehavior : MonoBehaviour {
 		if (Input.GetMouseButtonDown(1))
 			HideUI();
 
-		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
+		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !UI.activeSelf || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
 			SetBrowseDir(Input.mouseScrollDelta.y < 0);
 
 		if (_texInputs != null) {
