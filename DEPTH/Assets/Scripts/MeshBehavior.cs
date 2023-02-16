@@ -601,7 +601,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public string ExportParams() {
 		string[] toexports = new string[] {
-			"Alpha", "Beta", "CamDistL", "ScaleR", "DepthMultR", "MeshX", "MeshY", "ProjRatio"
+			"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL", "MeshHor", "MeshVer"
 		};
 
 		StringBuilder output = new StringBuilder();
