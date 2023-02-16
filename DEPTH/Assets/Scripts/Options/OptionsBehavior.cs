@@ -21,8 +21,13 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Text LightStatusText;
 
 	public Slider PCSizeSlider;
-
 	public Toggle OrtCudaToggle;
+
+	public TMP_Dropdown ParamDropdown;
+	public TMP_InputField ParamMinInputField;
+	public TMP_InputField ParamMaxInputField;
+	public TMP_Text ParamMinMaxStatusText;
+	private Slider _targetSlider {get {return MeshSliderParents.Get(ParamDropdown.captionText.text).Slider;}}
 
 	private MainBehavior _mainBehav;
 
@@ -106,4 +111,36 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnOrtCudaToggleValueChanged() =>
 		_mainBehav.SetOnnxRuntimeParams(OrtCudaToggle.isOn, 0);
+
+	public void OnParamDropdownValueChanged() {
+		ParamMinInputField.text = _targetSlider.minValue.ToString();
+		ParamMaxInputField.text = _targetSlider.maxValue.ToString();
+
+		ParamMinMaxStatusText.text = "";
+	}
+
+	public void OnParamMinMaxSet() {
+		float min;
+		float max;
+
+		try {
+			min = float.Parse(ParamMinInputField.text);
+			max = float.Parse(ParamMaxInputField.text);
+		}
+		catch (System.FormatException) {
+			ParamMinMaxStatusText.text = "!";
+			return;
+		}
+
+		if (Utils.IsNaNInf(min) || Utils.IsNaNInf(max)) {
+			Debug.LogWarning($"OnParamMinMaxSet(): Got value ({min}, {max})");
+			ParamMinMaxStatusText.text = "?";
+			return;
+		}
+
+		_targetSlider.minValue = min;
+		_targetSlider.maxValue = max;
+
+		ParamMinMaxStatusText.text = "O";
+	}
 }

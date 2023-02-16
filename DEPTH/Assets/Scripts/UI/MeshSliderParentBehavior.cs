@@ -73,6 +73,11 @@ public static class MeshSliderParents {
 				continue;
 			}
 
+			if (Utils.IsNaNInf(minValue) || Utils.IsNaNInf(maxValue)) {	
+				Debug.LogWarning($"ImportMinMax(): param {paramname} has ({minValue}, {maxValue}) as value");
+				continue;
+			}
+
 			Slider target;
 
 			if (!_dict.ContainsKey(paramname)) {
@@ -99,13 +104,15 @@ public static class MeshSliderParents {
 	[ConsoleMethod("minmax_reset", "Reset the min/max values for the mesh sliders")]
 	public static void ResetMinMax() {
 		string input = @"
-			Scale 0.5 1.5
-			Beta 0.25 0.75
 			Alpha 0.01 2
-			MeshY -10 10
-			MeshLoc -50 50
-			MeshX -10 10
-			DepthMult 0 250
+			Beta 0.25 0.75
+			ProjRatio 0 1
+			CamDistL 0 2
+			ScaleR 0.5 1.5
+			DepthMultRL -1 1
+			
+			MeshHor -0.5 0.5
+			MeshVer -0.5 0.5
 		";
 
 		ImportMinMax(input);

@@ -99,4 +99,7 @@ public static class Utils {
 
 		File.WriteAllText(OptionsPath, output);
 	}
+
+	public static bool IsNaNInf(float val) =>
+		(float.IsNaN(val) || float.IsPositiveInfinity(val) || float.IsNegativeInfinity(val));
 }
