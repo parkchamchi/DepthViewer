@@ -14,7 +14,7 @@ public class MeshShaders {
 	public Dictionary<string, float> MaterialProperties {get; private set;} = null;
 
 	//For point clouds
-	public const float DefaultPointCloudSize = 0.6f;
+	public const float DefaultPointCloudSize = 0.05f;
 	private static readonly Dictionary<string, float> _pointCloudMatProps = new Dictionary<string, float> {
 		{"_PointSize", DefaultPointCloudSize}		
 	};
