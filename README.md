@@ -1,5 +1,5 @@
 # DepthViewer
-![vvvvvv3d](./examples/vvvvvv3d.jpg) \
+![main_image](./examples/main_image.jpg) \
 Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 2D videos/images into 3D object with Unity for VR.
 
 ## Try Now
@@ -12,14 +12,9 @@ Using [MiDaS Machine Learning Model](https://github.com/isl-org/MiDaS), renders 
 
 ## Examples
 
-| Original input (resized) | v2.1 small (built in) | Src |
-| --- | --- | --- |
-| ![landscape_orig](./examples/landscape_orig.jpg) | ![landscape_small](./examples/landscape_100.jpg) | [#](https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_%D0%86%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D0%BB%D1%83.jpg) |
-| ![mounts_orig](./examples/mounts_orig.jpg) | ![boat_small](./examples/mounts_100.jpg) | [#](https://pixnio.com/media/lake-dark-blue-glacier-mountain-peak-landscape) |
-
-| Original input (resized) | v2.1 small (built in) | dpt-large model | Src |
+| Original input (resized) | Plotted (MiDaS v2.1) | Projected | Src |
 | --- | --- | --- | --- |
-| ![cat_orig](./examples/cat_orig.gif) | ![cat_small](./examples/cat_100.gif) | ![cat_large](./examples/cat_400.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_kneading_blanket.gk.webm) |
+| ![example1_orig_resized](./examples/example1_orig_resized.jpg) | ![example1_plotted](./examples/example1_plotted.jpg) | ![example1_projected](./examples/example1_projected.gif) | [#](https://commons.wikimedia.org/wiki/File:Cat_on_a_cat_tree.webp)
 
 ## So what is this program?
 This program is essentially a depthmap plotter with an integrated depthmap inferer, with VR support.<br>
