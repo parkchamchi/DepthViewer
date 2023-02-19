@@ -43,7 +43,7 @@ public class OptionsBehavior : MonoBehaviour {
 		_mainBehav = GameObject.Find("MainManager").GetComponent<MainBehavior>();
 
 		LoadOnnxModelList();
-		OnParamDropdownValueChanged(); //init
+		//OnParamDropdownValueChanged();
 	}
 
 	public void TogglePanel() =>

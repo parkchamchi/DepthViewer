@@ -6558,8 +6558,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -272.21, y: -38.588417}
-  m_SizeDelta: {x: 407.34, y: 28.4573}
+  m_AnchoredPosition: {x: -258.93, y: -38.588417}
+  m_SizeDelta: {x: 433.9, y: 28.4573}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &443918673
 MonoBehaviour:
@@ -12508,8 +12508,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -272.34, y: -82.54699}
-  m_SizeDelta: {x: 407.59, y: 43.7943}
+  m_AnchoredPosition: {x: -259.05, y: -82.54699}
+  m_SizeDelta: {x: 434.16, y: 43.7943}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &895053758
 GameObject:
@@ -18350,8 +18350,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -272.2121, y: -6.9}
-  m_SizeDelta: {x: 407.3361, y: 30.0805}
+  m_AnchoredPosition: {x: -258.93, y: -6.9}
+  m_SizeDelta: {x: 433.91, y: 30.0805}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1327473578
 MonoBehaviour:
@@ -25902,8 +25902,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '"Recenter" button has buggy behavior
 
-    btw i use (ProjRatio=1, DepthMultRL=1)
-    for VR'
+    btw set ProjRatio and DepthMultRL
+    high for vr'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
   m_sharedMaterial: {fileID: 5431520781831604485, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
@@ -25930,8 +25930,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 15
+  m_fontSizeBase: 15
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
