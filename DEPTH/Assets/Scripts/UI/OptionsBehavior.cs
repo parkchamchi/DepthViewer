@@ -33,6 +33,10 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Text ParamMinMaxStatusText;
 	private Slider _targetSlider {get {return MeshSliderParents.Get(ParamDropdown.captionText.text).Slider;}}
 
+	public TMP_Dropdown DepthMapTypeDropdown;
+	public TMP_Dropdown DepthMapFormatDropdown;
+	public Toggle DepthMapResizeToggle;
+
 	private MainBehavior _mainBehav;
 
 	private const string _onnxdir = "./onnx";
@@ -44,6 +48,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 		LoadOnnxModelList();
 		//OnParamDropdownValueChanged();
+		OutputDirInputField.text = DepthFileUtils.SaveDir;
 	}
 
 	public void TogglePanel() =>
@@ -171,5 +176,81 @@ public class OptionsBehavior : MonoBehaviour {
 		_targetSlider.maxValue = max;
 
 		ParamMinMaxStatusText.text = "O";
+	}
+
+	public void OnDepthMapFormatDropdownValueChanged() {
+		string format = DepthMapFormatDropdown.captionText.text;
+
+		if (format == ".pgm") {
+			DepthMapResizeToggle.isOn = false;
+			DepthMapResizeToggle.interactable = false;
+		}
+		else {
+			DepthMapResizeToggle.interactable = true;
+		}
+	}
+
+	public void ExportDepthMap() {
+		string typestr = DepthMapTypeDropdown.captionText.text;
+		string format = DepthMapFormatDropdown.captionText.text;
+		bool resize = DepthMapResizeToggle.isOn;
+
+		typestr = typestr.ToLower();
+		DepthMapType type;
+		switch (typestr) {
+		case "inverse":
+			type = DepthMapType.Inverse;
+			break;
+		case "linear":
+			type = DepthMapType.Linear;
+			break;
+		default:
+			Debug.Log($"ExportDepthMap(): Got unknown typestr: {typestr}");
+			return;
+		}
+
+		int x, y;
+		float[] depths = _mainBehav.GetCurrentDepths(type, out x, out y);
+
+		if (depths == null) {
+			Debug.LogWarning("ExportDepthMap(): depths == null");
+			return;
+		}
+
+		byte[] data;
+
+		switch (format) {
+		case ".pgm":
+			data = DepthFileUtils.WritePGM(depths, x, y);
+			break;
+		case ".png":
+			Texture2D tex = Utils.DepthToTex(depths, x, y);
+
+			if (resize) {
+				int w, h;
+				_mainBehav.GetCurrentTextureSize(out w, out h);
+				
+				if (w != 0 && h != 0) {
+					Texture2D newtex = Utils.ResizeTexture(tex, w, h);
+					Destroy(tex);
+					tex = newtex;
+				}
+			}
+
+			data = tex.EncodeToPNG();
+			Destroy(tex);
+			break;
+		default:
+			Debug.LogError($"ExportDepthMap(): Got unsupported format {format}");
+			return;
+		}
+
+		string exportdir = $"{DepthFileUtils.SaveDir}/exports";
+		Utils.CreateDirectory(exportdir);
+
+		string filename = $"{exportdir}/{Utils.GetTimestamp()}{format}";
+		File.WriteAllBytes(filename, data);
+
+		Debug.Log($"Exported: {filename}");
 	}
 }

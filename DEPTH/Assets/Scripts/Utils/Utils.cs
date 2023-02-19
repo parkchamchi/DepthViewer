@@ -102,4 +102,42 @@ public static class Utils {
 
 	public static bool IsNaNInf(float val) =>
 		(float.IsNaN(val) || float.IsPositiveInfinity(val) || float.IsNegativeInfinity(val));
+
+	public static Texture2D DepthToTex(float[] depths, int x, int y) {
+		if (depths == null || x*y != depths.Length) {
+			Debug.LogError("DepthToPng: got invalid input");
+			return null;
+		}
+
+		Texture2D tex = new Texture2D(x, y);
+		for (int h = 0; h < y; h++) {
+			for (int w = 0; w < x; w++) {
+				float val = depths[(y-h-1)*x + w]; //Why is this flipped?
+				Color color = new Color(val, val, val, 1); //rgba
+				tex.SetPixel(w, h, color);
+			}
+		}
+		tex.Apply();
+
+		return tex;
+	}
+
+	public static Texture2D ResizeTexture(Texture tex, int w, int h) {
+		//Don't use this in loop since RenderTexture is expensive
+		//This doesn't destroy the original `tex`.
+
+		RenderTexture rt = new RenderTexture(w, h, 16);
+		Graphics.Blit(tex, rt); //tex -> rt
+
+		Texture2D newtex = new Texture2D(rt.width, rt.height);
+
+		//Move the resized texture
+		RenderTexture.active = rt;
+		newtex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+		RenderTexture.active = null;
+
+		rt.Release();
+
+		return newtex;
+	}
 }

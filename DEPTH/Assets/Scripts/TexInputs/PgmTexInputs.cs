@@ -18,6 +18,7 @@ public class PgmTexInputs : TexInputs {
 	private int _x, _y;
 
 	/* Sequential image file input */
+	//TODO: get this out of here & generalize it & make it be shared with `ImgVidDepthTexInputs`
 	public class SequentialImgInputBehav : SequentialInputBehav {
 		private PgmTexInputs _outer;
 		public SequentialImgInputBehav(PgmTexInputs outer) {_outer = outer;}

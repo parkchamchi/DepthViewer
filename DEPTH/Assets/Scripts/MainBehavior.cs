@@ -31,6 +31,7 @@ public enum FileTypes {
 public class MainBehavior : MonoBehaviour {
 
 	//TODO: seperate the file selection
+	//TODO: seperate the UI (Toggle, ...)
 
 	public TMP_InputField FilepathInputField;
 
@@ -681,6 +682,12 @@ public class MainBehavior : MonoBehaviour {
 		Debug.Log($"Setting MoveMeshByMouse = {value}");
 		_meshBehav.MoveMeshByMouse = value;
 	}
+
+	public float[] GetCurrentDepths(DepthMapType type, out int x, out int y) =>
+		_meshBehav.GetDepth(type, out x, out y);
+
+	public void GetCurrentTextureSize(out int w, out int h) =>
+		_meshBehav.GetTextureSize(out w, out h);
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

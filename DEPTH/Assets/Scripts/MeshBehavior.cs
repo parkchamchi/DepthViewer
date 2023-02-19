@@ -6,6 +6,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum DepthMapType {Inverse, Linear}
+
 public class MeshShaders {
 	public string Name {get; private set;}
 	public bool ShouldSetVertexColors {get; private set;}
@@ -648,5 +650,65 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 			SetParam(key, value);
 		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Depths
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	private float[] GetInverseDepth(out int x, out int y) {
+		//This exports the un-postprocessed output
+		if (_depths == null) {
+			x = y = 0;
+			return null;
+		}
+
+		x = _x;
+		y = _y;
+		return (float[]) _depths.Clone();
+	}
+
+	private float[] GetLinearDepth(out int x, out int y) {
+		//This exports the processed output (by Alpha and Beta)
+		if (_vertices == null) {
+			x = y = 0;
+			return null;
+		}
+
+		x = _x;
+		y = _y;
+
+		float[] linear = new float[_vertices.Length];
+		for (int i = 0; i < _vertices.Length; i++)
+			linear[i] = _vertices[i].z / _depthLength / _depthMultR;
+
+		return linear;
+	}
+
+	public float[] GetDepth(DepthMapType type, out int x, out int y) {
+		switch (type) {
+		case DepthMapType.Inverse:
+			return GetInverseDepth(out x, out y);
+		case DepthMapType.Linear:
+			return GetLinearDepth(out x, out y);
+		default:
+			Debug.LogError($"Got unknown DepthMapType: {type}");
+			x = y = 0;
+			return null;
+		}
+	}
+
+	public void GetTextureSize(out int w, out int h) {
+		Texture tex = _material.mainTexture;
+
+		if (tex == null) {
+			w = h = 0;
+			return;
+		}
+
+		w = tex.width;
+		h = tex.height;
+
+		return;
 	}
 }
