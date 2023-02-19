@@ -21,7 +21,11 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Text LightStatusText;
 
 	public Slider PCSizeSlider;
+
+	public Toggle UseOrtToggle;
 	public Toggle OrtCudaToggle;
+	public TMP_Dropdown OnnxDropdown;
+	public TMP_Text CurrentModelText;
 
 	public TMP_Dropdown ParamDropdown;
 	public TMP_InputField ParamMinInputField;
@@ -31,10 +35,15 @@ public class OptionsBehavior : MonoBehaviour {
 
 	private MainBehavior _mainBehav;
 
+	private const string _onnxdir = "./onnx";
+
 	void Start() {
 		ScrollView.SetActive(false);
 
 		_mainBehav = GameObject.Find("MainManager").GetComponent<MainBehavior>();
+
+		LoadOnnxModelList();
+		OnParamDropdownValueChanged(); //init
 	}
 
 	public void TogglePanel() =>
@@ -102,14 +111,35 @@ public class OptionsBehavior : MonoBehaviour {
 	public void OpenRepoPage() =>
 		Application.OpenURL("https://github.com/parkchamchi/DepthViewer#models");
 
-	public void LoadBuiltin() =>
+	public void LoadBuiltin() {
 		_mainBehav.LoadBuiltIn();
-	
-	public void LoadMidasV21() =>
-		_mainBehav.LoadModel("./onnx/model-f6b98070.onnx", true);
+
+		CurrentModelText.text = "Built-in";
+	}
+
+	public void LoadModel() {
+		string path = OnnxDropdown.captionText.text;
+		path = Path.Join(_onnxdir, path+".onnx");
+
+		bool useOrt = UseOrtToggle.isOn;
+
+		_mainBehav.LoadModel(path, useOrt);
+
+		CurrentModelText.text = _mainBehav.GetCurrentModelType();
+	}
 
 	public void OnOrtCudaToggleValueChanged() =>
 		_mainBehav.SetOnnxRuntimeParams(OrtCudaToggle.isOn, 0);
+
+	public void LoadOnnxModelList() {
+		string[] onnxfiles = Directory.GetFiles(_onnxdir, "*.onnx");
+		List<string> onnxBasenames = new List<string>();
+		foreach (string onnxfile in onnxfiles)
+			onnxBasenames.Add(Path.GetFileNameWithoutExtension(onnxfile));
+
+		OnnxDropdown.ClearOptions();
+		OnnxDropdown.AddOptions(onnxBasenames);
+	}
 
 	public void OnParamDropdownValueChanged() {
 		ParamMinInputField.text = _targetSlider.minValue.ToString();

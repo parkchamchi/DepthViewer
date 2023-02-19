@@ -30,6 +30,8 @@ public enum FileTypes {
 
 public class MainBehavior : MonoBehaviour {
 
+	//TODO: seperate the file selection
+
 	public TMP_InputField FilepathInputField;
 
 	public Toggle OutputSaveToggle;
@@ -637,14 +639,6 @@ public class MainBehavior : MonoBehaviour {
 	public void MeshToDefault() =>
 		_meshBehav.ToDefault();
 
-	public void MeshToPreset2() {
-		_meshBehav.ImportParams(
-			"ProjRatio=1\n"
-			+ "Scale=0.1\n"
-			+ "MeshLoc=140\n"
-		);
-	}
-
 	public void SetTargetValToNaN() =>
 		_meshBehav.TargetVal = System.Single.NaN;
 
@@ -675,6 +669,13 @@ public class MainBehavior : MonoBehaviour {
 	//Wrapper 
 	public void SetOnnxRuntimeParams(bool useCuda, int gpuId) =>
 		_depthModelBehav.SetOnnxRuntimeParams(useCuda, gpuId);
+
+	public string GetCurrentModelType() {
+		if (_donnx == null)
+			return "null";
+
+		return _donnx.ModelType;
+	}
 
 	public void SetMoveMeshByMouse(bool value) {
 		Debug.Log($"Setting MoveMeshByMouse = {value}");
