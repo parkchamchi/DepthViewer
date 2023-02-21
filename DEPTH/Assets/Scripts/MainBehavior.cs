@@ -244,6 +244,7 @@ public class MainBehavior : MonoBehaviour {
 			Check if the depth file exists & load it if if exists.
 			If new image/video was selected and the previous one was a video, save it.
 		*/
+		//TODO: Uncouple tihs with `FilepathInputField`
 
 		if (_serverBehav.IsWaiting) {
 			UITextSet.StatusText.text = "Waiting for the server...";
