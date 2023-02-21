@@ -168,7 +168,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		//Check if the file was processed
 		if (_searchCache)
-			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval);
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, _dmodel.ModelType);
 		else
 			_depthFilePath = null; //redundant, set in Cleanup()
 
@@ -262,7 +262,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		/* Check if the processed file exists */
 		if (_searchCache)
-			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval);
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, _dmodel.ModelType);
 		else
 			_depthFilePath = null; //redundant, set in Cleanup()
 
@@ -360,7 +360,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		/* Now read the saved depths */
 		if (_depthFilePath == null && _hasCreatedArchive) {
-			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, out _);
+			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, _dmodel.ModelType);
 		}
 
 		vp.Play();
@@ -741,6 +741,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_vp.time += seconds;
 	}
 
+	//Not used anymore
 	private void CallPython(string modelType) {
 		if (_ftype != FileTypes.Img && _ftype != FileTypes.Vid)
 			return;
@@ -750,7 +751,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		string isImage = (_ftype == FileTypes.Img) ? " -i " : " ";
 		string modelTypeString = modelType.ToString();
 
-		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval, modelTypeVal: 1);
+		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval,modelType);
 
 		System.Diagnostics.Process.Start(Utils.PythonPath, $"\"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
 	}

@@ -104,7 +104,7 @@ public static class DepthFileUtils {
 			version: Version
 		);
 
-		string output_filepath = GetDepthFileName(orig_basename, hashval);
+		string output_filepath = GetDepthFileName(orig_basename, hashval, model_type);
 		if (_archive != null) _archive.Dispose();
 
 		_archiveMode = ZipArchiveMode.Update;
@@ -118,14 +118,12 @@ public static class DepthFileUtils {
 		_isFull = false;
 	}
 
-	public static string GetDepthFileName(string orig_basename, string hashval, int modelTypeVal=0) {
-		//If there are several depthfiles with the same hashval, the one with the highest model_type_val is loaded. Since it's not used anymore just set it to 0.
-
+	public static string GetDepthFileName(string orig_basename, string hashval, string modelTypeStr) {
 		orig_basename = Path.GetFileName(orig_basename);
 		
-		string output_filepath = $"{orig_basename}.{modelTypeVal}.{hashval}{DepthExt}";
+		string output_filepath = $"{orig_basename}.{modelTypeStr}.{hashval}{DepthExt}";
 		if (output_filepath.Length > 250) //if it's too long, omit the orig basename
-			output_filepath = $"{modelTypeVal}.{hashval}{DepthExt}";
+			output_filepath = $"{modelTypeStr}.{hashval}{DepthExt}";
 
 		output_filepath = DepthDir + '/' + output_filepath;
 
@@ -175,31 +173,22 @@ public static class DepthFileUtils {
 			sw.Write(metadata);
 	}
 
-	public static string ProcessedDepthFileExists(string hashval) =>
-		ProcessedDepthFileExists(hashval, out _);
-
-	public static string ProcessedDepthFileExists(string hashval, out int maxModelTypeVal) {
+	public static string ProcessedDepthFileExists(string hashval, string modelTypeStr) {
 		/* 
 			Returns a list of paths of processed depth files.
-			filename format: [basename].modelval.hash64len.ext
+			filename format: [basename].modelTypeStr.hash64len.ext
+
+			Now only returns the filename when modelTypeStr matches
 		*/
-		maxModelTypeVal = -1;
-		string finalFile = null;
 
 		if (hashval == null) return null;
+		if (modelTypeStr == null) modelTypeStr = "";
 
 		foreach (string filename in Directory.GetFiles(DepthDir))
-			if (filename.EndsWith($"{hashval}{DepthExt}")) {
-				string[] tokens = Path.GetFileName(filename).Split('.');
-				int modelTypeVal = int.Parse(tokens[tokens.Length-3]);
-				
-				if (modelTypeVal > maxModelTypeVal) {
-					finalFile = filename;
-					maxModelTypeVal = modelTypeVal;
-				}
-			}
-
-		return finalFile;
+			if (filename.EndsWith($"{modelTypeStr}.{hashval}{DepthExt}"))
+				return filename;
+			
+		return null;
 	}
 
 	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val,

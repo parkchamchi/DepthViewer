@@ -349,13 +349,7 @@ public class MainBehavior : MonoBehaviour {
 
 		Debug.Log($"Loading model: {onnxpath}");
 
-		string modelTypeStr = Path.GetFileName(onnxpath);
-		if (useOnnxRuntime) {
-			modelTypeStr += ":OnnxRuntime";
-
-			if (_depthModelBehav.OnnxRuntimeUseCuda)
-				modelTypeStr += $":CUDA on {_depthModelBehav.OnnxRuntimeGpuId}";
-		}
+		string modelTypeStr = Path.GetFileNameWithoutExtension(onnxpath);
 
 		try {
 			_donnx = _depthModelBehav.GetDepthModel(onnxpath, modelTypeStr, useOnnxRuntime: useOnnxRuntime);
