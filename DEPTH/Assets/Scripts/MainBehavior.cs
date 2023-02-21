@@ -140,6 +140,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
 
 		DebugLogConsole.AddCommandInstance("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
+		DebugLogConsole.AddCommandInstance("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
 		DebugLogConsole.AddCommandInstance("stopwiggle", "Stop wiggling", "StopWiggle", this);
 
 		DebugLogConsole.AddCommandInstance("e", "Save the parameters for image/video inputs (on the first frame, force) (shorthand for `send_msg e`)", "SendMsgE", this);
@@ -688,8 +689,13 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.GetTextureSize(out w, out h);
 
 	public void Wiggle(float intervalScale, float horAngle, float verAngle) {
-		Debug.Log($"Wiggling: ({intervalScale}, {horAngle}, {verAngle})");
+		Debug.Log($"Wiggling: {intervalScale}, ({horAngle}, {verAngle})");
 		_meshBehav.MeshWiggler = new Wiggler(intervalScale, horAngle, verAngle);
+	}
+
+	public void Wiggle4(float intervalScale, float leftAngle, float rightAngle, float upAngle, float downAngle) {
+		Debug.Log($"Wiggling: {intervalScale}, ({leftAngle}, {rightAngle}, {upAngle} {downAngle})");
+		_meshBehav.MeshWiggler = new Wiggler(intervalScale, leftAngle, rightAngle, upAngle, downAngle);
 	}
 
 	public void StopWiggle() {

@@ -79,19 +79,37 @@ public interface IDepthMesh {
 
 public class Wiggler {
 	private float _intervalScale; //Relative
-	private float _horAngle;
-	private float _verAngle;
+	
+	private float _leftAngle;
+	private float _rightAngle;
+	private float _upAngle;
+	private float _downAngle;
 
 	public Wiggler(float intervalScale, float horAngle, float verAngle) {
 		_intervalScale = intervalScale;
-		_horAngle = horAngle;
-		_verAngle = verAngle;
+		_leftAngle = _rightAngle = horAngle;
+		_upAngle = _downAngle = verAngle;
+	}
+
+	public Wiggler(float intervalScale, float leftAngle, float rightAngle, float upAngle, float downAngle) {
+		_intervalScale = intervalScale;
+
+		_leftAngle = leftAngle;
+		_rightAngle = rightAngle;
+		_upAngle = upAngle;
+		_downAngle = downAngle;
 	}
 
 	public Quaternion GetRotation() {
+		//There can be a better method, especially for four params
+
 		float curangle = Time.time * _intervalScale % (2 * MathF.PI);
-		float x_rot = MathF.Cos(curangle) * _verAngle;
-		float y_rot = MathF.Sin(curangle) * _horAngle;
+
+		float x_rot = MathF.Cos(curangle);
+		x_rot *= (x_rot > 0) ? _downAngle : _upAngle;
+
+		float y_rot = MathF.Sin(curangle);
+		y_rot *= (y_rot > 0) ? _rightAngle : _leftAngle;
 
 		return Quaternion.Euler(x_rot, y_rot, 0);
 	}
