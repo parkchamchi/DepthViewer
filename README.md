@@ -38,44 +38,15 @@ The built-in model is [MiDaS v2.1 small model](https://github.com/isl-org/MiDaS/
 
 ### Loading ONNX models
 
-### Tested onnx files:
+#### Tested onnx files:
 - [MiDaS v2.1 384 (`model-f6b98070.onnx`)](https://github.com/isl-org/MiDaS/releases/tag/v2_1)
 - [MiDaS v3 models (unofficial)](https://github.com/parkchamchi/MiDaS/releases/tag/22.12.07)
 - [MiDaS v3.1 models (unofficial)](https://github.com/parkchamchi/MiDaS/releases/tag/23.02.18)
 
 From my experience `dpt_hybrid_384` seems to be more robust against drawn images (i.e. non-photos)
 
-#### On the options menu
-- Put the onnx files under `onnx` directory.
+- Put the onnx files under the `onnx` directory.
 - Open this options menu and select the file and click the `Load` button
-
-#### On the console
-
-Open the console and insert
-```xml
-load_model <onnx_path> true
-```
-`false` uses Unity's Barracuda and `true` uses OnnxRuntime.<br>
-<br>
-
-To make OnnxRuntime to use CUDA (takes effect in the next load),
-```
-set_onnxruntime_params true 0
-```
-The final `0` is the id of GPU.<br>
-<br>
-
-To load the built-in model,
-```
-load_builtin
-```
-<br>
-
-To see the current model,
-```
-print_model_type
-```
-<br>
 
 ### Using depth.py and depthserver.py (OPTIONAL)
 #### This section is not needed anymore, just use the onnx files...
