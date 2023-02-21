@@ -77,6 +77,26 @@ public interface IDepthMesh {
 	void ImportParams(string paramstr);
 }
 
+public class Wiggler {
+	private float _intervalScale; //Relative
+	private float _horAngle;
+	private float _verAngle;
+
+	public Wiggler(float intervalScale, float horAngle, float verAngle) {
+		_intervalScale = intervalScale;
+		_horAngle = horAngle;
+		_verAngle = verAngle;
+	}
+
+	public Quaternion GetRotation() {
+		float curangle = Time.time * _intervalScale % (2 * MathF.PI);
+		float x_rot = MathF.Cos(curangle) * _verAngle;
+		float y_rot = MathF.Sin(curangle) * _horAngle;
+
+		return Quaternion.Euler(x_rot, y_rot, 0);
+	}
+}
+
 public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private Mesh _mesh;
@@ -101,6 +121,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private float _rotateSpeed = 75f;
 	public bool MoveMeshByMouse {set; private get;} = true;
 	private Vector3 _lastMousePos; //can't be null
+
+	public Wiggler MeshWiggler {set; private get;} = null;
 
 	private float _defaultZ;
 	private float _defaultX;
@@ -326,31 +348,39 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 				LocalPositionUpdate(); //Restore
 		}
 
-		float vInput = Input.GetAxis("Vertical") * _rotateSpeed;
-		float hInput = Input.GetAxis("Horizontal") * _rotateSpeed;
+		if (MeshWiggler == null) {
+			float vInput = Input.GetAxis("Vertical") * _rotateSpeed;
+			float hInput = Input.GetAxis("Horizontal") * _rotateSpeed;
 
-		//The target rotation
-		if (vInput != 0 || hInput != 0) {
-			_rotation *= Quaternion.Euler(Vector3.left * vInput * Time.deltaTime);
-			_rotation *= Quaternion.Euler(Vector3.up * hInput * Time.deltaTime);
-			transform.localRotation = _rotation;
+			//The target rotation
+			if (vInput != 0 || hInput != 0) {
+				_rotation *= Quaternion.Euler(Vector3.left * vInput * Time.deltaTime);
+				_rotation *= Quaternion.Euler(Vector3.up * hInput * Time.deltaTime);
+				transform.localRotation = _rotation;
+			}
+
+			//Moving by mouse
+			if (MoveMeshByMouse) {
+				//Get the diff
+				Vector3 currentMousePos = Input.mousePosition;
+				Vector3 diff = currentMousePos - _lastMousePos;
+				_lastMousePos = currentMousePos;
+
+				diff = new Vector3(-diff.y, diff.x) / 32;
+				transform.Rotate(diff);
+			}
 		}
-
-		//Moving by mouse
-		if (MoveMeshByMouse) {
-			//Get the diff
-			Vector3 currentMousePos = Input.mousePosition;
-			Vector3 diff = currentMousePos - _lastMousePos;
-			_lastMousePos = currentMousePos;
-
-			diff = new Vector3(-diff.y, diff.x) / 32;
-			transform.Rotate(diff);
+		else {
+			//Predefined movement
+			transform.localRotation = MeshWiggler.GetRotation();
 		}
 	}
 
 	void FixedUpdate() {
 		//Restore rotation
-		transform.localRotation = Quaternion.Slerp(transform.localRotation, _rotation, .05f);
+		if (MeshWiggler == null) {
+			transform.localRotation = Quaternion.Slerp(transform.localRotation, _rotation, .05f);
+		}
 	}
 
 	private void SetMeshSize(int x, int y, float ratio) {

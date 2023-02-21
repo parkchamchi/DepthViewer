@@ -137,7 +137,10 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
 		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
 		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
-		DebugLogConsole.AddCommandInstance("set_moveMeshByMouse", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
+		DebugLogConsole.AddCommandInstance("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
+
+		DebugLogConsole.AddCommandInstance("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
+		DebugLogConsole.AddCommandInstance("stopwiggle", "Stop wiggling", "StopWiggle", this);
 
 		DebugLogConsole.AddCommandInstance("e", "Save the parameters for image/video inputs (on the first frame, force) (shorthand for `send_msg e`)", "SendMsgE", this);
 		DebugLogConsole.AddCommandInstance("ec", "Save the parameters for image/video inputs (on the current frame) (shorthand for `send_msg ec`)", "SendMsgEc", this);
@@ -683,6 +686,16 @@ public class MainBehavior : MonoBehaviour {
 
 	public void GetCurrentTextureSize(out int w, out int h) =>
 		_meshBehav.GetTextureSize(out w, out h);
+
+	public void Wiggle(float intervalScale, float horAngle, float verAngle) {
+		Debug.Log($"Wiggling: ({intervalScale}, {horAngle}, {verAngle})");
+		_meshBehav.MeshWiggler = new Wiggler(intervalScale, horAngle, verAngle);
+	}
+
+	public void StopWiggle() {
+		Debug.Log("Stopping the wiggling movement...");
+		_meshBehav.MeshWiggler = null;
+	}
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
