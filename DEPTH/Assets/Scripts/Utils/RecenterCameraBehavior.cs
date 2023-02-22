@@ -12,18 +12,18 @@ public class RecenterCameraBehavior : MonoBehaviour {
 	private Quaternion _origRotation;
 
 	void Start() {
-		//_origPosition = TargetParent.transform.localPosition;
 		_origRotation = TargetParent.transform.rotation;
 	}
 
 	public void Reset() {
-		//TargetParent.transform.localPosition = _origPosition;
 		TargetParent.transform.rotation = _origRotation;
 	}
 
 	public void Recenter() {
 		/* Add offset of position & rotation */
-		//TargetParent.transform.localPosition -= TargetCamera.transform.localPosition;
-		TargetParent.transform.rotation *=  Quaternion.Inverse(TargetCamera.transform.rotation);
+		Reset();
+		Quaternion offset = TargetCamera.transform.rotation;
+		offset.eulerAngles = new Vector3(offset.eulerAngles.x, offset.eulerAngles.y, 0); //ignore z axis (yaw)
+		TargetParent.transform.rotation *=  Quaternion.Inverse(offset);
 	}
 }

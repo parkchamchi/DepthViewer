@@ -27423,10 +27423,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '"Recenter" button has buggy behavior
-
-    btw set ProjRatio and DepthMultRL
-    high for vr'
+  m_text: Set ProjRatio and DepthMultRL high for VR HMDs
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
   m_sharedMaterial: {fileID: 5431520781831604485, guid: df4f53b4fe982744aa29f8823e36b21c, type: 2}
