@@ -59,7 +59,4 @@ public class GifTexInputs : TexInputs {
 		GifPlayer.Release();
 		_dmodel = null;
 	}
-
-	public SequentialInputBehav SeqInputBehav {get {return null;}}
-	public void SendMsg(string msg) {}
 }

@@ -46,9 +46,6 @@ public class OnlineTexInputs : TexInputs {
 		_dmesh.SetScene(depths, texture);
 	}
 
-	public SequentialInputBehav SeqInputBehav {get {return null;}}
-	public void SendMsg(string msg) {}
-
 	public void Dispose() {
 		_otex.Dispose();
 		_otex = null;

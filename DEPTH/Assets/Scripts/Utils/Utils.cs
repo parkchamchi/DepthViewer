@@ -10,11 +10,6 @@ using IngameDebugConsole;
 
 public static class Utils {
 	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
-	public static string PythonPath {get; set;} = "python"; //virtually not used anymore
-
-	[ConsoleMethod("set_python_path", "Set the path for python, which were used for the Call Python buttons (replaced by `send_msg CallPythonHybrid` and `...Large`)")]
-	public static void SetPythonPath(string path) =>
-		PythonPath = path;
 
 	public static Texture2D LoadImage(string path) {
 		if (!File.Exists(path)) {

@@ -11,24 +11,15 @@ using TMPro;
 
 public class ImgVidDepthTexInputs : TexInputs {
 
-	public class TexInputBehav : SequentialInputBehav {
-		private ImgVidDepthTexInputs _outer;
-		public TexInputBehav(ImgVidDepthTexInputs outer) {_outer = outer;}
-
-		public bool WaitingSequentialInput {
-			get {return _outer._ftype == FileTypes.Depth && !_outer._recording;}
+	public bool WaitingSequentialInput {get {return _ftype == FileTypes.Depth;}} //Depthfile inputs need a sequential input
+	public void SequentialInput(string filepath, FileTypes ftype) {
+		if (!WaitingSequentialInput) {
+			Debug.LogError($"SequentialInput() called when !WaitingSequentialInput");
+			return;
 		}
-		public void SequentialInput(string filepath, FileTypes ftype) {
-			if (_outer._ftype != FileTypes.Depth ||_outer. _recording) {
-				Debug.LogError($"SequentialInput() called when _ftype == {_outer._ftype} and _recording == {_outer._recording}");
-				return;
-			}
 
-			_outer.DepthFileInput(filepath, ftype);
-		}
+		DepthFileInput(filepath, ftype);
 	}
-	private TexInputBehav _texInputBehav;
-	public SequentialInputBehav SeqInputBehav {get {return _texInputBehav;}}
 
 	private FileTypes _ftype;
 	private DepthModel _dmodel;
@@ -41,7 +32,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	private string _orig_filepath;
 	private string _hashval;
-	//private int _x, _y; //is this needed?
 
 	private bool _searchCache;
 	private bool _canUpdateArchive; //user option; The params will be saved if this is `true`.
@@ -63,8 +53,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private Dictionary<string, string> _metadata;
 
 	/* For depthfile input */
-	private string _depthfileCompareText;
-	private int _recordSize; //if positive, it will generate a sequence of images
 	private bool _recording;
 	private bool _shouldCapture;
 	private string _recordPath;
@@ -100,28 +88,27 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_vrrecord = vrrecord;
 		_asyncDmodel = asyncDmodel;
 
+		_recording = false;
+		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
+
 		_vp = vp;
 		_vp.frameReady += OnFrameReady;
 		_vp.errorReceived += OnVideoError;
 		_vp.loopPointReached += OnLoopPointReached;
 
-		_texInputBehav = new TexInputBehav(this);
-
 		_paramsDictChanged = false;
 
 		_processedFrames = new List<Task>();
-		/* Img & Vid can be cached */
-		if (ftype == FileTypes.Img || ftype == FileTypes.Vid) {
-			if (_canUpdateArchive) //assign & compare
-				UITextSet.OutputSaveText.text = "Will be saved.";
-			else
-				UITextSet.OutputSaveText.text = "Won't be saved.";
 
-			if (_searchCache || _canUpdateArchive) {
-				UITextSet.StatusText.text = "Hashing.";
-				_hashval = Utils.GetHashval(filepath);
-				UITextSet.StatusText.text = "Hashed.";
-			}
+		if (_canUpdateArchive) //assign & compare
+			UITextSet.OutputSaveText.text = "Will be saved.";
+		else
+			UITextSet.OutputSaveText.text = "Won't be saved.";
+
+		if (_searchCache || _canUpdateArchive) {
+			UITextSet.StatusText.text = "Hashing.";
+			_hashval = Utils.GetHashval(filepath);
+			UITextSet.StatusText.text = "Hashed.";
 		}
 
 		switch (ftype) {
@@ -167,10 +154,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		Depth depth = null;
 
 		//Check if the file was processed
-		if (_searchCache)
+		if (_searchCache && _depthFilePath == null) //_depthFilePath could be assigned elsewhere if it's depthfile input
 			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, _dmodel.ModelType);
-		else
-			_depthFilePath = null; //redundant, set in Cleanup()
 
 		if (_depthFilePath != null) {
 			string modelType;
@@ -258,10 +243,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		/* _orig_width, _orig_height, & framecount should be set when the frame is recieved!*/
 
 		/* Check if the processed file exists */
-		if (_searchCache)
+		if (_searchCache && _depthFilePath == null) //_depthFilePath could be assigned elsewhere if it's depthfile input
 			_depthFilePath = DepthFileUtils.ProcessedDepthFileExists(_hashval, _dmodel.ModelType);
-		else
-			_depthFilePath = null; //redundant, set in Cleanup()
 
 		if (_depthFilePath != null) {
 			string modelType;
@@ -300,14 +283,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	public void UpdateTex() {
-		switch (_ftype) {
-		case FileTypes.Vid:
-			UpdateVid();
-			break;
-		case FileTypes.Depth:
-			UpdateDepthfileInput();
-			break;
+		if (_recording) {
+			UpdateRecording();
+			return;
 		}
+
+		if (_ftype == FileTypes.Vid)
+			UpdateVid();
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -318,11 +300,11 @@ public class ImgVidDepthTexInputs : TexInputs {
 		For _currentFrame, subtract this so that the first frame is always 0.
 		*/
 		/*
-		Also called when _recording, after _startFrame is set.
+		Also called when _recording (called after the non-`_recording` block is executed)
 		*/
 
-		if (_ftype == FileTypes.Depth && _recording) {
-			DepthFileFrameReady();
+		if (_recording) {
+			RecordingFrameReady();
 			return;
 		}
 
@@ -337,18 +319,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 		
 		//Disable
 		vp.sendFrameReadyEvents = false;
-
-		if (_ftype == FileTypes.Depth) {
-			vp.Stop();
-			DepthFileAfterFirstFrame();
-		}
 	}
 
 	private void OnLoopPointReached(VideoPlayer vp) {
 		vp.Stop();
 
 		/* Does not work (why?)
-		if (_currentFileType == FileTypes.Depth && _recording) {
+		if (_currentFileType == FileTypes.Vid && _recording) {
 			DepthFileEnded();
 			return;
 		}*/
@@ -364,7 +341,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	private void UpdateVid() {
-		if (_ftype != FileTypes.Vid && _ftype != FileTypes.Depth) return;
+		if (_ftype != FileTypes.Vid) return;
 		if (_vp == null) return;
 	
 		long frame = _vp.frame;
@@ -412,7 +389,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			UITextSet.StatusText.text = "processed";
 		}
 
-		if (_ftype == FileTypes.Depth)
+		if (_recording)
 			UITextSet.StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
 		
 		_dmesh.SetScene(depth, texture);
@@ -442,12 +419,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	private void FromDepthFile(string filepath) {
 		UITextSet.StatusText.text = "INPUT TEXTURE";
-
-		_recordSize = -1;
-		_recording = false;
-		_orig_filepath = filepath;
-
-		Debug.Log("Depthfile input: use `send_msg record2048` or `... record4096` to make a sequence of image files");
 	}
 
 	private void DepthFileInput(string textureFilepath, FileTypes ftype) {
@@ -467,136 +438,43 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_depthFilePath = _orig_filepath;
 		_orig_filepath = textureFilepath;
 
-		/* Read the depthfile */
-		string modelType;
-		DepthFileUtils.ReadDepthFile(_depthFilePath, out _, out modelType, out _metadata, out _paramsDict, readOnlyMode: true); //let _framecount be read from the texture input
-		_hashval = _metadata["hashval"]; //_hashval will use the metadata
+		_ftype = ftype;
 
-		/*
-		Should Check:
-			hashval
-			framecount
-			isfull
-		*/
-
-		_depthfileCompareText = "";
-
-		/* Check hashval */
-#if !UNITY_WEBGL
-		bool hashvalEquals = (_hashval == Utils.GetHashval(_orig_filepath));
-		_depthfileCompareText += (hashvalEquals) ? "Hashval equals.\n" : "HASHVAL DOES NOT EQUAL.\n";
-#endif
-		/* Show modeltype */
-		_depthfileCompareText += $"Model type: {modelType}\n";
-
-		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
-
-		//Check if the params exist on the init -- and if it does apply it
-		try {
-			if (_paramsDict != null && _paramsDict.ContainsKey(-1))
-				_dmesh.ImportParams(_paramsDict[-1]);
-		}
-		catch (Exception exc) {
-			Debug.LogError($"FromVideo(): error importing the parameters on init: {exc}");
-		}
-	
-		if (ftype == FileTypes.Vid) {
-			/* Check framecount */
-			//Load the video
-			_vp.sendFrameReadyEvents = true;
-			_currentFrame = -1;
-			_vp.url = _orig_filepath; //This sets _framecount
-
-			return;
-		}
-		else {
-			/* Image input */
-			Texture texture = Utils.LoadImage(_orig_filepath);
-			if (texture == null) {
-				OnImageError(_orig_filepath);
-				return;
-			}
-
-			_dmesh.ShouldUpdateDepth = true;
-
-			_orig_width = texture.width;
-			_orig_height = texture.height;
-			_framecount = 1;
-
-			Depth depth = DepthFileUtils.ReadFromArchive(0);
-			_dmesh.SetScene(depth, texture);
-
-			/* Set the params for frame 0 (-1 is set above) */
-			if (_paramsDict != null && _paramsDict.ContainsKey(0))
-				_dmesh.ImportParams(_paramsDict[0]);
-			
-			DepthFileShowOrRecord();
+		switch (_ftype) {
+		case FileTypes.Img:
+			FromImage(_orig_filepath);
+			break;
+		case FileTypes.Vid:
+			FromVideo(_orig_filepath);
+			break;
 		}
 	}
 
-	private void DepthFileShowOrRecord() {
-		//Called after it is ready to show/record
-
-		//print the compretext
-		Debug.Log(_depthfileCompareText);
-
-		if (_recordSize <= 0)
-			DepthFileShow();
-		else
-			DepthFileStartRecording(_recordSize);
-	}
-
-	private void DepthFileAfterFirstFrame() {
-		/* Called after the first frame is received, so that _framecount is set. (by OnFrameReady())*/
-
-		/* Check framecount */
-		long framecount_metadata = long.Parse(_metadata["framecount"]);
-		long actual_framecount_input = (_framecount - _startFrame);
-		long framecountDelta = (actual_framecount_input - framecount_metadata);
-
-		if (framecountDelta == 0) {
-			_depthfileCompareText += $"Framecount equals: ({_framecount})\n";
-		}
-		else if (framecountDelta < 0) { //depthfile has more frames -> leave it be
-			_depthfileCompareText += $"FRAMECOUNT DOES NOT EQUAL: (depth > input) : ({framecount_metadata}:{actual_framecount_input})\n";
-		}
-		else {
-			_depthfileCompareText += $"FRAMECOUNT DOES NOT EQUAL: (depth < input) : ({framecount_metadata}:{actual_framecount_input})\n";
-			_depthfileCompareText += $"-> #{framecountDelta} FRAMES WILL BE TRIMMED.\n";
-			
-			_framecount -= framecountDelta;
-		}
-
-		/* Check if the depth file is full */
-		bool isDepthFull = DepthFileUtils.IsFull();
-		_depthfileCompareText += (isDepthFull) ? "Depthfile is full.\n" : "DEPTHFILE IS NOT FULL.\n";
-
-		DepthFileShowOrRecord();
-	}
-
-	public void DepthFileStartRecording(int size=2048) {
+	public void StartRecording(int size=2048) {
 		_vrrecord.Size = size;
 
 		Utils.CreateDirectory(_recordPath);
 
-		if (_framecount <= 1) {
+		if (_ftype == FileTypes.Img) {
 			//Image --> capture and exit (scene is already set)
-			DepthFileCapture();
+			Capture();
 			UITextSet.StatusText.text = "Captured!";
 
-			_ftype = FileTypes.Unsupported;
 			return; //code below will not execused.
 		}
 
-		/* Record per frame */
-		_recording = true;
-		_shouldCapture = false;
-		
-		_vp.sendFrameReadyEvents = true;
-		_vp.Play();
+		else {
+			/* Record per frame */
+			_recording = true;
+			_shouldCapture = false;
+			
+			_vp.sendFrameReadyEvents = true;
+			_vp.frame = _startFrame;
+			_vp.Play();
+		}
 	}
 
-	private void DepthFileFrameReady() {
+	private void RecordingFrameReady() {
 		_vp.Pause();
 		UpdateVid();
 
@@ -604,26 +482,25 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_shouldCapture = true;
 	}
 
-	private void UpdateDepthfileInput() {
+	private void UpdateRecording() {
 		if (!_recording || !_shouldCapture)
 			return;
 
-		DepthFileCapture();
+		Capture();
 		_shouldCapture = false;
 
 		if (_currentFrame+1 >= _framecount) {
 			/* Manually end it, since loopPointReached does not work and it loops for some reason */
-			DepthFileEnded();
+			RecordingEnded();
 		}
 		else
-			//_vp.Play();
 			_vp.frame++;
 	}
 
-	private void DepthFileCapture(string format="jpg") =>
+	private void Capture(string format="jpg") =>
 		_processedFrames.Add(_vrrecord.Capture($"{_recordPath}/{_currentFrame-_startFrame}.{format}", format));
 
-	private void DepthFileEnded() {
+	private void RecordingEnded() {
 		_recording = false;
 		_shouldCapture = false;
 
@@ -637,23 +514,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_ftype = FileTypes.Unsupported;
 
 		UITextSet.StatusText.text = "DONE.";
-	}
-
-	/* Switch to video */
-	public void DepthFileShow() {
-		if (_ftype != FileTypes.Depth) {
-			Debug.LogError("_ftype != FileTypes.Depth");
-			return;
-		}
-
-		UITextSet.OutputSaveText.text = "Not saving.";
-
-		if (_framecount > 1) {
-			_ftype = FileTypes.Vid;
-			_vp.Play();
-		}
-		else
-			_ftype = FileTypes.Img;
 	}
 
 	/************************************************************************************/
@@ -737,21 +597,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_vp.time += seconds;
 	}
 
-	//Not used anymore
-	private void CallPython(string modelType) {
-		if (_ftype != FileTypes.Img && _ftype != FileTypes.Vid)
-			return;
-
-		const string pythonTarget = @"./depthpy/depth.py";
-
-		string isImage = (_ftype == FileTypes.Img) ? " -i " : " ";
-		string modelTypeString = modelType.ToString();
-
-		string depthFilename = DepthFileUtils.GetDepthFileName(Path.GetFileName(_orig_filepath), _hashval,modelType);
-
-		System.Diagnostics.Process.Start(Utils.PythonPath, $"\"{pythonTarget}\" \"{_orig_filepath}\" \"{depthFilename}\" {isImage} -t {modelTypeString} --zip_in_memory");
-	}
-
 	private void ExportParams(bool overwrite=false, bool init=false) {
 		//If init == true, it will be loaded on the load (and will not be loaded later)
 
@@ -814,20 +659,13 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 		case "record2048":
 			Debug.Log("Will generate a sequence of images. (2048px)");
-			_recordSize = 2048;
+			StartRecording(2048);
 			break;
 		case "record4096":
 			Debug.Log("Will generate a sequence of images. (4096px)");
-			_recordSize = 4096;
+			StartRecording(4096);
 			break;
 
-		case "CallPythonHybrid":
-			CallPython("dpt_large_384");
-			break;
-		case "CallPythonLarge":
-			CallPython("dpt_hybrid_384");
-			break;
-		
 		case "e": //save on the first frame
 			ExportParams(overwrite: true, init: true);
 			break;

@@ -221,7 +221,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _camDist;}
 	}
 	public float CamDistL {set {CamDist = MathF.Pow(10, value);} get {return MathF.Log10(CamDist);}} //Log10 version
-	public float MeshLoc {set {CamDist = 150 - value;}} //Legacy
 
 	public const float DefaultScaleR = 1f; //Relative
 	private float _scaleR = DefaultScaleR;
@@ -237,7 +236,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		get {return _scaleR;}
 	}
-	public float Scale {set {ScaleR = value / _scalePerCamDist * _camDist;}} //Legacy
 	
 	public const float DefaultDepthMultR = 1f;
 	private float _depthMultR = DefaultDepthMultR;
@@ -253,7 +251,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _depthMultR;}
 	}
 	public float DepthMultRL {set {DepthMultR = (value <= -1) ? 0 : MathF.Pow(10, value);} get {return MathF.Log10(DepthMultR);}} //Log10 version. If value <= -1, just set to 0.
-	public float DepthMult {set {DepthMultR = value / transform.localScale.z;}} //Legacy: DepthMult was unity unit value, independent from Scale
 
 	public const float DefaultMeshHor = 0f;
 	private float _meshHor = DefaultMeshHor;
@@ -267,7 +264,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		get {return _meshHor;}
 	}
-	public float MeshX {set {MeshHor = value * _localScaleZ / _width;}} //Legacy
 
 	public const float DefaultMeshVer = 0f;
 	private float _meshVer = DefaultMeshVer;
@@ -281,7 +277,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 		get {return _meshVer;}
 	}
-	public float MeshY {set {MeshVer = value * _localScaleZ / _height;}} //Legacy
 
 	public const float DefaultProjRatio = 0.5f;
 	private float _projRatio = DefaultProjRatio;
@@ -692,6 +687,10 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private Depth GetInverseDepth() {
 		//This exports the un-postprocessed output
+
+		if (_depth != null && _depth.Type != DepthMapType.Inverse)
+			Debug.LogWarning("GetInverseDepth(): The depth is not inverse, this will return the linear one.");
+
 		return _depth;
 	}
 

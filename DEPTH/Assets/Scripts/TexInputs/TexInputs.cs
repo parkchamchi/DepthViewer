@@ -6,11 +6,8 @@ using UnityEngine;
 public interface TexInputs : IDisposable {
 	void UpdateTex();
 
-	SequentialInputBehav SeqInputBehav {get {return null;}}
-	void SendMsg(string msg) {}
-}
+	bool WaitingSequentialInput {get {return false;}}
+	void SequentialInput(string filepath, FileTypes ftype) {Debug.LogError("SequentialInput(): Not implemented.");}
 
-public interface SequentialInputBehav {
-	bool WaitingSequentialInput {get;}
-	void SequentialInput(string filepath, FileTypes ftype);
+	void SendMsg(string msg) {}
 }

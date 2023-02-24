@@ -258,9 +258,9 @@ public class MainBehavior : MonoBehaviour {
 		string filepath = FilepathInputField.text;
 		FileTypes ftype = GetFileType(filepath);
 
-		if (_texInputs != null && _texInputs.SeqInputBehav != null && _texInputs.SeqInputBehav.WaitingSequentialInput) {
+		if (_texInputs != null && _texInputs.WaitingSequentialInput) {
 			/* Selecting the texture for depthfile */
-			_texInputs.SeqInputBehav.SequentialInput(filepath, ftype);
+			_texInputs.SequentialInput(filepath, ftype);
 			return;
 		}
 

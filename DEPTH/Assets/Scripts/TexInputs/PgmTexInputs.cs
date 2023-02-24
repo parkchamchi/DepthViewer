@@ -10,28 +10,16 @@ public class PgmTexInputs : TexInputs {
 	akin to .depthviewer
 	*/
 
-	public bool WaitingSequentialInput = false;
-
 	private IDepthMesh _dmesh;
-
 	private Depth _depth;
 
 	/* Sequential image file input */
-	//TODO: get this out of here & generalize it & make it be shared with `ImgVidDepthTexInputs`
-	public class SequentialImgInputBehav : SequentialInputBehav {
-		private PgmTexInputs _outer;
-		public SequentialImgInputBehav(PgmTexInputs outer) {_outer = outer;}
-
-		public bool WaitingSequentialInput {get {return _outer.WaitingSequentialInput;}}
-		public void SequentialInput(string filepath, FileTypes ftype) {_outer.ImgTextureInput(filepath, ftype);}
-	} 
-	private SequentialImgInputBehav _seqbehav;
-	public SequentialInputBehav SeqInputBehav {get {return _seqbehav;}}
+	public bool WaitingSequentialInput {get; private set;}
+	public void SequentialInput(string filepath, FileTypes ftype) =>
+		ImgTextureInput(filepath, ftype);
 
 	public PgmTexInputs(string pgmpath, IDepthMesh dmesh) {
 		_dmesh = dmesh;
-
-		_seqbehav = new SequentialImgInputBehav(this);
 
 		//Open the pgm
 		if (!File.Exists(pgmpath)) {
