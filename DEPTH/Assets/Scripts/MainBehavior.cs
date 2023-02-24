@@ -96,8 +96,7 @@ public class MainBehavior : MonoBehaviour {
 			FileTypes argFileType = GetFileType(arg);
 
 			if (argFileType == FileTypes.Img || argFileType == FileTypes.Vid) {
-				FilepathInputField.text = arg;
-				SelectFile();
+				SelectFile(arg);
 			}
 		}
 
@@ -239,7 +238,10 @@ public class MainBehavior : MonoBehaviour {
 		UITextSet.FilepathResultText.text = output;
 	}
 
-	public void SelectFile() {
+	public void OnFilepathEntered() =>
+		SelectFile(FilepathInputField.text);
+
+	public void SelectFile(string filepath) {
 		/*
 			Check if the depth file exists & load it if if exists.
 			If new image/video was selected and the previous one was a video, save it.
@@ -251,7 +253,7 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
-		string filepath = FilepathInputField.text;
+		FilepathInputField.text = filepath;
 		FileTypes ftype = GetFileType(filepath);
 
 		if (_texInputs != null && _texInputs.WaitingSequentialInput) {
@@ -413,8 +415,7 @@ public class MainBehavior : MonoBehaviour {
 		string path = paths[0];
 
 		ClearBrowseDir();
-		FilepathInputField.text = path;
-		SelectFile();
+		SelectFile(path);
 	}
 	
 #elif UNITY_ANDROID
@@ -426,8 +427,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void OnFileUpload(string[] paths) {
 		string path = paths[0];
-		FilepathInputField.text = path;
-		SelectFile();
+		SelectFile(path);
 	}
 
 #elif UNITY_WEBGL && !UNITY_EDITOR
@@ -559,8 +559,7 @@ public class MainBehavior : MonoBehaviour {
 			return;
 		}
 
-		FilepathInputField.text = newfilename;
-		SelectFile();
+		SelectFile(newfilename);
 	}
 
 /* Implementations of BrowseDirs() */
