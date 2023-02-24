@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using SFB;
 using IngameDebugConsole;
 
 using UnityEngine;
@@ -15,8 +14,6 @@ using TMPro;
 #if UNITY_WEBGL
 using System.Runtime.InteropServices; //Dllimport
 using UnityEngine.Networking; //UnityWebRequest
-#elif UNITY_ANDROID
-using SimpleFileBrowser;
 #endif
 
 public enum FileTypes {
@@ -47,7 +44,6 @@ public class MainBehavior : MonoBehaviour {
 
 	public GameObject OptionsScrollView; //To check if it is active; if it is, mousewheel will not be used for traversing files for BrowseDir
 
-	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 	public GameObject WebXRSet; //same as above
 
 	private FileTypes _currentFileType = FileTypes.NotExists;
@@ -66,17 +62,13 @@ public class MainBehavior : MonoBehaviour {
 
 	private KeyCode[] _sendMsgKeyCodes; //When a key in the array is pressed, it is sent to _texInputs using SendMsg().
 
-	private ExtensionFilter[] _extFilters;
+	private FileSelecter _fileSelecter;
 
 	private string[] _dirFilenames; //set by BrowseDir()
 	private int _dirFileIdx;
 	private bool _dirRandom = false;
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
-
-#if UNITY_WEBGL
-	private bool _isVideo;
-#endif
 
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -105,11 +97,7 @@ public class MainBehavior : MonoBehaviour {
 			KeyCode.Keypad4, KeyCode.Keypad5, KeyCode.Keypad6
 		};
 
-		/* Set ExtensionFilter for StandalonFileBrowser */
-		//remove '.'
-		_extFilters = new [] {
-			new ExtensionFilter("Image/Video/Depth Files", Exts.AllExtsWithoutDot),
-		};
+		_fileSelecter = new StandaloneFileSelecter();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
 		_canUpdateArchive = false;
@@ -133,6 +121,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
 		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
 		DebugLogConsole.AddCommandInstance("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
+		DebugLogConsole.AddCommandInstance("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
 
 		DebugLogConsole.AddCommandInstance("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		DebugLogConsole.AddCommandInstance("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -405,64 +394,27 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 /* Implementations of BrowseFiles() */
-#if UNITY_STANDALONE || UNITY_EDITOR
-
-	public void BrowseFiles() {
-
-		string[] paths = StandaloneFileBrowser.OpenFilePanel("Open File", "", _extFilters, false);
-		if (paths.Length < 1)
-			return;
-		string path = paths[0];
-
-		ClearBrowseDir();
-		SelectFile(path);
-	}
-	
-#elif UNITY_ANDROID
-
-	//public static bool ShowSaveDialog(OnSuccess onSuccess, OnCancel onCancel, FileBrowser.PickMode pickMode, bool allowMultiSelection = false, string initialPath = null, string initialFilename = null, string title = "Save", string saveButtonText = "Save" );
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
 
 	public void BrowseFiles() =>
-		FileBrowser.ShowLoadDialog(OnFileUpload, null, FileBrowser.PickMode.Files);
+		_fileSelecter.SelectFile((path) => {
+			ClearBrowseDir();
+			SelectFile(path);
+		});
 
-	public void OnFileUpload(string[] paths) {
-		string path = paths[0];
-		SelectFile(path);
-	}
+#elif UNITY_WEBGL && !UNITY_EDITOR //#else
 
-#elif UNITY_WEBGL && !UNITY_EDITOR
-
-	[DllImport("__Internal")]
-	private static extern void UploadFile(string gameObjectName, string methodName, string filter, bool multiple);
-
-	public void BrowseFiles() {
-		_isVideo = IsVideoToggle.isOn;
-		FileTypes ftype = (_isVideo) ? FileTypes.Vid : FileTypes.Img;
-		string exts = Exts.WebGLExts(ftype);
-
-		UploadFile(gameObject.name, "OnFileUpload", exts, false);
-	}
-
-	public void OnFileUpload(string url) {
-		Cleanup();
-
-		if (_isVideo) {
-			_currentFileType = FileTypes.Vid;
-			FromVideo(url);
-		}
-		else {
+	public void BrowseFiles() =>
+		_fileSelecter.SelectFile((path) => {
+			Cleanup();
 			_currentFileType = FileTypes.Img;
 			StartCoroutine(GetRequest(new System.Uri(url).AbsoluteUri));
-		}
-	}
+		});
 
 	IEnumerator GetRequest(string uri) {
 		using (UnityWebRequest webRequest = UnityWebRequest.Get(uri)) {
 			// Request and wait for the desired page.
 			yield return webRequest.SendWebRequest();
-
-			string[] pages = uri.Split('/');
-			int page = pages.Length - 1;
 
 			switch (webRequest.result) {
 				case UnityWebRequest.Result.ConnectionError:
@@ -476,7 +428,9 @@ public class MainBehavior : MonoBehaviour {
 					StatusText.text = ("Received");
 
 					Texture2D texture = Utils.LoadImage(webRequest.downloadHandler.data);
-					FromImage(texture);
+					Depth depth = _donnx.Run(texture);
+					_meshBehav.SetScene(depth, texture);
+
 					break;
 			}
 		}
@@ -564,40 +518,36 @@ public class MainBehavior : MonoBehaviour {
 
 /* Implementations of BrowseDirs() */
 #if UNITY_STANDALONE || UNITY_EDITOR
-	public void BrowseDirs() {
-		string[] dirnames = StandaloneFileBrowser.OpenFolderPanel("Select a directory", null, false);
-		if (dirnames.Length < 1)
-			return;
-		string dirname = dirnames[0];
+	public void BrowseDirs() =>
+		_fileSelecter.SelectDir((dirname) => {
+			int gifcount = 0; //number of the gif files in the directory.
 
-		int gifcount = 0; //number of the gif files in the directory.
+			//Add only: img, vid, gif
+			List<string> filenames_list = new List<string>();
+			foreach (string filename in Directory.GetFiles(dirname)) {
+				FileTypes ftype = Exts.FileTypeCheck(filename);
+				if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
+					filenames_list.Add(filename);
 
-		//Add only: img, vid, gif
-		List<string> filenames_list = new List<string>();
-		foreach (string filename in Directory.GetFiles(dirname)) {
-			FileTypes ftype = Exts.FileTypeCheck(filename);
-			if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
-				filenames_list.Add(filename);
-
-				if (ftype == FileTypes.Gif)
-					gifcount++;
+					if (ftype == FileTypes.Gif)
+						gifcount++;
+				}
 			}
-		}
 
-		if (filenames_list.Count == 0)
-			return;
-		if (!BrowseDirGifToggle.isOn && (gifcount == filenames_list.Count)) //directory with only gif files
-			return;
+			if (filenames_list.Count == 0)
+				return;
+			if (!BrowseDirGifToggle.isOn && (gifcount == filenames_list.Count)) //directory with only gif files
+				return;
 
-		BrowseDirText.text = dirname;
-		_dirFilenames = filenames_list.ToArray();
-		_dirFileIdx = 0;
-		_dirGifCount = gifcount;
+			BrowseDirText.text = dirname;
+			_dirFilenames = filenames_list.ToArray();
+			_dirFileIdx = 0;
+			_dirGifCount = gifcount;
 
-		ShuffleBrowseDirRandomIdxList();
+			ShuffleBrowseDirRandomIdxList();
 
-		SetBrowseDir();
-	}
+			SetBrowseDir();
+		});
 #else
 	public void BrowseDirs() {
 		Debug.LogError("Not implemented.");
@@ -686,11 +636,28 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.MeshWiggler = null;
 	}
 
+	public void SetFileSelecter(string fileSelecter) {
+		Debug.Log($"SetFileSelecter: {fileSelecter}");
+
+		switch (fileSelecter) {
+		case "standalone":
+			_fileSelecter = new StandaloneFileSelecter();
+			return;
+		case "simple":
+			_fileSelecter = new SimpleFileSelecter();
+			return;
+		default:
+			Debug.LogError($"Got unknown fileSelecter {fileSelecter}");
+			return;
+		}
+	}
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		Debug.Log("Nothing here...");
+		//Debug.Log("Nothing here...");
+		_fileSelecter = new SimpleFileSelecter();
 
 		Debug.Log("DebugTmp() exiting.");
 	}
@@ -701,6 +668,7 @@ public static class Exts {
 
 	//with no '.'
 	public static string[] AllExtsWithoutDot {get; private set;}
+	public static string[] AllExtsWithDot {get; private set;}
 
 	static Exts() {
 		ExtsDict = new Dictionary<FileTypes, string[]>();
@@ -714,10 +682,16 @@ public static class Exts {
 		ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
 		ExtsDict.Add(FileTypes.Pgm, new string[] {".pgm"});
 
+		List<string> allExtsWithDotList = new List<string>();
 		List<string> allExtsWithoutDotList = new List<string>();
+
 		foreach (string[] exts in ExtsDict.Values)
-			foreach (string ext in exts)
+			foreach (string ext in exts) {
+				allExtsWithDotList.Add(ext);
 				allExtsWithoutDotList.Add(ext.Substring(1, ext.Length-1));
+			}
+
+		AllExtsWithDot = allExtsWithDotList.ToArray();
 		AllExtsWithoutDot = allExtsWithoutDotList.ToArray();
 	}
 
