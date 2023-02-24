@@ -37,6 +37,8 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Dropdown DepthMapFormatDropdown;
 	public Toggle DepthMapResizeToggle;
 
+	public GameObject DesktopRenderGO;
+
 	private MainBehavior _mainBehav;
 
 	private const string _onnxdir = "./onnx";
@@ -54,20 +56,6 @@ public class OptionsBehavior : MonoBehaviour {
 	public void TogglePanel() =>
 		WindowManager.SetCurrentWindow(ScrollView);
 
-	public void SetVideoSpeed() {
-		float mult;
-
-		try {
-			mult = float.Parse(SpeedMultInputField.text);
-		} catch (System.FormatException) {
-			SpeedMultStatusText.text = "!";
-			return;
-		}
-
-		_mainBehav.SetVideoSpeed(mult);
-		SpeedMultStatusText.text = "O";
-	}
-
 	public void SetOutputDir() {
 		string outputdir = OutputDirInputField.text;
 
@@ -83,20 +71,6 @@ public class OptionsBehavior : MonoBehaviour {
 
 		DepthFileUtils.SaveDir = outputdir;
 		OutputDirStatusText.text = "O";
-	}
-
-	public void SetLightIntesity() {
-		float val;
-
-		try {
-			val = float.Parse(LightInputField.text);
-		} catch (System.FormatException) {
-			LightStatusText.text = "!";
-			return;
-		}
-
-		_mainBehav.SetLightIntensity(val);
-		LightStatusText.text = "O";
 	}
 
 	public void ResetMinMax() =>
@@ -253,4 +227,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 		Debug.Log($"Exported: {filename}");
 	}
+
+	public void ToggleDesktopRender() =>
+		DesktopRenderGO.SetActive(!DesktopRenderGO.activeSelf);
 }

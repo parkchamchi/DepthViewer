@@ -50,8 +50,6 @@ public class MainBehavior : MonoBehaviour {
 	public Toggle IsVideoToggle; //Only for WebGL. Automatically destroys itself otherwise.
 	public GameObject WebXRSet; //same as above
 
-	public Light MainLight;
-
 	private FileTypes _currentFileType = FileTypes.NotExists;
 	private TexInputs _texInputs;
 
@@ -60,7 +58,6 @@ public class MainBehavior : MonoBehaviour {
 	private DepthModel _donnx;
 	private VRRecordBehavior _vrRecordBehav;
 	private ServerConnectBehavior _serverBehav;
-	private DesktopRenderBehavior _desktopRenderBehav;
 
 	private VideoPlayer _vp;
 
@@ -86,7 +83,6 @@ public class MainBehavior : MonoBehaviour {
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
 		_vrRecordBehav = GameObject.Find("VRRecord").GetComponent<VRRecordBehavior>();
 		_serverBehav = GameObject.Find("ServerConnect").GetComponent<ServerConnectBehavior>();
-		_desktopRenderBehav = GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>();
 
 		_vp = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 
@@ -312,7 +308,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	public void DesktopRenderingStart() =>
-		OnlineTexStart(_desktopRenderBehav);
+		OnlineTexStart(GameObject.Find("DesktopRender").GetComponent<DesktopRenderBehavior>()); //deprecated
 
 	public void HttpOnlineTexStart(string url) =>
 		OnlineTexStart(new HttpOnlineTex(url));
@@ -609,18 +605,6 @@ public class MainBehavior : MonoBehaviour {
 		return;
 	}
 #endif
-
-	public void SetVideoSpeed(float mult) {
-		if (_vp == null) {
-			Debug.LogError("SetVideoSpeed() called when _vp == null");
-			return;
-		}
-
-		_vp.playbackSpeed = mult;
-	}
-
-	public void SetLightIntensity(float val) =>
-		MainLight.intensity = val;
 
 	public void SendMsgToTexInputs(string msg) {
 		if (_texInputs == null) {

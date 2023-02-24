@@ -1,3 +1,5 @@
+/* DEPRECATED */
+
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -62,7 +64,7 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 
 		if (texture == null)
 			texture = _placeholderTexture;
-			
+
 		return texture;
 	}
 
