@@ -43,9 +43,8 @@ public class GifTexInputs : TexInputs {
 			Texture2D tex = GifPlayer.GetTexture();
 			if (tex == null) return;
 
-			int x, y;
-			float[] depths = _dmodel.Run(tex, out x, out y);
-			_dmesh.SetScene(depths, x, y, (float) GifPlayer.Width/GifPlayer.Height, tex);
+			Depth depth = _dmodel.Run(tex);
+			_dmesh.SetScene(depth, tex);
 
 			UITextSet.StatusText.text = $"#{frame}/{GifPlayer.FrameCount}";
 			return;

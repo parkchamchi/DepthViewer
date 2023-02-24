@@ -130,8 +130,8 @@ public static class DepthFileUtils {
 		return output_filepath;
 	}
 
-	public static void UpdateDepthFile(float[] depths, long frame, int x, int y) {
-		if (x*y == 0 || depths == null) return;
+	public static void UpdateDepthFile(Depth depth, long frame) {
+		if (!Depth.IsValid(depth)) return;
 
 		if (frame >= _framecount) {
 			Debug.LogWarning($"frame {frame} exceeds _framecount {_framecount}");
@@ -145,7 +145,7 @@ public static class DepthFileUtils {
 		if (entry == null) 
 			entry = _archive.CreateEntry(filename);
 		using (BinaryWriter bw = new BinaryWriter(entry.Open()))
-			bw.Write(WritePGM(depths, x, y));
+			bw.Write(WritePGM(depth));
 
 		//Increment _count
 		_count++;
@@ -216,12 +216,12 @@ public static class DepthFileUtils {
 		return metadata;
 	}
 
-	public static byte[] WritePGM(float[] depths, int x, int y) {
-		byte[] header = Encoding.ASCII.GetBytes($"P5\n{x} {y} 255\n");
+	public static byte[] WritePGM(Depth depth) {
+		byte[] header = Encoding.ASCII.GetBytes($"P5\n{depth.X} {depth.Y} 255\n");
 
-		byte[] content = new byte[depths.Length];
+		byte[] content = new byte[depth.Value.Length];
 		for (int i = 0; i < content.Length; i++)
-			content[i] = (byte) (depths[i] * 255);
+			content[i] = (byte) (depth.Value[i] * 255);
 
 		byte[] pgm = new byte[header.Length + content.Length];
 		header.CopyTo(pgm, 0);
@@ -329,9 +329,7 @@ public static class DepthFileUtils {
 		return _isFull;
 	}
 
-	public static float[] ReadFromArchive(long frame, out int x, out int y) {
-		x = y = 0;
-
+	public static Depth ReadFromArchive(long frame) {
 		if (_archive == null) {
 			Debug.LogError("Archive is null!");
 			return null;
@@ -347,8 +345,8 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		float[] depths = ReadPGM(pgm, out x, out y);
-		return depths;
+		Depth depth = ReadPGM(pgm);
+		return depth;
 	}
 
 	private static Dictionary<string, string> ReadMetadata(string metadataStr) {
@@ -514,10 +512,9 @@ public static class DepthFileUtils {
 		_archiveMode = origMode;
 	}
 
-	public static float[] ReadPGM(byte[] pgm, out int x, out int y) {
+	public static Depth ReadPGM(byte[] pgm) {
 		int idx = 0;
 		int width = 0, height = 0, maxval = 0;
-		x = y = 0;
 		
 		//"P5"
 		if (pgm[0] != 'P' || pgm[1] != '5') {
@@ -566,9 +563,7 @@ public static class DepthFileUtils {
 		for (int j = 0; j < depths.Length; j++)
 			depths[j] = (float) pgm[idx++] / maxval;
 
-		x = width;
-		y = height;
-		return depths;
+		return new Depth(depths, width, height);
 	}
 
 	public static bool IsSpace(char c) {

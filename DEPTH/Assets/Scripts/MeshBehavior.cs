@@ -6,8 +6,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum DepthMapType {Inverse, Linear}
-
 public class MeshShaders {
 	public string Name {get; private set;}
 	public bool ShouldSetVertexColors {get; private set;}
@@ -55,7 +53,7 @@ public class MeshShaders {
 
 public interface IDepthMesh {
 	bool ShouldUpdateDepth {set;} //whether the depth has to be updated when the parameters (alpha, ...) is changed
-	void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null);
+	void SetScene(Depth depth, Texture texture=null, float ratio=0);
 
 	void SetShader(MeshShaders shader);
 	void SetMaterialFloat(string propertyname, float value); //wrapper for Material.SetFloat()
@@ -124,14 +122,12 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private	int[] _triangles;
 	private Material _material;
 
-	private float[] _depths; //for UpdateDepth()
+	//private float[] _depths; //for UpdateDepth()
+	private Depth _depth;
 
 	private const float _width = 320; //canvas size
 	private const float _height = 180;
 	private const float _depthLength = 100; //i.e. 16:9:5
-
-	private int _x = 320; //pixels of the input
-	private int _y = 180;
 
 	private float _ratio = -1;
 
@@ -464,21 +460,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		_mesh.uv = _uv;
 		_mesh.triangles = _triangles;
 
-		_x = x;
-		_y = y;
-
 		_ratio = ratio;
-	}
-
-	private void SetDepth(float[] depths) {
-		if (depths.Length != _x*_y) {
-			Debug.LogError("depths.Length " + depths.Length + " does not match _x*_y " + _x*_y + " .");
-			return;
-		}
-
-		_depths = depths; //depth should not change elsewhere! (especially for images)
-
-		UpdateDepth();
 	}
 
 	private void UpdateDepth() {
@@ -497,7 +479,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		If the Threshold [0, ..., 1] is set (that is, nonzero), set all values below it as the TargetVal.
 		*/
 
-		if (_vertices == null || _depths == null) return;
+		if (_vertices == null || _depth == null) return;
 
 		//The vertex array to be applied to the mesh. if we don't project, (x, y) will not be changed and thus can be reused again.
 		Vector3[] targetVertices = (_projRatio == 0) ? _vertices : _vertices_proj;
@@ -506,8 +488,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		bool isThresholdSet = (_threshold > 0);
 		float scale = _localScaleZ;
 		
-		for (int i = 0; i < _depths.Length; i++) { //_alpha and _beta are assured to be positive
-			float z = _depths[i];
+		for (int i = 0; i < _depth.Value.Length; i++) { //_alpha and _beta are assured to be positive
+			float z = _depth.Value[i];
 
 			if (isThresholdSet && z < _threshold)
 				z = _targetVal;
@@ -568,10 +550,13 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		//Set vertex color instead of setting texture (for point clouds)
 		if (_shader.ShouldSetVertexColors) {
 
+			int x = _depth.X;
+			int y = _depth.Y;
+
 			//Prepare the RenderTexture
-			if (_rt == null || _rt.width != _x || _rt.height != _y) {
+			if (_rt == null || _rt.width != x || _rt.height != y) {
 				_rt?.Release();
-				_rt = new RenderTexture(_x, _y, 16);
+				_rt = new RenderTexture(x, y, 16);
 			}
 	
 			//Resize
@@ -586,10 +571,10 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			RenderTexture.active = null;
 
 			//Extract the vertex colors...
-			Color[] colors = new Color[_x*_y];
-			for (int i = 0; i < _y; i++)
-				for (int j = 0; j < _x; j++)
-					colors[(_y-1 - i)*_x + j] = tex2d.GetPixel(j, i); //Why is this flipped by y-axis?
+			Color[] colors = new Color[x*y];
+			for (int i = 0; i < y; i++)
+				for (int j = 0; j < x; j++)
+					colors[(y-1 - i)*x + j] = tex2d.GetPixel(j, i); //Why is this flipped by y-axis?
 
 			//Destroy the Texture2D
 			Destroy(tex2d);
@@ -598,23 +583,24 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 
-	public void SetScene(float[] depths, int x, int y, float ratio, Texture texture=null) {
-		if (depths == null) {
-			Debug.LogError("SetScene(): depths == null");
-			return;
-		}
-		if (x*y != depths.Length) {
-			Debug.LogError("x*y " + x*y + " does not match depths.Length " + depths.Length + " .");
-			return;
-		}
-		if (depths.Length == 0) {
-			Debug.LogError("depth.Length == 0");
+	public void SetScene(Depth depth, Texture texture=null, float ratio=0) {
+		if (depth == null) {
+			Debug.LogError("SetScene(): depth == null");
 			return;
 		}
 
-		if (x != _x || y != _y || ratio != _ratio)
-			SetMeshSize(x, y, ratio:ratio);
-		SetDepth(depths);
+		if (ratio <= 0) {
+			if (texture != null)
+				ratio = (float) texture.width / texture.height;
+			else
+				ratio = (float) depth.X / depth.Y;
+		}
+
+		if (_depth == null || !depth.IsSameSize(_depth) || ratio != _ratio)
+			SetMeshSize(depth.X, depth.Y, ratio:ratio);
+
+		_depth = depth;
+		UpdateDepth();
 
 		if (texture != null)
 			SetTexture(texture);
@@ -704,44 +690,31 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	// Depths
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private float[] GetInverseDepth(out int x, out int y) {
+	private Depth GetInverseDepth() {
 		//This exports the un-postprocessed output
-		if (_depths == null) {
-			x = y = 0;
-			return null;
-		}
-
-		x = _x;
-		y = _y;
-		return (float[]) _depths.Clone();
+		return _depth;
 	}
 
-	private float[] GetLinearDepth(out int x, out int y) {
+	private Depth GetLinearDepth() {
 		//This exports the processed output (by Alpha and Beta)
-		if (_vertices == null) {
-			x = y = 0;
+		if (_vertices == null || _depth == null)
 			return null;
-		}
-
-		x = _x;
-		y = _y;
 
 		float[] linear = new float[_vertices.Length];
 		for (int i = 0; i < _vertices.Length; i++)
 			linear[i] = _vertices[i].z / _depthLength / _depthMultR;
 
-		return linear;
+		return new Depth(linear, _depth.X, _depth.Y, type: DepthMapType.Linear);
 	}
 
-	public float[] GetDepth(DepthMapType type, out int x, out int y) {
+	public Depth GetDepth(DepthMapType type) {
 		switch (type) {
 		case DepthMapType.Inverse:
-			return GetInverseDepth(out x, out y);
+			return GetInverseDepth();
 		case DepthMapType.Linear:
-			return GetLinearDepth(out x, out y);
+			return GetLinearDepth();
 		default:
 			Debug.LogError($"Got unknown DepthMapType: {type}");
-			x = y = 0;
 			return null;
 		}
 	}

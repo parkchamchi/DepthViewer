@@ -67,9 +67,9 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		if (IsWaiting) return;
 
 		IsWaiting = true;
-		_model.Run(tex, (float[] depths, int x, int y) => {
+		_model.Run(tex, (Depth depth) => {
 			IsWaiting = false;
-			return callback(depths, x, y);
+			return callback(depth);
 		});
 	}
 
@@ -105,7 +105,7 @@ public class DepthServerModel {
 	public void Run(Texture inTex, AsyncDepthModel.DepthReadyCallback callback) {
 		if (inTex == null) {
 			Debug.LogError("DepthServerModel.Run(): called when inTex == null");
-			_callback(null, 0, 0);
+			_callback(null);
 			return;
 		}
 
@@ -136,14 +136,13 @@ public class DepthServerModel {
 
 			if (req.result == UnityWebRequest.Result.Success && req.responseCode == 200) {
 				byte[] data = req.downloadHandler.data;
-				int x, y;
-				float[] depths = DepthFileUtils.ReadPGM(data, out x, out y);
+				Depth depth = DepthFileUtils.ReadPGM(data);
 
-				_callback(depths, x, y);
+				_callback(depth);
 			}
 			else {
 				//failure
-				_callback(null, 0, 0);
+				_callback(null);
 			}
 		}
 	}

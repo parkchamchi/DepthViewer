@@ -30,8 +30,7 @@ public class OnlineTexInputs : TexInputs {
 		if (_otex == null || !_otex.Supported)
 			return;
 
-		int width, height, x, y;
-		Texture texture = _otex.GetTex(out width, out height);
+		Texture texture = _otex.GetTex(out _, out _);
 		if (texture == null) {
 			Debug.LogError("Couldn't get the texture");
 			return;
@@ -43,8 +42,8 @@ public class OnlineTexInputs : TexInputs {
 
 		if (_dmodel == null) return;
 
-		float[] depths = _dmodel.Run(texture, out x, out y);
-		_dmesh.SetScene(depths, x, y, (float) width/height, texture);
+		Depth depths = _dmodel.Run(texture);
+		_dmesh.SetScene(depths, texture);
 	}
 
 	public SequentialInputBehav SeqInputBehav {get {return null;}}

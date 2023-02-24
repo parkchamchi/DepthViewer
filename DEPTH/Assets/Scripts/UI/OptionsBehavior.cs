@@ -209,10 +209,10 @@ public class OptionsBehavior : MonoBehaviour {
 			return;
 		}
 
-		int x, y;
-		float[] depths = _mainBehav.GetCurrentDepths(type, out x, out y);
+		//int x, y;
+		Depth depth = _mainBehav.GetCurrentDepth(type);
 
-		if (depths == null) {
+		if (depth == null) {
 			Debug.LogWarning("ExportDepthMap(): depths == null");
 			return;
 		}
@@ -221,10 +221,10 @@ public class OptionsBehavior : MonoBehaviour {
 
 		switch (format) {
 		case ".pgm":
-			data = DepthFileUtils.WritePGM(depths, x, y);
+			data = DepthFileUtils.WritePGM(depth);
 			break;
 		case ".png":
-			Texture2D tex = Utils.DepthToTex(depths, x, y);
+			Texture2D tex = Utils.DepthToTex(depth);
 
 			if (resize) {
 				int w, h;

@@ -131,26 +131,20 @@ public class BarracudaDepthModel : DepthModel {
 		AllocateObjects();
 	}
 
-	public float[] Run(Texture inputTexture, out int x, out int y) {
+	public Depth Run(Texture inputTexture) {
 		/*
 		Returns a private member (may change)
 		*/
 
-		x = _width;
-		y = _height;
-
-		if (inputTexture == null || _model == null) {
-			x = y = 0;
+		if (inputTexture == null || _model == null)
 			return null;
-		}
 
 		// Fast resize
 		Graphics.Blit(inputTexture, _input);
 
 		RunModel(_input);
 		
-		//return (float[]) _output.Clone();
-		return _output;
+		return new Depth(_output, _width, _height);
 	}
 
 	private void OnDestroy() => DeallocateObjects();

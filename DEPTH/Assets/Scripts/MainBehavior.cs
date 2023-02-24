@@ -682,8 +682,8 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.MoveMeshByMouse = value;
 	}
 
-	public float[] GetCurrentDepths(DepthMapType type, out int x, out int y) =>
-		_meshBehav.GetDepth(type, out x, out y);
+	public Depth GetCurrentDepth(DepthMapType type) =>
+		_meshBehav.GetDepth(type);
 
 	public void GetCurrentTextureSize(out int w, out int h) =>
 		_meshBehav.GetTextureSize(out w, out h);

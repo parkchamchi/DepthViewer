@@ -103,16 +103,19 @@ public static class Utils {
 	public static bool IsNaNInf(float val) =>
 		(float.IsNaN(val) || float.IsPositiveInfinity(val) || float.IsNegativeInfinity(val));
 
-	public static Texture2D DepthToTex(float[] depths, int x, int y) {
-		if (depths == null || x*y != depths.Length) {
+	public static Texture2D DepthToTex(Depth depth) {
+		if (!Depth.IsValid(depth)) {
 			Debug.LogError("DepthToPng: got invalid input");
 			return null;
 		}
 
+		int x = depth.X;
+		int y = depth.Y;
+
 		Texture2D tex = new Texture2D(x, y);
 		for (int h = 0; h < y; h++) {
 			for (int w = 0; w < x; w++) {
-				float val = depths[(y-h-1)*x + w]; //Why is this flipped?
+				float val = depth.Value[(y-h-1)*x + w]; //Why is this flipped?
 				Color color = new Color(val, val, val, 1); //rgba
 				tex.SetPixel(w, h, color);
 			}

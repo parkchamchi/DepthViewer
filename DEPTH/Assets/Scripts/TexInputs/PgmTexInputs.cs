@@ -14,8 +14,7 @@ public class PgmTexInputs : TexInputs {
 
 	private IDepthMesh _dmesh;
 
-	private float[] _depths;
-	private int _x, _y;
+	private Depth _depth;
 
 	/* Sequential image file input */
 	//TODO: get this out of here & generalize it & make it be shared with `ImgVidDepthTexInputs`
@@ -41,14 +40,14 @@ public class PgmTexInputs : TexInputs {
 		}
 		byte[] pgm = File.ReadAllBytes(pgmpath);
 
-		_depths = DepthFileUtils.ReadPGM(pgm, out _x, out _y);
-		if (_depths == null) {
+		_depth = DepthFileUtils.ReadPGM(pgm);
+		if (_depth == null) {
 			UITextSet.StatusText.text = "Error reading the PGM file";
 			return;
 		}
 
 		_dmesh.ShouldUpdateDepth = true;
-		_dmesh.SetScene(_depths, _x, _y, (float) _x/_y, StaticGOs.PlaceholderTexture);
+		_dmesh.SetScene(_depth, StaticGOs.PlaceholderTexture, ratio:(float) _depth.X/_depth.Y); //Use ratio of the pgm rather than that of the placeholder
 
 		WaitingSequentialInput = true;
 		UITextSet.StatusText.text = "INPUT AN IMAGE FILE";
@@ -68,7 +67,7 @@ public class PgmTexInputs : TexInputs {
 			return;
 		}
 
-		_dmesh.SetScene(_depths, _x, _y, (float) tex.width/tex.height, tex);
+		_dmesh.SetScene(_depth, tex);
 		UITextSet.StatusText.text = "INPUT READ.";
 	}
 

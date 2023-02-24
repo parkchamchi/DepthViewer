@@ -98,7 +98,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		_rt = new RenderTexture(_width, _height, 16);
 	}
 
-	public float[] Run(Texture inputTexture, out int x, out int y) {
+	public Depth Run(Texture inputTexture) {
 		int w = _width;
 		int h = _height;
 
@@ -164,9 +164,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		for (int i = 0; i < output.Length; i++)
 			output[i] = (output[i] - min) / (max - min); 
 
-		x = _outwidth;
-		y = _outheight;
-		return output;
+		return new Depth(output, _outwidth, _outheight);
 	}
 
 	public void Dispose() {

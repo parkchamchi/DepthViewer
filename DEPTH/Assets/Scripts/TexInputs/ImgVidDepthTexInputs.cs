@@ -41,7 +41,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	private string _orig_filepath;
 	private string _hashval;
-	private int _x, _y; //is this needed?
+	//private int _x, _y; //is this needed?
 
 	private bool _searchCache;
 	private bool _canUpdateArchive; //user option; The params will be saved if this is `true`.
@@ -164,7 +164,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_startFrame = 0;
 		_framecount = 1;
 
-		float[] depths = null;
+		Depth depth = null;
 
 		//Check if the file was processed
 		if (_searchCache)
@@ -175,7 +175,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		if (_depthFilePath != null) {
 			string modelType;
 			DepthFileUtils.ReadDepthFile(_depthFilePath, out _framecount, out modelType, out _metadata, out _paramsDict, readOnlyMode: true);
-			depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
+			depth = DepthFileUtils.ReadFromArchive(0);
 
 			/*
 				Import the params
@@ -194,15 +194,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 		else if (_asyncDmodel != null && _asyncDmodel.IsAvailable && !_asyncDmodel.IsWaiting) {
 			/* This will be processed some frames later  */
 			_serverTexture = texture; 
-			_asyncDmodel.Run(_serverTexture, (float[] depths, int x, int y) => {
-				if (!OnDepthReady(depths, x, y))
+			_asyncDmodel.Run(_serverTexture, (Depth depth) => {
+				if (!OnDepthReady(depth))
 					return false;
 	
 				if (_shouldUpdateArchive) {
-					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, x, y, _asyncDmodel.ModelType);
+					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, depth.X, depth.Y, _asyncDmodel.ModelType);
 
 					//depths = (float[]) depths.Clone();
-					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, x, y)));
+					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depth, 0)));
 					_hasCreatedArchive = true; //not needed
 				}
 
@@ -212,23 +212,20 @@ public class ImgVidDepthTexInputs : TexInputs {
 		}
 
 		else {
-			depths = _dmodel.Run(texture, out _x, out _y);
+			depth = _dmodel.Run(texture);
 
 			/* Save */
 			if (_shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType);
+				DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, depth.X, depth.Y, _dmodel.ModelType);
 
-				depths = (float[]) depths.Clone();
-				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, 0, _x, _y)));
+				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depth, 0)));
 				_hasCreatedArchive = true; //not needed
 			}
 
 			UITextSet.StatusText.text = "processed";
 		}
 
-		_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
-
-		
+		_dmesh.SetScene(depth, texture);
 	}
 
 	private void OnImageError(string filepath) {
@@ -237,10 +234,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_ftype = FileTypes.Unsupported;
 	}
 
-	private bool OnDepthReady(float[] depths, int x, int y) {
+	private bool OnDepthReady(Depth depth) {
 		/* returns true when `depths` is valid */
 
-		if (depths == null || x == 0 || y == 0) {
+		if (depth == null || depth.Value == null) {
 			UITextSet.StatusText.text = "DepthServer error";
 			return false;
 		}
@@ -250,7 +247,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 			return false;
 		}
 	
-		_dmesh.SetScene(depths, x, y, (float) _orig_width/_orig_height, _serverTexture);
+		_dmesh.SetScene(depth, _serverTexture);
 		UITextSet.StatusText.text = "From DepthServer";
 
 		_serverTexture = null;
@@ -382,35 +379,34 @@ public class ImgVidDepthTexInputs : TexInputs {
 		Texture texture = _vp.texture;
 		if (texture == null) return;
 
-		float[] depths = null;
+		Depth depth = null;
 		
 		//If depth file exists, try to read from it
 		if (_depthFilePath != null) {
 			try {
-				depths = DepthFileUtils.ReadFromArchive(actualFrame, out _x, out _y);
+				depth = DepthFileUtils.ReadFromArchive(actualFrame);
 			}
 			catch (InvalidOperationException exc) {
 				Debug.LogWarning($"Couldn't read the frame from the depthfile: {exc}");
 			}
 		}
 
-		if (depths != null) 
+		if (depth != null)
 			UITextSet.StatusText.text = "read from archive";
 		else {
 			//Run the model
 			if (_dmodel == null) return;
-			depths = _dmodel.Run(texture, out _x, out _y);
+			depth = _dmodel.Run(texture);
 
 			/* For a new media, create the depth file */
 			if (_depthFilePath == null && !_hasCreatedArchive && _shouldUpdateArchive) {
-				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, _x, _y, _dmodel.ModelType);
+				DepthFileUtils.CreateDepthFile(_framecount-_startFrame, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, depth.X, depth.Y, _dmodel.ModelType);
 				_hasCreatedArchive = true;
 			}
 
 			//Save it
 			if (_shouldUpdateArchive) {
-				depths = (float[]) depths.Clone();
-				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depths, actualFrame, _x, _y)));
+				_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depth, actualFrame)));
 			}
 
 			UITextSet.StatusText.text = "processed";
@@ -419,7 +415,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 		if (_ftype == FileTypes.Depth)
 			UITextSet.StatusText.text = $"#{actualFrame}/{_framecount-_startFrame}";
 		
-		_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+		_dmesh.SetScene(depth, texture);
 
 		//Check if the params exist in current frame
 		if (_paramsDict != null && _paramsDict.ContainsKey(actualFrame))
@@ -527,8 +523,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 			_orig_height = texture.height;
 			_framecount = 1;
 
-			float[] depths = DepthFileUtils.ReadFromArchive(0, out _x, out _y);
-			_dmesh.SetScene(depths, _x, _y, (float) _orig_width/_orig_height, texture);
+			Depth depth = DepthFileUtils.ReadFromArchive(0);
+			_dmesh.SetScene(depth, texture);
 
 			/* Set the params for frame 0 (-1 is set above) */
 			if (_paramsDict != null && _paramsDict.ContainsKey(0))
