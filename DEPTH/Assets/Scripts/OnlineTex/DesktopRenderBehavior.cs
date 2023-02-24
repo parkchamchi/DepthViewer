@@ -57,20 +57,12 @@ public class DesktopRenderBehavior : MonoBehaviour, OnlineTex {
 			SetPanel();
 	}
 
-	public Texture2D GetTex(out int width, out int height) {
+	public Texture2D GetTex() {
 		Texture2D texture = GetTexture();
 
-		width = texture.width;
-		height = texture.height;
-
-		if (width * height == 0) {
-			Debug.LogError($"Invalid texture size: {width}x{height}");
-
-			width = _placeholderTexture.width;
-			height = _placeholderTexture.height;
-			return _placeholderTexture;
-		}
-
+		if (texture == null)
+			texture = _placeholderTexture;
+			
 		return texture;
 	}
 

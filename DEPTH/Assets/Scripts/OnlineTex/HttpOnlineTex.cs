@@ -66,11 +66,8 @@ public class HttpOnlineTex : OnlineTex {
 
 	public void StartRendering() {}
 
-	public Texture2D GetTex(out int width, out int height) {
+	public Texture2D GetTex() {
 		Get();
-
-		width = _currentTex.width;
-		height = _currentTex.height;
 		return _currentTex;
 	}
 

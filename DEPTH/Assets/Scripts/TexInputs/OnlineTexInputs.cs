@@ -30,7 +30,7 @@ public class OnlineTexInputs : TexInputs {
 		if (_otex == null || !_otex.Supported)
 			return;
 
-		Texture texture = _otex.GetTex(out _, out _);
+		Texture texture = _otex.GetTex();
 		if (texture == null) {
 			Debug.LogError("Couldn't get the texture");
 			return;
