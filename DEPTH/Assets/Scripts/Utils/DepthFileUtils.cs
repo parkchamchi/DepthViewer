@@ -16,6 +16,8 @@ public static class DepthFileUtils {
 	private const string _metadataFilename = "METADATA.txt";
 	private const string _paramsFilename = "PARAMS.txt";
 
+	private const int _paramsVersion = 2;
+
 	private static string _savedir;
 	public static string SaveDir {
 		set {
@@ -379,12 +381,14 @@ public static class DepthFileUtils {
 
 		...
 		*/
+		/* Enclosure this with try block! */
 
 		Dictionary<long, string> paramsDict = new Dictionary<long, string>();
 		StringBuilder frameParams = null;
 		bool in_substr = false;
 
 		long framenum = -1;
+		int paramsVersion = _paramsVersion;
 
 		foreach (string line in paramsStr.Split('\n')) {
 			if (line == "")	continue;
@@ -419,7 +423,8 @@ public static class DepthFileUtils {
 
 			switch (key) {
 			case "PARAMSVERSION":
-				if (value != "1")
+				paramsVersion = int.Parse(value);
+				if (paramsVersion > _paramsVersion)
 					Debug.LogWarning($"Higher params version: {value}");
 				break;
 
@@ -444,6 +449,65 @@ public static class DepthFileUtils {
 			}
 		}
 
+		if (paramsVersion == 1) {
+			if (paramsDict.ContainsKey(-1) && paramsDict[-1].Contains("MeshLoc")) {
+				/*If paramsVersion == 1 and has the init value -- which has legacy param
+				New params like ScaleR depends on CamDistL (150 - MeshLoc),
+				but since MeshLoc was written after scale, it would have invalid value.
+				Convert them manually... :(
+
+				Only convert the initial one, and assume all params exist
+				*/
+
+				string legacy = paramsDict[-1];
+				Dictionary<string, float> legacyParams = new Dictionary<string, float>();
+				Dictionary<string, float> newParams = new Dictionary<string, float>();
+
+				foreach (string line in legacy.Split('\n')) {
+					int sep_i = line.IndexOf('=');
+					if (sep_i < 0)
+						continue;
+
+					string key = line.Substring(0, sep_i).Trim();
+					string valueStr = line.Substring(sep_i+1).Trim();
+					float value = float.Parse(valueStr);
+
+					legacyParams[key] = value;
+				}
+
+				//Ok, add Alpha and Beta, which do not change
+				foreach (string key in new string[] {"Alpha", "Beta"})
+					newParams[key] = legacyParams[key];
+
+				//Add CamDistL: which is Log10 (150 - MeshLoc)
+				float camDist = 150 - legacyParams["MeshLoc"];
+				newParams["CamDistL"] = MathF.Log10(camDist);
+
+				//Add ScaleR = (Scale / (_scalePerCamDist * _camDist))
+				float scale = legacyParams["Scale"];
+				newParams["ScaleR"] = scale / ((0.96f/150) * camDist);
+
+				float width = 320, height = 180, length = 100;
+
+				//Add DepthMultRL = Log10 (DepthMult / ScaleR)
+				newParams["DepthMultRL"] = MathF.Log10(legacyParams["DepthMult"] / scale / length);
+
+				//Add MeshHor, MeshVer
+				newParams["MeshHor"] = - legacyParams["MeshX"] / scale / width;
+				newParams["MeshVer"] = + legacyParams["MeshY"] / scale / height;
+
+				//Add ProjRatio=0
+				newParams["ProjRatio"] = 0;
+
+				string newParamsStr = "";
+				foreach (KeyValuePair<string, float> item in newParams)
+					newParamsStr += $"{item.Key}={item.Value}\n";
+
+				Debug.Log(newParamsStr);
+				paramsDict[-1] = newParamsStr;
+			}
+		}
+
 		return paramsDict;
 	}
 
@@ -451,7 +515,7 @@ public static class DepthFileUtils {
 		if (paramsDict == null) return null;
 
 		StringBuilder output = new StringBuilder();
-		output.Append("!PARAMSVERSION=1\n\n");
+		output.Append($"!PARAMSVERSION={_paramsVersion}\n\n");
 
 		foreach (var item in paramsDict) {
 			output.Append($"!FRAME={item.Key}\n");
