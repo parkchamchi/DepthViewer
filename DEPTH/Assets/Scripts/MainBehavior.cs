@@ -658,6 +658,7 @@ public class MainBehavior : MonoBehaviour {
 
 		//Debug.Log("Nothing here...");
 		_fileSelecter = new SimpleFileSelecter();
+		GameObject.Find("Canvas").GetComponent<TempCanvasBehavior>().VrMode();
 
 		Debug.Log("DebugTmp() exiting.");
 	}
