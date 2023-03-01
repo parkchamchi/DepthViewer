@@ -48,6 +48,8 @@ From my experience `dpt_hybrid_384` seems to be more robust against drawn images
 - Put the onnx files under the `onnx` directory.
 - Open this options menu and select the file and click the `Load` button
 
+CUDA for OnnxRuntime requires cuDNN, see [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)
+
 ## Recording 360 VR video
 If you select a depthfile and an according image/video, a sequence of .jpg file will be generated in `Application.persistentDataPath`. \
 Go to the directory, and execute
