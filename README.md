@@ -142,6 +142,7 @@ They are in the nuget package files (.nupkg), get them from <br>
 }
 ```
 
+- [monocular-depth-unity](https://github.com/GeorgeAdamon/monocular-depth-unity) (MIT License)
 - [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
 - [Unity Simple File Browser](https://github.com/yasirkula/UnitySimpleFileBrowser) (MIT License)
 - [WebXR Export](https://github.com/De-Panther/unity-webxr-export) (Apache License 2.0)
@@ -156,5 +157,4 @@ They are in the nuget package files (.nupkg), get them from <br>
 
 ### Also check out
 - This project was inspired by [VRin](https://www.vrin.app/)
-- [monocular-depth-unity](https://github.com/GeorgeAdamon/monocular-depth-unity) ([used this code](https://github.com/GeorgeAdamon/monocular-depth-unity/blob/main/MonocularDepthBarracuda/Packages/DepthFromImage/Runtime/DepthFromImage.cs))
 - [godot-midas-depth](https://github.com/lewiji/godot-midas-depth)
