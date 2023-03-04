@@ -117,7 +117,7 @@ class Runner():
 		height, width = out.shape[:2]
 		return self.get_pgm(out), width, height #width and height can be ignored
 
-	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True, ext="pgm", alt_run_frame=None) -> None:
+	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
 		Args:
@@ -125,8 +125,6 @@ class Runner():
 			outpath (str): output directory.
 			isvideo (bool): whether the input is a video.
 			zip_in_memory (bool): If True, ZIP file will be created in the RAM until it finishes writing.
-
-			alt_run_frame (func): alternative depthmap generator
 		"""
 
 		print(f"Source: {inpath}")
@@ -165,13 +163,13 @@ class Runner():
 		for img in inputs:
 			print("! Processing #{}".format(i)) #starts with 0
 
-			pgmname = f"{i}.{ext}"
+			pgmname = "{}.pgm".format(i)
 			if update and pgmname in existing_filelist:
 				print("Already exists.")
 				i += 1
 				continue
 			
-			pgm, width, height = self.run_frame(img) if alt_run_frame is None else alt_run_frame(img)
+			pgm, width, height = self.run_frame(img)
 			zout.writestr(pgmname, pgm)
 
 			#save width, height & the original size
@@ -404,11 +402,6 @@ if __name__ == "__main__":
 			'images is tried to be preserved if supported by the model.'
 		)
 
-		parser.add_argument("--zoe",
-			type=str, default="None",
-			help="Use ZoeDepth using `zoeserver.py`."
-		)
-
 		args = parser.parse_args()
 
 		print(f"input: {args.input}")
@@ -423,32 +416,9 @@ if __name__ == "__main__":
 			exit(0)
 
 		runner = Runner()
+		runner.load_model(model_type=args.model_type, optimize=args.optimize, height=args.height, square=args.square)
 
-		if args.zoe == "None":
-			runner.load_model(model_type=args.model_type, optimize=args.optimize, height=args.height, square=args.square)
-			alt_run_frame = None
-			ext = "pgm"
-
-		else:
-			#ad hoc & inefficient
-			import requests
-
-			def zoe_run_frame(img):
-				img *= 255
-				img = img.astype(np.uint8)
-				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-				img = cv2.imencode('.png', img)[1].tobytes()
-				res = requests.post(args.zoe, data=img)
-				pfm = res.content
-				width, height = pfm.split(b'\n')[1].split(b' ')
-				width, height = int(width), int(height)
-				return pfm, width, height
-
-			alt_run_frame = zoe_run_frame
-			ext = "pfm"
-
-		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate,
-		    ext=ext, alt_run_frame=alt_run_frame)
+		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
 		print("Done.")
 	except Exception as exc:
