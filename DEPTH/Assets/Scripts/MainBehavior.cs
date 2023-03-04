@@ -122,6 +122,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
 		DebugLogConsole.AddCommandInstance("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
 		DebugLogConsole.AddCommandInstance("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
+		DebugLogConsole.AddCommandInstance("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 
 		DebugLogConsole.AddCommandInstance("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		DebugLogConsole.AddCommandInstance("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -658,6 +659,26 @@ public class MainBehavior : MonoBehaviour {
 
 		SetFileSelecter("simple");
 		GameObject.Find("Canvas").GetComponent<TempCanvasBehavior>().VrMode();
+	}
+
+	public void SetDof(int dof) {
+		Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+		UnityEngine.SpatialTracking.TrackedPoseDriver tpd = GameObject.Find("MainCamera").GetComponent<UnityEngine.SpatialTracking.TrackedPoseDriver>();
+
+		switch (dof) {
+		case 3:
+			camera.transform.localPosition = new Vector3(0, 0, 0);
+			tpd.trackingType = UnityEngine.SpatialTracking.TrackedPoseDriver.TrackingType.RotationOnly;
+			break;
+		case 6:
+			tpd.trackingType = UnityEngine.SpatialTracking.TrackedPoseDriver.TrackingType.RotationAndPosition;
+			break;
+		default:
+			Debug.LogError($"Invalid DoF: {dof}");
+			return;
+		}
+
+		Debug.Log($"DoF: {dof}");
 	}
 
 	/* A method for debugging, called by the console method `dbg` */
