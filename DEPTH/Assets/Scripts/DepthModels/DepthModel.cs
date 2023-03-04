@@ -1,8 +1,9 @@
 using System;
+using System.Linq;
 
 using UnityEngine;
 
-public enum DepthMapType {Inverse, Linear}
+public enum DepthMapType {Inverse, Linear, Metric}
 
 public class Depth {
 	private float[] _value;
@@ -11,7 +12,10 @@ public class Depth {
 	public readonly int X;
 	public readonly int Y;
 
-	public readonly DepthMapType Type;
+	public DepthMapType Type;
+
+	public float Min => _value.Min();
+	public float Max => _value.Max();
 
 	public Depth(float[] value, int x, int y, DepthMapType type=DepthMapType.Inverse) {
 		if (value == null) {
@@ -30,6 +34,7 @@ public class Depth {
 		_value = (float[]) value.Clone();
 		X = x;
 		Y = y;
+		Type = type;
 	}
 
 	public bool IsSameSize(Depth tocompare) {
@@ -43,6 +48,22 @@ public class Depth {
 
 	public static bool IsValid(Depth depth) =>
 		((depth != null) && (depth.Value != null));
+
+	public Depth MetricToLinear() {
+		if (Type != DepthMapType.Metric) {
+			Debug.LogError("MetricToLinear(): depth map is not metric");
+			return null;
+		}
+
+		float[] lin = new float[_value.Length];
+		float min = Min, max = Max;
+
+		//Normalize
+		for (int i = 0; i < lin.Length; i++)
+			lin[i] = (_value[i] - min) / (max - min);
+
+		return new Depth(lin, X, Y, DepthMapType.Linear);
+	}
 }
 
 public interface BaseDepthModel : IDisposable {

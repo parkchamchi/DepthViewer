@@ -11,6 +11,7 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 	public TMP_InputField AddrIF;
 	public TMP_Text ServerStatusText;
 	public TMP_Text ModelStatusText;
+	public Toggle MetricToggle;
 
 	private DepthServerModel _model;
 	public bool IsAvailable {get {return (_model != null);}}
@@ -31,7 +32,7 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		//Use the dummy image to check the connection
 
 		Texture2D dummy = Resources.Load<Texture2D>("dummy");
-		DepthServerModel testmodel = new DepthServerModel(url, this);
+		DepthServerModel testmodel = new DepthServerModel(url, MetricToggle.isOn, this);
 		testmodel.Run(dummy, (Depth depth) => {
 			if (depth != null) {
 				//success
@@ -73,20 +74,28 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 		IsWaiting = false;
 	}
 
+	public void OnMetricToggleValueChanged() {
+		if (_model != null)
+			_model.IsMetric = MetricToggle.isOn;
+	}
+
 	public void Dispose() =>
 		Disconnect();
 }
 
 /* Does not impelement DepthModel */
 public class DepthServerModel {
+	public bool IsMetric;
+
 	private string _url;
 	private CanRunCoroutine _behav;
 	private AsyncDepthModel.DepthReadyCallback _callback;
 
 	private RenderTexture _rt;
 
-	public DepthServerModel(string url, CanRunCoroutine behav) {
+	public DepthServerModel(string url, bool isMetric, CanRunCoroutine behav) {
 		_url = url;
+		IsMetric = isMetric;
 		_behav = behav;
 	}
 
@@ -125,6 +134,9 @@ public class DepthServerModel {
 			if (req.result == UnityWebRequest.Result.Success && req.responseCode == 200) {
 				byte[] data = req.downloadHandler.data;
 				Depth depth = DepthFileUtils.ReadPgmOrPfm(data);
+
+				if (IsMetric)
+					depth.Type = DepthMapType.Metric;
 
 				_callback(depth);
 			}

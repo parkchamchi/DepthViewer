@@ -699,9 +699,13 @@ public static class DepthFileUtils {
 			Debug.LogWarning($"PFM: {width}x{height}x4 = {width*height*4} does not match remaining {pfm.Length-idx} bytes");
 
 		float[] depths = new float[width*height];
-		for (int j = 0; j < depths.Length; j++)
-			depths[j] = BitConverter.ToSingle(new ReadOnlySpan<byte>(pfm, idx + j*4, 4));
-
+		//Buffer.BlockCopy(pfm, idx, depths, 0, width*height*4);
+		for (int h = 0; h < height; h++)
+			for (int w = 0; w < width; w++) {
+				int offset = ((height - 1 - h) * width + w) * 4; //flip vertically
+				depths[h*width + w] = BitConverter.ToSingle(new ReadOnlySpan<byte>(pfm, idx + offset, 4));
+			}
+		
 		return new Depth(depths, width, height);
 	}
 

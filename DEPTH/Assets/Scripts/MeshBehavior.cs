@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -460,19 +461,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private void UpdateDepth() {
 		/* Also called when a image is being shown and depthmult is updated */
-		/*
-		`_depths` are normalized to [0, ..., 1]
-		MiDaS returns inverse depth, so let k be
-		1 / (a*x + b)
-		where a > 0, b > 0.
-		Now k's are [1/b, ... , 1/(a+b)]
-		Normalize such that z be
-		(k * (a + b) - 1) * b / a
-		This gives us [1, ..., 0], where 0 is the closest.
-		*/
-		/*
-		If the Threshold [0, ..., 1] is set (that is, nonzero), set all values below it as the TargetVal.
-		*/
 
 		if (_vertices == null || _depth == null) return;
 
@@ -486,11 +474,28 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		for (int i = 0; i < _depth.Value.Length; i++) { //_alpha and _beta are assured to be positive
 			float z = _depth.Value[i];
 
-			if (isThresholdSet && z < _threshold)
-				z = _targetVal;
+			if (_depth.Type == DepthMapType.Inverse) {
+				/*
+				`_depths` are normalized to [0, ..., 1]
+				MiDaS returns inverse depth, so let k be
+				1 / (a*x + b)
+				where a > 0, b > 0.
+				Now k's are [1/b, ... , 1/(a+b)]
+				Normalize such that z be
+				(k * (a + b) - 1) * b / a
+				This gives us [1, ..., 0], where 0 is the closest.
+				*/
+				/*
+				If the Threshold [0, ..., 1] is set (that is, nonzero), set all values below it as the TargetVal.
+				*/
 
-			z = (1 / (_alpha * z + _beta)); //inverse
-			z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
+				if (isThresholdSet && z < _threshold)
+					z = _targetVal;
+
+				z = (1 / (_alpha * z + _beta)); //inverse
+				z = (z * (_alpha + _beta) - 1) * _beta / _alpha; //normalize
+			}
+
 			_vertices[i].z = z * _depthLength * _depthMultR;
 
 			if (_projRatio == 0) 
@@ -589,6 +594,17 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 				ratio = (float) texture.width / texture.height;
 			else
 				ratio = (float) depth.X / depth.Y;
+		}
+
+		if (depth.Type == DepthMapType.Metric) {
+			float min = depth.Min;
+			float max = depth.Max;
+
+			CamDist = min;
+			DepthMultR = (max - min) / (_depthLength * _localScaleZ);
+
+			//Then treat it like a linear dm
+			depth = depth.MetricToLinear();
 		}
 
 		if (_depth == null || !depth.IsSameSize(_depth) || ratio != _ratio)

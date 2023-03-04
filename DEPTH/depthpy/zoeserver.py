@@ -14,6 +14,7 @@ Uses https://github.com/isl-org/ZoeDepth for metric depth estimation
 """
 
 model = None
+max_height = 384
 
 app = flask.Flask(__name__)
 
@@ -48,6 +49,11 @@ def pfm():
 
 	image.close()
 
+	h, w = depth.shape
+	if (h > max_height):
+		newshape = (int((w/h) * max_height), max_height)
+		depth = cv2.resize(depth, newshape, interpolation=cv2.INTER_AREA)
+
 	return write_pfm(depth)
 
 if __name__ == "__main__":
@@ -56,6 +62,9 @@ if __name__ == "__main__":
 		help="name of the zoedepth model",
 		default="ZoeD_NK",
 		choices=["ZoeD_NK", "ZoeD_N", "ZoeD_K"])
+	parser.add_argument("--height",
+		help="max height",
+		default="384")
 	args = parser.parse_args()
 	
 	repo = "isl-org/ZoeDepth"
@@ -64,5 +73,7 @@ if __name__ == "__main__":
 	print(f"device: {device}")
 	model.eval()
 	model.to(device)
+
+	max_height = int(args.height)
 
 	app.run()

@@ -13,10 +13,6 @@ public static class UITextSet {
 	public static TMP_Text OutputSaveText;
 }
 
-public static class ImgVidDepthGOs {
-	public static Toggle CallServerOnPauseToggle;
-}
-
 public static class StaticGOs {
 	public static Texture2D PlaceholderTexture;
 }
@@ -27,18 +23,12 @@ public class UIStaticClassSetter : MonoBehaviour {
 	public TMP_Text StatusText;
 	public TMP_Text OutputSaveText;
 
-	public GameObject DepthFilePanel;
-	public TMP_Text DepthFileCompareText;
-	public Toggle CallServerOnPauseToggle;
-
 	public Texture2D PlaceholderTexture;
 
 	void Start() {
 		UITextSet.FilepathResultText = FilepathResultText;
 		UITextSet.StatusText = StatusText;
 		UITextSet.OutputSaveText = OutputSaveText;
-
-		ImgVidDepthGOs.CallServerOnPauseToggle = CallServerOnPauseToggle;
 
 		/*
 		Why is this null on Builds?
