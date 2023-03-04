@@ -39,6 +39,8 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public GameObject DesktopRenderGO;
 
+	public Toggle Dof6Toggle;
+
 	private MainBehavior _mainBehav;
 
 	private const string _onnxdir = "./onnx";
@@ -230,4 +232,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void ToggleDesktopRender() =>
 		DesktopRenderGO.SetActive(!DesktopRenderGO.activeSelf);
+
+	public void OnDof6ToggleValueChanged() =>
+		_mainBehav.SetDof((Dof6Toggle.isOn) ? 6 : 3);
 }
