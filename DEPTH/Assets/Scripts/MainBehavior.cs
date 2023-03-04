@@ -136,6 +136,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
 
 		DebugLogConsole.AddCommandInstance("dbg", "Temporary method for debugging.", "DebugTmp", this);
+		DebugLogConsole.AddCommandInstance("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
 
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
 		_donnx = _depthModelBehav.GetBuiltIn();
@@ -652,13 +653,18 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
+	public void EnterVrMode() {
+		Debug.Log("VR mode (incomplete)");
+
+		SetFileSelecter("simple");
+		GameObject.Find("Canvas").GetComponent<TempCanvasBehavior>().VrMode();
+	}
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		//Debug.Log("Nothing here...");
-		_fileSelecter = new SimpleFileSelecter();
-		GameObject.Find("Canvas").GetComponent<TempCanvasBehavior>().VrMode();
+		Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}
@@ -674,7 +680,7 @@ public static class Exts {
 	static Exts() {
 		ExtsDict = new Dictionary<FileTypes, string[]>();
 
-		ExtsDict.Add(FileTypes.Img, new string[] {".jpg", ".png"});
+		ExtsDict.Add(FileTypes.Img, new string[] {".jpg", ".jpeg", ".png"});
 		ExtsDict.Add(FileTypes.Vid, new string[] {
 			".mp4",
 			".asf", ".avi", ".dv", ".m4v", ".mov", ".mpg", ".mpeg", ".ogv", ".vp8", ".webm", ".wmv"

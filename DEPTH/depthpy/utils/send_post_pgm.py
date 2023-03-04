@@ -9,14 +9,17 @@ host = "http://127.0.0.1:5000"
 #url = f"{host}/depthpy/models/{model_type}/pgm"
 url = f"{host}/zoeserver/pfm"
 
-with open("../tmp/target.jpg", "rb") as fin:
+with open("../tmp/test.jpg", "rb") as fin:
 	image = fin.read()
 
 res = requests.post(url, data=image)
 print("Got.")
-jpg = res.content
+pfm = res.content
 
-img = np.frombuffer(jpg, np.uint8)
+with open("../tmp/output.pfm", "wb") as fout:
+	fout.write(pfm)
+
+img = np.frombuffer(pfm, np.uint8)
 img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
 
 print(img)

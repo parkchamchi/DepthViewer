@@ -630,6 +630,65 @@ public static class DepthFileUtils {
 		return new Depth(depths, width, height);
 	}
 
+	public static Depth ReadPFM(byte[] pfm) {
+		int idx = 0;
+		int width = 0, height = 0;
+
+		//"Pf", i.e. grayscale
+		if (pfm[0] != 'P' || pfm[1] != 'f') {
+			Debug.LogError("Invalid PFM header detected.");
+			return null;
+		}
+		idx = 2;
+
+		//Skip whitespaces
+		for (; IsSpace(pfm[idx]); idx++);
+
+		//width
+		for (; !IsSpace(pfm[idx]); idx++) {
+			width *= 10;
+			width += pfm[idx] - '0';
+		}
+
+		//Skip whitespaces
+		for (; IsSpace(pfm[idx]); idx++);
+
+		//height
+		for (; !IsSpace(pfm[idx]); idx++) {
+			height *= 10;
+			height += pfm[idx] - '0';
+		}
+
+		//Skip whitespaces
+		for (; IsSpace(pfm[idx]); idx++);
+
+		/*
+		The scale, which is a nonzero floating point string, indicates endianness: negative for LE.
+		The scale itself will be ignored.
+		*/
+		if (pfm[idx++] != '-') {
+			Debug.LogError("Big-endian PFM is not supported.");
+			return null;
+		}
+		
+		//Skip the scale (non-whitespaces)
+		for (; !IsSpace(pfm[idx]); idx++);
+
+		//Skip a single whitespace
+		if (!IsSpace(pfm[idx++]))
+			Debug.LogError("Illegal PFM format: there is no whitespace next to the maxval.");
+
+		//The rest is a sequence of float32 values
+		if (width*height*4 != pfm.Length-idx)
+			Debug.LogWarning($"PFM: {width}x{height}x4 = {width*height*4} does not match remaining {pfm.Length-idx} bytes");
+
+		float[] depths = new float[width*height];
+		for (int j = 0; j < depths.Length; j++)
+			depths[j] = BitConverter.ToSingle(new ReadOnlySpan<byte>(pfm, idx + j*4, 4));
+
+		return new Depth(depths, width, height);
+	}
+
 	public static bool IsSpace(char c) {
 		const string whitespaces = " \t\n\r";
 		return whitespaces.IndexOf(c) != -1;
