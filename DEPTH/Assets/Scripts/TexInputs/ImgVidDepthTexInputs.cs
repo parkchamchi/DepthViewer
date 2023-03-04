@@ -184,11 +184,7 @@ public class ImgVidDepthTexInputs : TexInputs {
 					return false;
 	
 				if (_shouldUpdateArchive) {
-					DepthFileUtils.CreateDepthFile(_framecount, _startFrame, _hashval, _orig_filepath, _orig_width, _orig_height, _framerate, depth.X, depth.Y, _asyncDmodel.ModelType);
-
-					//depths = (float[]) depths.Clone();
-					_processedFrames.Add(Task.Run(() => DepthFileUtils.UpdateDepthFile(depth, 0)));
-					_hasCreatedArchive = true; //not needed
+					Debug.LogError("TODO: This should not be seen, delete all reference of asyncmodel depthfile saving");
 				}
 
 				return true; //return value does not matter here
@@ -552,8 +548,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	public void PausePlay() {
-		//Might as well would just delete the call-the-server-on-pause behavior later
-
 		if (_ftype != FileTypes.Vid) return;
 		if (_vp == null) return;
 
@@ -571,15 +565,6 @@ public class ImgVidDepthTexInputs : TexInputs {
 			/* Pause */
 			_vp.Pause();
 			UITextSet.StatusText.text = $"#{_currentFrame-_startFrame}/{_framecount-_startFrame}";
-
-			if (_asyncDmodel != null && _asyncDmodel.IsAvailable &&
-				ImgVidDepthGOs.CallServerOnPauseToggle != null && ImgVidDepthGOs.CallServerOnPauseToggle.isOn) 
-			{
-				_serverTexture = _vp.texture;
-
-				if (_serverTexture != null)
-					_asyncDmodel.Run(_serverTexture, OnDepthReady);
-			}
 
 			_dmesh.ShouldUpdateDepth = true;
 		}

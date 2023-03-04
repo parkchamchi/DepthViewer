@@ -347,7 +347,7 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		Depth depth = ReadPGM(pgm);
+		Depth depth = ReadPgm(pgm);
 		return depth;
 	}
 
@@ -576,7 +576,23 @@ public static class DepthFileUtils {
 		_archiveMode = origMode;
 	}
 
-	public static Depth ReadPGM(byte[] pgm) {
+	public static Depth ReadPgmOrPfm(byte[] data) {
+		if (data == null || data.Length < 2) {
+			Debug.LogError("ReadPgmOfPfm(): invalid data");
+			return null;
+		}
+
+		if (data[0] == 'P' && data[1] == '5')
+			return ReadPgm(data);
+		else if (data[0] == 'P' && data[1] == 'f')
+			return ReadPfm(data);
+		else {
+			Debug.LogError("ReadPgmOfPfm(): Invalid header");
+			return null;
+		}
+	}
+
+	public static Depth ReadPgm(byte[] pgm) {
 		int idx = 0;
 		int width = 0, height = 0, maxval = 0;
 		
@@ -630,7 +646,7 @@ public static class DepthFileUtils {
 		return new Depth(depths, width, height);
 	}
 
-	public static Depth ReadPFM(byte[] pfm) {
+	public static Depth ReadPfm(byte[] pfm) {
 		int idx = 0;
 		int width = 0, height = 0;
 

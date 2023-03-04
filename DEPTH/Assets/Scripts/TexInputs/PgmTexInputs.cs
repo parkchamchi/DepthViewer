@@ -28,7 +28,7 @@ public class PgmTexInputs : TexInputs {
 		}
 		byte[] pgm = File.ReadAllBytes(pgmpath);
 
-		_depth = DepthFileUtils.ReadPGM(pgm);
+		_depth = DepthFileUtils.ReadPgm(pgm);
 		if (_depth == null) {
 			UITextSet.StatusText.text = "Error reading the PGM file";
 			return;

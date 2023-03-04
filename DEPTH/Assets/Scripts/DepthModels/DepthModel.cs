@@ -53,7 +53,7 @@ public interface DepthModel : BaseDepthModel {
 	Depth Run(Texture inputTexture);
 }
 
-public interface AsyncDepthModel : BaseDepthModel {
+public interface AsyncDepthModel {
 	bool IsAvailable {get;}
 	bool IsWaiting {get;}
 

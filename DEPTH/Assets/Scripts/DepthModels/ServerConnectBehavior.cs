@@ -9,20 +9,8 @@ using TMPro;
 
 public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCoroutine {
 	public TMP_InputField AddrIF;
-	public TMP_InputField ModelTypeIF;
 	public TMP_Text ServerStatusText;
 	public TMP_Text ModelStatusText;
-
-	public string ModelType {
-		get {
-			if (_model == null) {
-				Debug.LogError("ServerConnectBehavior.ModelType called when _model == null");
-				return null;
-			}
-
-			return _model.ModelType;
-		}
-	}
 
 	private DepthServerModel _model;
 	public bool IsAvailable {get {return (_model != null);}}
@@ -34,32 +22,36 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 
 	public void Connect() {
 		string addr = AddrIF.text;
-		string modelType = ModelTypeIF.text;
-
-		string url = $"{addr}/depthpy/models/{modelType}";
-		StartCoroutine(GetRequest(url, modelType));
+		TestConnection(addr);
 
 		ServerStatusText.text = "Connecting.";
 	}
 
-	private IEnumerator GetRequest(string url, string modelType) {
-		using (UnityWebRequest req = UnityWebRequest.Get(url)) {
-			yield return req.SendWebRequest();
+	private void TestConnection(string url) {
+		//Use the dummy image to check the connection
 
-			if (req.result == UnityWebRequest.Result.Success) {
+		Texture2D dummy = Resources.Load<Texture2D>("dummy");
+		DepthServerModel testmodel = new DepthServerModel(url, this);
+		testmodel.Run(dummy, (Depth depth) => {
+			if (depth != null) {
+				//success
 				ServerStatusText.text = "OK";
 				ModelStatusText.text = url;
-				SetModel(url, modelType);
+				SetModel(testmodel);
+				return true; //not needed
 			}
 			else {
+				//failure
 				ServerStatusText.text = "Failed to connect";
+				testmodel.Dispose();
+				return false; //not needed
 			}
-		}
+		});
 	}
 
-	private void SetModel(string url, string modelType) {
-		/* Called by GetRequest() */
-		_model = new DepthServerModel(url, modelType, this);
+	private void SetModel(DepthServerModel model) {
+		_model?.Dispose();
+		_model = model;
 	}
 
 	public void Run(Texture tex, AsyncDepthModel.DepthReadyCallback callback) {
@@ -87,18 +79,14 @@ public class ServerConnectBehavior : MonoBehaviour, AsyncDepthModel, CanRunCorou
 
 /* Does not impelement DepthModel */
 public class DepthServerModel {
-	private string _modelType;
-	public string ModelType {get {return _modelType;}}
-
 	private string _url;
 	private CanRunCoroutine _behav;
 	private AsyncDepthModel.DepthReadyCallback _callback;
 
 	private RenderTexture _rt;
 
-	public DepthServerModel(string url, string modeltype, CanRunCoroutine behav) {
-		_url = url + "/pgm";
-		_modelType = modeltype;
+	public DepthServerModel(string url, CanRunCoroutine behav) {
+		_url = url;
 		_behav = behav;
 	}
 
@@ -136,7 +124,7 @@ public class DepthServerModel {
 
 			if (req.result == UnityWebRequest.Result.Success && req.responseCode == 200) {
 				byte[] data = req.downloadHandler.data;
-				Depth depth = DepthFileUtils.ReadPGM(data);
+				Depth depth = DepthFileUtils.ReadPgmOrPfm(data);
 
 				_callback(depth);
 			}
