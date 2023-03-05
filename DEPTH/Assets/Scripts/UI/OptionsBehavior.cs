@@ -40,6 +40,7 @@ public class OptionsBehavior : MonoBehaviour {
 	public GameObject DesktopRenderGO;
 
 	public Toggle Dof6Toggle;
+	public Toggle MouseMoveToggle;
 
 	private MainBehavior _mainBehav;
 
@@ -235,4 +236,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnDof6ToggleValueChanged() =>
 		_mainBehav.SetDof((Dof6Toggle.isOn) ? 6 : 3);
+
+	public void OnMouseMoveToggleValueChanged() =>
+		_mainBehav.SetMoveMeshByMouse(MouseMoveToggle.isOn);
 }
