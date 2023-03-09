@@ -160,3 +160,23 @@ They are in the nuget package files (.nupkg), get them from <br>
 ### Also check out
 - This project was inspired by [VRin](https://www.vrin.app/)
 - [godot-midas-depth](https://github.com/lewiji/godot-midas-depth)
+
+## Remarks
+
+This personal project was started in September 2022 with primary goal of using monocualar depth estimation ML model for VR headsets.
+I could not find any existing programs that fit this need, except for a closed-source program *VRin* (link above).
+That program (then and still in `Alpha 0.2`) was the main inspiration for this project, but I needed more features (like image inputs) to suit my personal use.
+As it was closed source, I grabbed a [Unity/C# book](https://www.amazon.com/Learning-Developing-Games-Unity-2021/dp/1801813949) and started to generate a mesh from script.
+
+I gradually added features by trial-and-error rather than through planned development, which made the code a bit messy, and many parts of this program could have been better.
+But after a series of progressions, I found the [v0.8.7](https://github.com/parkchamchi/DepthViewer/releases/tag/v0.8.7-beta) build to be *okay enough* for my personal use.
+So this project is on "indefinite hiatus" from now on, but I'm still open for minor feature requests and bug fixes.
+
+I thank all people who gave me complements, advices, bug reports, and criticisms.
+
+Thank you.
+
+2023 March 9
+
+Chanjin Park
+parkchamchi@gmail.com
