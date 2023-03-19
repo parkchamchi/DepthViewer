@@ -172,7 +172,7 @@ I gradually added features by trial-and-error rather than through planned develo
 But after a series of progressions, I found the [v0.8.7](https://github.com/parkchamchi/DepthViewer/releases/tag/v0.8.7-beta) build to be *okay enough* for my personal use.
 So this project is on "indefinite hiatus" from now on, but I'm still open for minor feature requests and bug fixes.
 
-I thank all people who gave me complements, advices, bug reports, and criticisms.
+I thank all people who gave me compliments, advices, bug reports, and criticisms.
 
 Thank you.
 
