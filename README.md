@@ -102,6 +102,7 @@ Some files can't be played because Unity's VideoPlayer can't open them. (e.g. VP
 - Rendering the desktop is only supported in Windows for now.
 - C# scripts are in [DEPTH/Assets/Scripts](DEPTH/Assets/Scripts).
 - Python scripts are in [DEPTH/depthpy](DEPTH/depthpy).
+- [Also see here](./DOC.md)
 
 ## Todo
 - Overhaul UI & Control
@@ -183,4 +184,4 @@ parkchamchi@gmail.com
 
 ### 2023 March 21
 
-I'll be still updating this project, but first I should write down [this](./DOC.md) before advancing further.
+I'll be still updating this project, it can be slow since the school has started again.
