@@ -2,7 +2,6 @@
 
 Written reviewing the version [v0.8.8-beta-prerelease-2](https://github.com/parkchamchi/DepthViewer/releases/tag/v0.8.8-beta-prerelease-2) <br>
 Everything is subject to change. <br>
-**WIP**
 
 ## General
 - Android and WebGL builds has not been tested beyond the version `v0.6.2`
@@ -11,7 +10,7 @@ When this cycle is finished (not parallelized), the `MainBehavior` calls `TexInp
 
 
 ## `MainBehavior.cs`
-The main script of the program. It's a bit messy and has many points to be fixed
+The main script of the program. A bit messy.
 
 ### enum `FileTypes`
 The constants for indicating the type of the input. To summary:
@@ -19,7 +18,7 @@ The constants for indicating the type of the input. To summary:
 - `Img`, `Vid`, `Depth`: `Depth` is the "depthfile" that contains depth maps of images or videos.
 These share the same processing class `ImgVidDepthTexInputs` since they are heavily interwined (since it can't determine if it's a image or a video before opening the depthfile).
 While `ImgVidDepthTexInputs` is a bit bloated, if depthfile processing is not considered handling image inputs is actually fairly short,
-see [here, a three-line snippet (ad hoc code for webgl, not tested)](https://github.com/parkchamchi/DepthViewer/blob/1e6ca57dd9e1c0233fa1fe1bcf2cb8007f79c8ac/DEPTH/Assets/Scripts/MainBehavior.cs#L432) that loads the image, infers the depth, and visualizes it.
+see [here, a three-line snippet (code for webgl, not tested)](https://github.com/parkchamchi/DepthViewer/blob/1e6ca57dd9e1c0233fa1fe1bcf2cb8007f79c8ac/DEPTH/Assets/Scripts/MainBehavior.cs#L432) that loads the image, infers the depth, and visualizes it.
 - `Online`: inputs that keeps changing. Like mirroring the desktop screen, where input image keeps changing every time it is requested. Also used for the Http inputs.
 - `Gif`
 - `Pgm`: the [Portable Graymap Format](https://netpbm.sourceforge.net/doc/pgm.html) that contains a grayscale image.
@@ -34,7 +33,7 @@ The main initialization.
 - `DepthModelBehavior`: the depth map inference engine
 - `VRRecordBehavior`: this is for recording the screen on VR headsets.
 - `ServerConnectBehavior`: this is to connect to a server that provides the depth map when an image is given (`AsyncDepthModel`).
-It is only implemented for the image inputs and it usage is not recommended.
+It is only implemented for the image inputs and its usage is not recommended.
 Also while waiting the server, it may block changing the input.
 Not to be confused with `HttpOnlineTex`, which fetches *images* from the server.
 
@@ -43,7 +42,7 @@ But it seems it can be removed here, since `_vp` is only for used for being dest
 If there were several meshes and different `VideoPlayer`s it would make sense, but as it doesn't seem to be implemented, I think this can be omitted here and have it fetched on `ImgVidDepthTexInputs`.
 
 #### Calling ToggleOutputSave(), ToggleSearchCache()
-Initialize the `OutputSave` and `SearchCache` toggles. Well, sort of. It's actually to set the variables `_canUpdateArchive` and `_searchCache` based on the toggle UI's values (i.e. the value that was set on the editor).
+It's to set the variables `_canUpdateArchive` and `_searchCache` based on the toggle UI's values (i.e. the value that was set on the editor).
 Can these variables just be replaced with `OutputSaveToggle.isOn` and `SearchCacheToggle.isOn`?
 
 #### Command line arguments
@@ -140,7 +139,7 @@ When `1`, the mesh would project the vertices on the screen.
 #### Paramter `TargetVal` and `Threshold`
 Deprecated: the values lowers than `Threshold` would be set to `TargetVal`.
 
-#### _mesh.indexFormat
+#### `_mesh.indexFormat`
 If this is not set to `UInt32`, the depth maps whose size is bigger than `256*256`, which is the size of the built-in model, will be broken.
 
 ### `MeshShaders`
@@ -164,7 +163,7 @@ Rotates the mesh in predefined manner. If the angles differ too much it would lo
 
 ### enum `DepthMapType`
 
-- `Inverse`: true depth values are scaled, shifted and inversed. Parameter `Alpha` and `Beta` are used for this.
+- `Inverse`: true depth values scaled, shifted and inversed. Parameter `Alpha` and `Beta` are used for this.
 - `Linear`
 - `Metric`: Actual values in meter (which is identical to a Unity unit)
 
@@ -522,7 +521,7 @@ Create the directory if it doesn't exist, does nothing if it exists.
 Shouldn't this be in `UIStaticSetter.cs`?
 
 ### `ReadOptionsString()` and `WriteOptionsString()`
-Read/Write the options strings that saves `searchCache` and `saveOutput`. It's just a text files with two lines. I believe this just should use `PlayerPrefs`
+Read/Write the options strings that saves `searchCache` and `saveOutput`. It's just a text file with two lines. I believe this just should use `PlayerPrefs`
 
 ### `DepthToTex()`
 Converts the `Depth` object into a texture.
