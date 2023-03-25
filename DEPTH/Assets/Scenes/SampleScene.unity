@@ -4761,6 +4761,8 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: .pgm
       m_Image: {fileID: 0}
+    - m_Text: .exr
+      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:

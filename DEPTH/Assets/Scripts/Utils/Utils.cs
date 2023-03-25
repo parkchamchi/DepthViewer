@@ -107,7 +107,7 @@ public static class Utils {
 		int x = depth.X;
 		int y = depth.Y;
 
-		Texture2D tex = new Texture2D(x, y);
+		Texture2D tex = new Texture2D(x, y, textureFormat: TextureFormat.RFloat, mipCount: -1, linear: false);
 		for (int h = 0; h < y; h++) {
 			for (int w = 0; w < x; w++) {
 				float val = depth.Value[(y-h-1)*x + w]; //Why is this flipped?
@@ -120,14 +120,14 @@ public static class Utils {
 		return tex;
 	}
 
-	public static Texture2D ResizeTexture(Texture tex, int w, int h) {
+	public static Texture2D ResizeTexture(Texture2D tex, int w, int h) {
 		//Don't use this in loop since RenderTexture is expensive
 		//This doesn't destroy the original `tex`.
 
 		RenderTexture rt = new RenderTexture(w, h, 16);
 		Graphics.Blit(tex, rt); //tex -> rt
 
-		Texture2D newtex = new Texture2D(rt.width, rt.height);
+		Texture2D newtex = new Texture2D(rt.width, rt.height, tex.format, -1, false);
 
 		//Move the resized texture
 		RenderTexture.active = rt;

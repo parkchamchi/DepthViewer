@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+using IngameDebugConsole;
+
 public class OptionsBehavior : MonoBehaviour {
 	//TODO: remove wrappers in _mainBehav if it's not needed and generalize inputs
 
@@ -36,6 +38,7 @@ public class OptionsBehavior : MonoBehaviour {
 	public TMP_Dropdown DepthMapTypeDropdown;
 	public TMP_Dropdown DepthMapFormatDropdown;
 	public Toggle DepthMapResizeToggle;
+	private bool _exrExportUse32Bit = true; //Whether the exr export will use 32bit fp (instead of 16bit)
 
 	public GameObject DesktopRenderGO;
 
@@ -54,6 +57,8 @@ public class OptionsBehavior : MonoBehaviour {
 		LoadOnnxModelList();
 		//OnParamDropdownValueChanged();
 		OutputDirInputField.text = DepthFileUtils.SaveDir;
+
+		DebugLogConsole.AddCommandInstance("set_exr32bit", "Set whether exr files will be exported using 32bit fp not 16bit", "SetExrExportUse32Bit", this);
 	}
 
 	public void TogglePanel() =>
@@ -156,6 +161,8 @@ public class OptionsBehavior : MonoBehaviour {
 	}
 
 	public void OnDepthMapFormatDropdownValueChanged() {
+		//Disable the resize operation for pgm files
+
 		string format = DepthMapFormatDropdown.captionText.text;
 
 		if (format == ".pgm") {
@@ -194,15 +201,18 @@ public class OptionsBehavior : MonoBehaviour {
 			return;
 		}
 
-		byte[] data;
+		byte[] data = null;
 
 		switch (format) {
 		case ".pgm":
 			data = DepthFileUtils.WritePGM(depth);
 			break;
+
 		case ".png":
+		case ".exr":
 			Texture2D tex = Utils.DepthToTex(depth);
 
+			/* makes artifacts
 			if (resize) {
 				int w, h;
 				_mainBehav.GetCurrentTextureSize(out w, out h);
@@ -213,10 +223,28 @@ public class OptionsBehavior : MonoBehaviour {
 					tex = newtex;
 				}
 			}
+			*/
 
-			data = tex.EncodeToPNG();
+			if (format == ".png")
+				data = tex.EncodeToPNG();
+			else if (format == ".exr") {
+				Texture2D.EXRFlags exrflag = Texture2D.EXRFlags.None;
+
+				if (_exrExportUse32Bit) {
+					Debug.Log("EXR: using 32bit fp");
+					exrflag = Texture2D.EXRFlags.OutputAsFloat;
+				}
+				else {
+					Debug.Log("EXR: using 16bit fp");
+					exrflag = Texture2D.EXRFlags.None;
+				}
+
+				data = tex.EncodeToEXR(exrflag);
+			}
+
 			Destroy(tex);
 			break;
+
 		default:
 			Debug.LogError($"ExportDepthMap(): Got unsupported format {format}");
 			return;
@@ -229,6 +257,11 @@ public class OptionsBehavior : MonoBehaviour {
 		File.WriteAllBytes(filename, data);
 
 		Debug.Log($"Exported: {filename}");
+	}
+
+	public void SetExrExportUse32Bit(bool val) {
+		Debug.Log($"_exrExportUse32Bit: {val}");
+		_exrExportUse32Bit = val;
 	}
 
 	public void ToggleDesktopRender() =>
