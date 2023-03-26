@@ -69,20 +69,25 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider="default", int gpuid=0) {
 		ModelType = modelType;
 
-		SessionOptions sessionOptions;
+		Debug.Log($"OnnxRuntimeDepthModel(): using the provider {provider}");
+
+		SessionOptions sessionOptions = new SessionOptions();
 		switch (provider.ToLower()) {
 		case "default":
 			Debug.Log("OnnxRuntime is not using CUDA. Insert `set_onnxruntime_params cuda 0` and reload to enable it.");
-			sessionOptions = new SessionOptions();
 			break;
 		
 		case "cuda":
 			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
 			break;
+
+		case "directml":
+			Debug.Log("Using DirectML.");
+			sessionOptions.AppendExecutionProvider_DML(gpuid);
+			break;
 		
 		default:
 			Debug.LogError($"Unknown provider: {provider}");
-			sessionOptions = new SessionOptions();
 			break;
 		}
 
