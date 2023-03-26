@@ -81,9 +81,16 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
 			break;
 
-		case "directml":
-			Debug.Log("Using DirectML.");
+		case "openvino": //Not tested
+			sessionOptions.AppendExecutionProvider_OpenVINO();
+			break;
+
+		case "directml": //Not tested
 			sessionOptions.AppendExecutionProvider_DML(gpuid);
+			break;
+
+		case "tvm": //Not tested
+			sessionOptions.AppendExecutionProvider_Tvm();
 			break;
 		
 		default:

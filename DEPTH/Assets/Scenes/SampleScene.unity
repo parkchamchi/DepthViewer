@@ -574,7 +574,11 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: CUDA
       m_Image: {fileID: 0}
+    - m_Text: OpenVINO
+      m_Image: {fileID: 0}
     - m_Text: DirectML
+      m_Image: {fileID: 0}
+    - m_Text: TVM
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
