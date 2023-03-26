@@ -602,8 +602,8 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.SetMaterialFloat("_PointSize", val);
 
 	//Wrapper 
-	public void SetOnnxRuntimeParams(bool useCuda, int gpuId) =>
-		_depthModelBehav.SetOnnxRuntimeParams(useCuda, gpuId);
+	public void SetOnnxRuntimeParams(string provider, int gpuId) =>
+		_depthModelBehav.SetOnnxRuntimeParams(provider, gpuId);
 
 	public string GetCurrentModelType() {
 		if (_donnx == null)

@@ -45,7 +45,7 @@ public class DepthModelBehavior : MonoBehaviour {
 
 	public NNModel BuiltIn;
 
-	public bool OnnxRuntimeUseCuda {get; private set;} = false;
+	public string OnnxRuntimeGpuProvider {get; private set;} = "Default";
 	public int OnnxRuntimeGpuId {get; private set;} = 0;
 
 	private static DepthModel _donnx;
@@ -72,7 +72,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			Debug.LogError("Not using onnxruntime but got useOnnxRuntime=true!");
 			return null;
 #else			
-			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, useCuda: OnnxRuntimeUseCuda, gpuid: OnnxRuntimeGpuId);
+			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, provider: OnnxRuntimeGpuProvider, gpuid: OnnxRuntimeGpuId);
 #endif
 
 		}
@@ -80,10 +80,10 @@ public class DepthModelBehavior : MonoBehaviour {
 		return _donnx;
 	}
 
-	public void SetOnnxRuntimeParams(bool useCuda, int gpuId) {
-		Debug.Log($"SetOnnxRuntimeParams(): useCuda: {useCuda}, gpuId: {gpuId}");
+	public void SetOnnxRuntimeParams(string provider, int gpuId) {
+		Debug.Log($"SetOnnxRuntimeParams(): provider: {provider}, gpuId: {gpuId}");
 
-		OnnxRuntimeUseCuda = useCuda;
+		OnnxRuntimeGpuProvider = provider;
 		OnnxRuntimeGpuId = gpuId;
 	}
 

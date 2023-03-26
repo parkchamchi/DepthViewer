@@ -25,7 +25,7 @@ public class OptionsBehavior : MonoBehaviour {
 	public Slider PCSizeSlider;
 
 	public Toggle UseOrtToggle;
-	public Toggle OrtCudaToggle;
+	public TMP_Dropdown OrtGpuProvidersDropdown;
 	public TMP_Dropdown OnnxDropdown;
 	public TMP_Text CurrentModelText;
 
@@ -115,8 +115,8 @@ public class OptionsBehavior : MonoBehaviour {
 		CurrentModelText.text = _mainBehav.GetCurrentModelType();
 	}
 
-	public void OnOrtCudaToggleValueChanged() =>
-		_mainBehav.SetOnnxRuntimeParams(OrtCudaToggle.isOn, 0);
+	public void OnOrtGpuProvidersDropdownValueChanged() =>
+		_mainBehav.SetOnnxRuntimeParams(OrtGpuProvidersDropdown.captionText.text, 0);
 
 	public void LoadOnnxModelList() {
 		string[] onnxfiles = Directory.GetFiles(_onnxdir, "*.onnx");

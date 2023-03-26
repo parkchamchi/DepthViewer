@@ -66,22 +66,31 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, bool useCuda=false, int gpuid=0) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider="default", int gpuid=0) {
 		ModelType = modelType;
 
 		SessionOptions sessionOptions;
-		if (!useCuda) {
-			Debug.Log("OnnxRuntime is not using CUDA. Insert `set_onnxruntime_params true 0` and reload to enable it.");
+		switch (provider.ToLower()) {
+		case "default":
+			Debug.Log("OnnxRuntime is not using CUDA. Insert `set_onnxruntime_params cuda 0` and reload to enable it.");
 			sessionOptions = new SessionOptions();
-		}
-		else
+			break;
+		
+		case "cuda":
 			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
+			break;
+		
+		default:
+			Debug.LogError($"Unknown provider: {provider}");
+			sessionOptions = new SessionOptions();
+			break;
+		}
 
 		try {
 			_infsession = new InferenceSession(onnxpath, sessionOptions);
 		}
 		catch (OnnxRuntimeException exc) {
-			Debug.LogWarning($"OnnxRuntimeException, useCuda: {useCuda}, gpuid: {gpuid}. {exc}");
+			Debug.LogWarning($"OnnxRuntimeException, provider: {provider}, gpuid: {gpuid}. {exc}");
 			throw new InvalidOperationException();
 		}
 		
