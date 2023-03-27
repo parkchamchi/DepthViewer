@@ -80,28 +80,6 @@ public class DepthModelBehavior : MonoBehaviour {
 
 		return _donnx;
 	}
-
-	/*
-	public void SetOnnxRuntimeParams(string provider, int gpuId, string settings) {
-		Debug.Log($"SetOnnxRuntimeParams(): provider: {provider}, gpuId: {gpuId}, settings: {settings}");
-
-		OnnxRuntimeGpuProvider = provider;
-		OnnxRuntimeGpuId = gpuId;
-
-		OnnxRuntimeGpuSettings = settings;
-		if (OnnxRuntimeGpuSettings == "null")
-			OnnxRuntimeGpuSettings = null;
-	}
-	*/
-
-	public void PrintCurrentModelType() {
-		if (_donnx == null) {
-			Debug.Log("No model assigned.");
-			return;
-		}
-
-		Debug.Log($"Current model: {_donnx.ModelType}");
-	}
 }
 
 public class BarracudaDepthModel : DepthModel {

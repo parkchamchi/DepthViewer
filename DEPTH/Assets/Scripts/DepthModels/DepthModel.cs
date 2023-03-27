@@ -72,6 +72,8 @@ public interface BaseDepthModel : IDisposable {
 
 public interface DepthModel : BaseDepthModel {
 	Depth Run(Texture inputTexture);
+
+	void PrintMetadata() {Debug.LogError("PrintMetadata(): Not implemented.");}
 }
 
 public interface AsyncDepthModel {

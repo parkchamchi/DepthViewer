@@ -133,8 +133,7 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("ecf", "Save the parameters for image/video inputs (on the current frame, force) (shorthand for `send_msg ecf`)", "SendMsgEcf", this);
 		DebugLogConsole.AddCommandInstance("eclear", "Clear the parameters for image/video inputs (shorthand for `send_msg eclear`)", "SendMsgEclear", this);
 
-		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
-		
+		DebugLogConsole.AddCommandInstance("print_model_metadata", "Print the metadata of the current model (only supports ORT)", "PrintCurrentModelMetadata", this);
 		DebugLogConsole.AddCommandInstance("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
 		DebugLogConsole.AddCommandInstance("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
 
@@ -618,6 +617,9 @@ public class MainBehavior : MonoBehaviour {
 
 		return _donnx.ModelType;
 	}
+
+	public void PrintCurrentModelMetadata() =>
+		_donnx?.PrintMetadata();
 
 	public void SetMoveMeshByMouse(bool value) {
 		Debug.Log($"Setting MoveMeshByMouse = {value}");

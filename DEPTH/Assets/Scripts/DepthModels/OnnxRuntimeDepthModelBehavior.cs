@@ -70,6 +70,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		//param settings: used for TVM and OpenVINO
 
 		ModelType = modelType;
+		if (settings == null) settings = "";
 
 		Debug.Log($"OnnxRuntimeDepthModel(): using the provider {provider}");
 
@@ -85,18 +86,24 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			break;
 
 		case "openvino":
-			if (settings == null) settings = "";
 			Debug.Log($"settings (default empty string): \"{settings}\"");
 			sessionOptions.AppendExecutionProvider_OpenVINO();
 			break;
 
 		case "directml": //Not tested
 			Debug.Log($"Using gpuid={gpuid}");
+			sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
 			sessionOptions.AppendExecutionProvider_DML(gpuid);
 			break;
 
 		case "tvm": //Not tested
-			Debug.Log($"settings (default null): {settings}");
+			/*
+			These `settings` crashes the program:
+				"input_shapes:[1 3 256 256]"
+				"executer:graph, input_names:0, input_shapes:[1 3 256 256]"
+			*/
+			//settings = "input_names:0, input_shapes:[1 3 256 256]";
+			Debug.Log($"settings: \"{settings}\"");
 			sessionOptions = SessionOptions.MakeSessionOptionWithTvmProvider(settings);
 			break;
 
@@ -208,40 +215,27 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		_rt = null;
 	}
 
-	private void PrintMetadata() {
+	public void PrintMetadata() {
 		/* For debug */
 
-		Debug.Log("************************INPUTMETADATA");
-		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.InputMetadata) { //only 1
-			Debug.Log("+++++" + item.Key + ": ");
-			var v = item.Value;
-			Debug.Log($"Dimensions:{v.Dimensions}"); //[1, 3, 384, 384]
-			Debug.Log($"Dimensions.Length:{v.Dimensions.Length}");
-			foreach (var e in v.Dimensions) Debug.Log(e);
+		foreach (var mItem in new Dictionary<string, IReadOnlyDictionary<string, NodeMetadata>> {{"InputMetadata", _infsession.InputMetadata}, {"OutputMetadata", _infsession.OutputMetadata}}) {
+			Debug.Log($"************************{mItem.Key}");
+			foreach (KeyValuePair<string, NodeMetadata> item in mItem.Value) { //only 1
+				Debug.Log("+++++" + item.Key + ": ");
+				
+				var v = item.Value;
+				Debug.Log($"Dimensions:{v.Dimensions}"); //[1, 3, 384, 384]
+				Debug.Log($"Dimensions.Length:{v.Dimensions.Length}");
+				foreach (var e in v.Dimensions) Debug.Log(e);
 
-			Debug.Log($"ElementType:{v.ElementType}");
-			Debug.Log($"IsTensor:{v.IsTensor}");
-			Debug.Log($"OnnxValueType:{v.OnnxValueType}");
+				Debug.Log($"ElementType:{v.ElementType}");
+				Debug.Log($"IsTensor:{v.IsTensor}");
+				Debug.Log($"OnnxValueType:{v.OnnxValueType}");
 
-			Debug.Log($"SymbolicDimensions:{v.SymbolicDimensions }");
-			Debug.Log($"SymbolicDimensions.Length:{v.SymbolicDimensions.Length}");
-			foreach (var e in v.SymbolicDimensions) Debug.Log(e);
-		}
-		Debug.Log("************************OUTPUTMETADATA");
-		foreach (KeyValuePair<string, NodeMetadata> item in _infsession.OutputMetadata) { //only 1
-			Debug.Log("+++++" + item.Key + ": ");
-			var v = item.Value;
-			Debug.Log($"Dimensions:{v.Dimensions}"); //[1, 384, 384]
-			Debug.Log($"Dimensions.Length:{v.Dimensions.Length}");
-			foreach (var e in v.Dimensions) Debug.Log(e);
-
-			Debug.Log($"ElementType:{v.ElementType}");
-			Debug.Log($"IsTensor:{v.IsTensor}");
-			Debug.Log($"OnnxValueType:{v.OnnxValueType}");
-
-			Debug.Log($"SymbolicDimensions:{v.SymbolicDimensions }");
-			Debug.Log($"SymbolicDimensions.Length:{v.SymbolicDimensions.Length}");
-			foreach (var e in v.SymbolicDimensions) Debug.Log(e);
+				Debug.Log($"SymbolicDimensions:{v.SymbolicDimensions }");
+				Debug.Log($"SymbolicDimensions.Length:{v.SymbolicDimensions.Length}");
+				foreach (var e in v.SymbolicDimensions) Debug.Log(e);
+			}
 		}
 
 		Debug.Log("************************MODELMETADATA");
