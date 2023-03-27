@@ -66,7 +66,9 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider="default", int gpuid=0) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider="default", int gpuid=0, string settings=null) {
+		//param settings: used for TVM and OpenVINO
+
 		ModelType = modelType;
 
 		Debug.Log($"OnnxRuntimeDepthModel(): using the provider {provider}");
@@ -74,23 +76,33 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		SessionOptions sessionOptions = new SessionOptions();
 		switch (provider.ToLower()) {
 		case "default":
-			Debug.Log("OnnxRuntime is not using CUDA. Insert `set_onnxruntime_params cuda 0` and reload to enable it.");
+			Debug.Log("OnnxRuntime may not use GPU. Try other GPU execution provider.");
 			break;
 		
 		case "cuda":
+			Debug.Log($"Using gpuid={gpuid}");
 			sessionOptions = SessionOptions.MakeSessionOptionWithCudaProvider(gpuid);
 			break;
 
-		case "openvino": //Not tested
+		case "openvino":
+			if (settings == null) settings = "";
+			Debug.Log($"settings (default empty string): \"{settings}\"");
 			sessionOptions.AppendExecutionProvider_OpenVINO();
 			break;
 
 		case "directml": //Not tested
+			Debug.Log($"Using gpuid={gpuid}");
 			sessionOptions.AppendExecutionProvider_DML(gpuid);
 			break;
 
 		case "tvm": //Not tested
-			sessionOptions.AppendExecutionProvider_Tvm();
+			Debug.Log($"settings (default null): {settings}");
+			sessionOptions = SessionOptions.MakeSessionOptionWithTvmProvider(settings);
+			break;
+
+		case "rocm": //Not tested
+			Debug.Log($"Using gpuid={gpuid}");
+			sessionOptions = SessionOptions.MakeSessionOptionWithRocmProvider(gpuid);
 			break;
 		
 		default:
@@ -102,7 +114,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			_infsession = new InferenceSession(onnxpath, sessionOptions);
 		}
 		catch (OnnxRuntimeException exc) {
-			Debug.LogWarning($"OnnxRuntimeException, provider: {provider}, gpuid: {gpuid}. {exc}");
+			Debug.LogWarning($"OnnxRuntimeException, provider: {provider} => {exc}");
 			throw new InvalidOperationException();
 		}
 		

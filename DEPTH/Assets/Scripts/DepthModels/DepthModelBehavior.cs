@@ -45,8 +45,9 @@ public class DepthModelBehavior : MonoBehaviour {
 
 	public NNModel BuiltIn;
 
-	public string OnnxRuntimeGpuProvider {get; private set;} = "Default";
-	public int OnnxRuntimeGpuId {get; private set;} = 0;
+	public string OnnxRuntimeGpuProvider {get; set;} = "Default";
+	public int OnnxRuntimeGpuId {get; set;} = 0;
+	public string OnnxRuntimeGpuSettings {get; set;} = null;
 
 	private static DepthModel _donnx;
 
@@ -72,7 +73,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			Debug.LogError("Not using onnxruntime but got useOnnxRuntime=true!");
 			return null;
 #else			
-			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, provider: OnnxRuntimeGpuProvider, gpuid: OnnxRuntimeGpuId);
+			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, provider: OnnxRuntimeGpuProvider, gpuid: OnnxRuntimeGpuId, settings: OnnxRuntimeGpuSettings);
 #endif
 
 		}
@@ -80,12 +81,18 @@ public class DepthModelBehavior : MonoBehaviour {
 		return _donnx;
 	}
 
-	public void SetOnnxRuntimeParams(string provider, int gpuId) {
-		Debug.Log($"SetOnnxRuntimeParams(): provider: {provider}, gpuId: {gpuId}");
+	/*
+	public void SetOnnxRuntimeParams(string provider, int gpuId, string settings) {
+		Debug.Log($"SetOnnxRuntimeParams(): provider: {provider}, gpuId: {gpuId}, settings: {settings}");
 
 		OnnxRuntimeGpuProvider = provider;
 		OnnxRuntimeGpuId = gpuId;
+
+		OnnxRuntimeGpuSettings = settings;
+		if (OnnxRuntimeGpuSettings == "null")
+			OnnxRuntimeGpuSettings = null;
 	}
+	*/
 
 	public void PrintCurrentModelType() {
 		if (_donnx == null) {

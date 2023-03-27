@@ -116,7 +116,7 @@ public class OptionsBehavior : MonoBehaviour {
 	}
 
 	public void OnOrtGpuProvidersDropdownValueChanged() =>
-		_mainBehav.SetOnnxRuntimeParams(OrtGpuProvidersDropdown.captionText.text, 0);
+		_mainBehav.SetOrtGpuProvider(OrtGpuProvidersDropdown.captionText.text);
 
 	public void LoadOnnxModelList() {
 		string[] onnxfiles = Directory.GetFiles(_onnxdir, "*.onnx");

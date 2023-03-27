@@ -134,7 +134,9 @@ public class MainBehavior : MonoBehaviour {
 		DebugLogConsole.AddCommandInstance("eclear", "Clear the parameters for image/video inputs (shorthand for `send_msg eclear`)", "SendMsgEclear", this);
 
 		DebugLogConsole.AddCommandInstance("print_model_type", "Print the current model", "PrintCurrentModelType", _depthModelBehav);
-		DebugLogConsole.AddCommandInstance("set_onnxruntime_params", "Set arguments for OnnxRuntime", "SetOnnxRuntimeParams", _depthModelBehav);
+		
+		DebugLogConsole.AddCommandInstance("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
+		DebugLogConsole.AddCommandInstance("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
 
 		DebugLogConsole.AddCommandInstance("dbg", "Temporary method for debugging.", "DebugTmp", this);
 		DebugLogConsole.AddCommandInstance("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
@@ -601,9 +603,14 @@ public class MainBehavior : MonoBehaviour {
 	public void SetPointCloudSize(float val) =>
 		_meshBehav.SetMaterialFloat("_PointSize", val);
 
-	//Wrapper 
-	public void SetOnnxRuntimeParams(string provider, int gpuId) =>
-		_depthModelBehav.SetOnnxRuntimeParams(provider, gpuId);
+	public void SetOrtGpuProvider(string provider) =>
+		_depthModelBehav.OnnxRuntimeGpuProvider = provider;
+
+	public void SetOrtGpuId(int gpuId) =>
+		_depthModelBehav.OnnxRuntimeGpuId = gpuId;
+
+	public void SetOrtGpuSettings(string settings) =>
+		_depthModelBehav.OnnxRuntimeGpuSettings = (settings == "null") ? null : settings;
 
 	public string GetCurrentModelType() {
 		if (_donnx == null)
