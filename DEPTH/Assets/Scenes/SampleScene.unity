@@ -580,6 +580,8 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: TVM
       m_Image: {fileID: 0}
+    - m_Text: ROCm
+      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -7729,14 +7731,16 @@ MonoBehaviour:
     - The toggles
     takes effect on the load.
 
-
     - The MiDaS v3/v3.1 onnx files (those starting
     with <i>dpt_</i>) that may have been bundled are not official files provided
     by MiDaS (I am not affiliated with MiDaS)
 
+    - OnnxRuntime GPU EPs: only CUDA
+    and OpenVINO are tested.
 
-    See the <color="blue"><u>GitHub
-    Repo</u></color> for more.
+
+    See the <color="blue"><u>GitHub Repo</u></color>
+    for more.
 
 
 '
@@ -7766,8 +7770,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
-  m_fontSizeBase: 18
+  m_fontSize: 17
+  m_fontSizeBase: 17
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -20140,8 +20144,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -130.49619, y: -104.40005}
-  m_SizeDelta: {x: 114.0141, y: 23.9039}
+  m_AnchoredPosition: {x: -137.93698, y: -91.8}
+  m_SizeDelta: {x: 109.5401, y: 23.9039}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1340641997
 MonoBehaviour:
