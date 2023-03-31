@@ -19,7 +19,7 @@ import torch
 
 from midas.model_loader import default_models, load_model
 
-VERSION = "v0.8.8"
+VERSION = "v0.8.9"
 
 class ModelParams():
 	#this might as well just be a dictionary rather than a class
