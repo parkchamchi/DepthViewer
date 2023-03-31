@@ -86,6 +86,6 @@ Assets/TextMesh Pro
 Assets/Packages
 Assets/Packages.meta
 
-Assets/Plugins/OnnxRuntimeDlls/*/*.dll
+#Assets/Plugins/OnnxRuntimeDlls/*/*.dll
 
 onnx/*
