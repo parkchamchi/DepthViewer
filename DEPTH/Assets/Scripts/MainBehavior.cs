@@ -70,6 +70,11 @@ public class MainBehavior : MonoBehaviour {
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
 
+	[SerializeField]
+	private float _skyboxTint = 0.5f;
+	[SerializeField]
+	private float _skyboxExposure = 0.5f;
+
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
@@ -116,29 +121,34 @@ public class MainBehavior : MonoBehaviour {
 #endif
 
 		/*Console methods*/
-		DebugLogConsole.AddCommandInstance("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
-		DebugLogConsole.AddCommandInstance("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
-		DebugLogConsole.AddCommandInstance("load_model", "Load ONNX model from path", "LoadModel", this);
-		DebugLogConsole.AddCommandInstance("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
-		DebugLogConsole.AddCommandInstance("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
-		DebugLogConsole.AddCommandInstance("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
-		DebugLogConsole.AddCommandInstance("set_dof", "Set the DoF [3, 6]", "SetDof", this);
+		AddCommandDelegate addcmd = DebugLogConsole.AddCommandInstance;
 
-		DebugLogConsole.AddCommandInstance("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
-		DebugLogConsole.AddCommandInstance("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
-		DebugLogConsole.AddCommandInstance("stopwiggle", "Stop wiggling", "StopWiggle", this);
+		addcmd("httpinput", "Get images from a url", "HttpOnlineTexStart", this);
+		addcmd("load_builtin", "Load the built-in model", "LoadBuiltIn", this);
+		addcmd("load_model", "Load ONNX model from path", "LoadModel", this);
+		addcmd("send_msg", "Send a message to _texInputs", "SendMsgToTexInputs", this);
+		addcmd("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
+		addcmd("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
+		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 
-		DebugLogConsole.AddCommandInstance("e", "Save the parameters for image/video inputs (on the first frame, force) (shorthand for `send_msg e`)", "SendMsgE", this);
-		DebugLogConsole.AddCommandInstance("ec", "Save the parameters for image/video inputs (on the current frame) (shorthand for `send_msg ec`)", "SendMsgEc", this);
-		DebugLogConsole.AddCommandInstance("ecf", "Save the parameters for image/video inputs (on the current frame, force) (shorthand for `send_msg ecf`)", "SendMsgEcf", this);
-		DebugLogConsole.AddCommandInstance("eclear", "Clear the parameters for image/video inputs (shorthand for `send_msg eclear`)", "SendMsgEclear", this);
+		addcmd("skybox", "Set the callback that is used when a texture is set on the mesh", "SetSkybox", this);
+		addcmd("set_skybox_params", "Set the parameters (brightness) of the skybox. Default: (0.5, 0.5)", "SetSkyboxParams", this);
 
-		DebugLogConsole.AddCommandInstance("print_model_metadata", "Print the metadata of the current model (only supports ORT)", "PrintCurrentModelMetadata", this);
-		DebugLogConsole.AddCommandInstance("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
-		DebugLogConsole.AddCommandInstance("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
+		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
+		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
+		addcmd("stopwiggle", "Stop wiggling", "StopWiggle", this);
 
-		DebugLogConsole.AddCommandInstance("dbg", "Temporary method for debugging.", "DebugTmp", this);
-		DebugLogConsole.AddCommandInstance("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
+		addcmd("e", "Save the parameters for image/video inputs (on the first frame, force) (shorthand for `send_msg e`)", "SendMsgE", this);
+		addcmd("ec", "Save the parameters for image/video inputs (on the current frame) (shorthand for `send_msg ec`)", "SendMsgEc", this);
+		addcmd("ecf", "Save the parameters for image/video inputs (on the current frame, force) (shorthand for `send_msg ecf`)", "SendMsgEcf", this);
+		addcmd("eclear", "Clear the parameters for image/video inputs (shorthand for `send_msg eclear`)", "SendMsgEclear", this);
+
+		addcmd("print_model_metadata", "Print the metadata of the current model (only supports ORT)", "PrintCurrentModelMetadata", this);
+		addcmd("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
+		addcmd("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
+
+		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
+		addcmd("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
 
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
 		_donnx = _depthModelBehav.GetBuiltIn();
@@ -624,6 +634,49 @@ public class MainBehavior : MonoBehaviour {
 	public void SetMoveMeshByMouse(bool value) {
 		Debug.Log($"Setting MoveMeshByMouse = {value}");
 		_meshBehav.MoveMeshByMouse = value;
+	}
+
+	public void SetSkybox(bool val) {
+		//Has a room for optimization
+
+		if (val) {
+			Debug.Log("Setting the skybox.");
+
+			//Have the camera see the skybox
+			Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+			camera.clearFlags = CameraClearFlags.Skybox;
+
+			_meshBehav.OnTextureSet = (tex) => {
+				//RenderSettings.skybox.SetTexture("_Front", tex);
+
+				//The shader has to be under "Always Included Shaders" list in ProjectSettings/Graphics (see MeshShaders)
+				Material skyboxMat = new Material(Shader.Find("Skybox/6 Sided"));
+
+				skyboxMat.SetVector("_Tint", new Vector4(_skyboxTint, _skyboxTint, _skyboxTint, _skyboxTint));
+				skyboxMat.SetFloat("_Exposure", _skyboxExposure);
+
+				foreach (string target in new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"}) //BackTex can be omitted, but I think it's funnier this way
+					skyboxMat.SetTexture(target, tex);
+
+				RenderSettings.skybox = skyboxMat;
+			};
+		}
+
+		else {
+			Debug.Log("Disabling the skybox.");
+
+			Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+			camera.clearFlags = CameraClearFlags.SolidColor;
+			_meshBehav.OnTextureSet = null;
+			RenderSettings.skybox = null;
+		}
+	}
+
+	public void SetSkyboxParams(float tint, float exposure) {
+		Debug.Log($"Skybox tint={tint}, exposure={exposure}");
+
+		_skyboxTint = tint;
+		_skyboxExposure = exposure;
 	}
 
 	public Depth GetCurrentDepth(DepthMapType type) =>

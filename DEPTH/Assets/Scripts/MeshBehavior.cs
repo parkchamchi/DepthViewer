@@ -149,6 +149,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private MeshShaders _shader = MeshShaders.GetStandard();
 	private RenderTexture _rt; //for resizing texture (for point clouds)
 
+	public System.Action<Texture> OnTextureSet {set; private get;} //The callback when the texture is set (used for skybox)
+
 	private float _disappearRemainingSec = 0f; //for this seconds, make the mesh disappear (just set them aside)
 	private const float _disappearMaxSec = 0.2f;
 
@@ -546,6 +548,8 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 
 		_material.mainTexture = texture; //This won't be seen on point clouds (can be omitted)
+		if (OnTextureSet != null)
+			OnTextureSet(texture);
 
 		//Set vertex color instead of setting texture (for point clouds)
 		if (_shader.ShouldSetVertexColors) {

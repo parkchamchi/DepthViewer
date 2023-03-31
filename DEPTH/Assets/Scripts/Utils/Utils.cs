@@ -8,6 +8,8 @@ using UnityEngine;
 
 using IngameDebugConsole;
 
+public delegate void AddCommandDelegate(string command, string description, string methodName, object instance, params string[] parameterNames);
+
 public static class Utils {
 	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
 
