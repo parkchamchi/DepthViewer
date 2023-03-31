@@ -119,7 +119,9 @@ Some files can't be played because Unity's VideoPlayer can't open them. (e.g. VP
 The Unity Editor version used: `2021.3.10f1`
 
 ### ONNX Runtime dll files
-These dll files have to be in `DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64/native`.
+- These are added to the repo with Git LFS since `v0.8.9`
+
+These dll files have to be in [`DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64`](DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64).
 They are in the nuget package files (.nupkg), get them from <br>
 <br>
 [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/) => `microsoft.ml.onnxruntime.gpu.1.13.1.nupkg/runtimes/win-x64/native/*.dll` <br>

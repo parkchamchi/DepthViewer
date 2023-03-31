@@ -13,7 +13,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
 /*
-These dll files has to be in DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64/native
+These dll files have to be in DEPTH/Assets/Plugins/OnnxRuntimeDlls/win-x64
 They are in the nuget package files (.nupkg), get them from
 	https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Managed/
 		[THE NUPKG FILE]/lib/netstandard1.1/*.dll
