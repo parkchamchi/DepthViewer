@@ -636,6 +636,9 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.MoveMeshByMouse = value;
 	}
 
+	public void ToggleSkybox() =>
+		SetSkybox(_meshBehav.OnTextureSet == null);
+
 	public void SetSkybox(bool val) {
 		//Has a room for optimization
 

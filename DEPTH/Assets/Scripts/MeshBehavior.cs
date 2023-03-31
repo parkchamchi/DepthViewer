@@ -149,7 +149,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private MeshShaders _shader = MeshShaders.GetStandard();
 	private RenderTexture _rt; //for resizing texture (for point clouds)
 
-	public System.Action<Texture> OnTextureSet {set; private get;} //The callback when the texture is set (used for skybox)
+	public System.Action<Texture> OnTextureSet {set; get;} //The callback when the texture is set (used for skybox)
 
 	private float _disappearRemainingSec = 0f; //for this seconds, make the mesh disappear (just set them aside)
 	private const float _disappearMaxSec = 0.2f;

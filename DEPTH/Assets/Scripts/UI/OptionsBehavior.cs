@@ -45,6 +45,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public Toggle Dof6Toggle;
 	public Toggle MouseMoveToggle;
+	public Toggle SkyboxToggle;
 
 	private MainBehavior _mainBehav;
 
@@ -284,4 +285,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnMouseMoveToggleValueChanged() =>
 		_mainBehav.SetMoveMeshByMouse(MouseMoveToggle.isOn);
+
+	public void OnSkyboxToggleValueChanged() =>
+		_mainBehav.ToggleSkybox();
 }
