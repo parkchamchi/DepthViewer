@@ -24,9 +24,10 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public Slider PCSizeSlider;
 
-	public Toggle UseOrtToggle;
-	public TMP_Dropdown OrtGpuProvidersDropdown;
 	public TMP_Dropdown OnnxDropdown;
+	public Toggle UseOrtToggle;
+	public Toggle UseGpuForOrtToggle;
+	public TMP_Dropdown OrtGpuProvidersDropdown;
 	public TMP_Text CurrentModelText;
 
 	public TMP_Dropdown ParamDropdown;
@@ -115,8 +116,19 @@ public class OptionsBehavior : MonoBehaviour {
 		CurrentModelText.text = _mainBehav.GetCurrentModelType();
 	}
 
-	public void OnOrtGpuProvidersDropdownValueChanged() =>
-		_mainBehav.SetOrtGpuProvider(OrtGpuProvidersDropdown.captionText.text);
+	public void OnOrtGpuToggleOrDropdownValueChanged() {
+		/*
+		If "Use GPU for OnnxRuntime" toggle is on, pass the selected GPU EP. Else, pass null
+		Should be called when the toggle or the dropdown alters
+		*/
+
+		string target = null;
+
+		if (UseGpuForOrtToggle.isOn)
+			target = OrtGpuProvidersDropdown.captionText.text;
+
+		_mainBehav.SetOrtGpuProvider(target);
+	}
 
 	public void LoadOnnxModelList() {
 		string[] onnxfiles = Directory.GetFiles(_onnxdir, "*.onnx");

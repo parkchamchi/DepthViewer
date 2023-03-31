@@ -66,16 +66,18 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider="default", int gpuid=0, string settings=null) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider=null, int gpuid=0, string settings=null) {
 		//param settings: used for TVM and OpenVINO
 
 		ModelType = modelType;
 		if (settings == null) settings = "";
+		if (provider == null) provider = "default";
 
 		Debug.Log($"OnnxRuntimeDepthModel(): using the provider {provider}");
 
 		SessionOptions sessionOptions = new SessionOptions();
 		switch (provider.ToLower()) {
+		case "":
 		case "default":
 			Debug.Log("OnnxRuntime may not use GPU. Try other GPU execution provider.");
 			break;

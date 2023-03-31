@@ -45,7 +45,7 @@ public class DepthModelBehavior : MonoBehaviour {
 
 	public NNModel BuiltIn;
 
-	public string OnnxRuntimeGpuProvider {get; set;} = "Default";
+	public string OnnxRuntimeGpuProvider {get; set;} = null;
 	public int OnnxRuntimeGpuId {get; set;} = 0;
 	public string OnnxRuntimeGpuSettings {get; set;} = null;
 
