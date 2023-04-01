@@ -45,6 +45,10 @@ def pfm():
 	image = io.BytesIO(image)
 	image = Image.open(image)
 
+	if image.mode != "RGB":
+		print(f"{image.mode} -> RGB")
+		image = image.convert("RGB")
+
 	depth = model.infer_pil(image)
 
 	image.close()
@@ -58,6 +62,7 @@ def pfm():
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
+
 	parser.add_argument("-m", "--modelname",
 		help="name of the zoedepth model",
 		default="ZoeD_NK",
@@ -65,6 +70,12 @@ if __name__ == "__main__":
 	parser.add_argument("--height",
 		help="max height",
 		default="384")
+	
+	parser.add_argument("-p", "--port",
+		help="port number. defaults to 5000.",
+		default=None
+	)
+
 	args = parser.parse_args()
 	
 	repo = "isl-org/ZoeDepth"
@@ -76,4 +87,4 @@ if __name__ == "__main__":
 
 	max_height = int(args.height)
 
-	app.run()
+	app.run(port=args.port)

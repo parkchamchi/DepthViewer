@@ -2,6 +2,8 @@ import depth
 
 import flask
 
+import argparse
+
 print("Loading the depth.py Runner")
 runner = depth.Runner()
 print("Loaded.")
@@ -49,4 +51,11 @@ def pgm(model_type):
 	return out
 
 if __name__ == "__main__":
-	app.run()
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-p", "--port",
+		help="port number. defaults to 5000.",
+		default=None
+	)
+	args = parser.parse_args()
+
+	app.run(port=args.port)
