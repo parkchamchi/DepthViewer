@@ -2012,7 +2012,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 340, y: -337}
+  m_AnchoredPosition: {x: 294, y: -337}
   m_SizeDelta: {x: 144.9892, y: 42.8665}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &103122551
@@ -10309,6 +10309,7 @@ MonoBehaviour:
   DepthMapFormatDropdown: {fileID: 290249935}
   DepthMapResizeToggle: {fileID: 1627315875}
   DesktopRenderGO: {fileID: 1964135449}
+  PauseButtonGO: {fileID: 103122549}
   Dof6Toggle: {fileID: 823715723}
   MouseMoveToggle: {fileID: 1421895258}
   SkyboxToggle: {fileID: 2095455093}

@@ -42,6 +42,7 @@ public class OptionsBehavior : MonoBehaviour {
 	private bool _exrExportUse32Bit = true; //Whether the exr export will use 32bit fp (instead of 16bit)
 
 	public GameObject DesktopRenderGO;
+	public GameObject PauseButtonGO;
 
 	public Toggle Dof6Toggle;
 	public Toggle MouseMoveToggle;
@@ -74,6 +75,7 @@ public class OptionsBehavior : MonoBehaviour {
 		OutputDirInputField.text = DepthFileUtils.SaveDir;
 
 		DebugLogConsole.AddCommandInstance("set_exr32bit", "Set whether exr files will be exported using 32bit fp not 16bit", "SetExrExportUse32Bit", this);
+		DebugLogConsole.AddCommandInstance("pausebtn", "Revive the pause button", "ShowPauseButton", this);
 	}
 
 	public void TogglePanel() =>
@@ -292,6 +294,15 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void ToggleDesktopRender() =>
 		DesktopRenderGO.SetActive(!DesktopRenderGO.activeSelf);
+
+	public void ShowPauseButton() {
+		if (PauseButtonGO == null) {
+			Debug.LogError("PauseButtonGO == null");
+			return;
+		}
+
+		PauseButtonGO.SetActive(!PauseButtonGO.activeSelf);
+	}
 
 	public void OnDof6ToggleValueChanged() =>
 		_mainBehav.SetDof((Dof6Toggle.isOn) ? 6 : 3);
