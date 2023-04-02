@@ -70,10 +70,10 @@ public class MainBehavior : MonoBehaviour {
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
 
-	[SerializeField]
-	private float _skyboxTint = 0.5f;
-	[SerializeField]
-	private float _skyboxExposure = 0.5f;
+	[SerializeField] private float _skyboxTint = 0.5f;
+	[SerializeField] private float _skyboxExposure = 0.5f;
+	[SerializeField] private bool _skyboxBlur = false;
+	private RenderTexture _skyboxRt = null;
 
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -650,7 +650,21 @@ public class MainBehavior : MonoBehaviour {
 			camera.clearFlags = CameraClearFlags.Skybox;
 
 			_meshBehav.OnTextureSet = (tex) => {
-				//RenderSettings.skybox.SetTexture("_Front", tex);
+
+				//Check if current `skyboxRt` is compatible
+				int w = tex.width;
+				int h = tex.height;
+				if (_skyboxRt == null || _skyboxRt.width != w || _skyboxRt.height != h) {
+					_skyboxRt?.Release();
+					_skyboxRt = new RenderTexture(w, h, 16);
+				}
+
+				//tex to _skyboxRt
+				Graphics.Blit(tex, _skyboxRt);
+
+				//Blur if it should
+				if (_skyboxBlur)
+					GaussianFilter.Filter(_skyboxRt, _skyboxRt);
 
 				//The shader has to be under "Always Included Shaders" list in ProjectSettings/Graphics (see MeshShaders)
 				Material skyboxMat = new Material(Shader.Find("Skybox/6 Sided"));
@@ -659,7 +673,7 @@ public class MainBehavior : MonoBehaviour {
 				skyboxMat.SetFloat("_Exposure", _skyboxExposure);
 
 				foreach (string target in new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"}) //BackTex can be omitted, but I think it's funnier this way
-					skyboxMat.SetTexture(target, tex);
+					skyboxMat.SetTexture(target, _skyboxRt);
 
 				RenderSettings.skybox = skyboxMat;
 			};
@@ -750,7 +764,7 @@ public class MainBehavior : MonoBehaviour {
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		Debug.Log("Nothing here...");
+		//Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}
