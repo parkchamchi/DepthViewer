@@ -70,11 +70,6 @@ public class MainBehavior : MonoBehaviour {
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
 
-	[SerializeField] private float _skyboxTint = 0.5f;
-	[SerializeField] private float _skyboxExposure = 0.5f;
-	[SerializeField] private bool _skyboxBlur = false;
-	private RenderTexture _skyboxRt = null;
-
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
 		_depthModelBehav = GameObject.Find("DepthModel").GetComponent<DepthModelBehavior>();
@@ -130,9 +125,6 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
 		addcmd("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
-
-		addcmd("skybox", "Set the callback that is used when a texture is set on the mesh", "SetSkybox", this);
-		addcmd("set_skybox_params", "Set the parameters (brightness) of the skybox. Default: (0.5, 0.5)", "SetSkyboxParams", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -636,11 +628,11 @@ public class MainBehavior : MonoBehaviour {
 		_meshBehav.MoveMeshByMouse = value;
 	}
 
-	public void ToggleSkybox() =>
-		SetSkybox(_meshBehav.OnTextureSet == null);
-
-	public void SetSkybox(bool val) {
-		//Has a room for optimization
+	public void SetMeshTextureSetCallback(bool val, System.Action<Texture> callback=null) {
+		/*
+		Set the callback the mesh will call when the texture is ready.
+		Used for the skybox.
+		*/
 
 		if (val) {
 			Debug.Log("Setting the skybox.");
@@ -649,34 +641,7 @@ public class MainBehavior : MonoBehaviour {
 			Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
 			camera.clearFlags = CameraClearFlags.Skybox;
 
-			_meshBehav.OnTextureSet = (tex) => {
-
-				//Check if current `skyboxRt` is compatible
-				int w = tex.width;
-				int h = tex.height;
-				if (_skyboxRt == null || _skyboxRt.width != w || _skyboxRt.height != h) {
-					_skyboxRt?.Release();
-					_skyboxRt = new RenderTexture(w, h, 16);
-				}
-
-				//tex to _skyboxRt
-				Graphics.Blit(tex, _skyboxRt);
-
-				//Blur if it should
-				if (_skyboxBlur)
-					GaussianFilter.Filter(_skyboxRt, _skyboxRt);
-
-				//The shader has to be under "Always Included Shaders" list in ProjectSettings/Graphics (see MeshShaders)
-				Material skyboxMat = new Material(Shader.Find("Skybox/6 Sided"));
-
-				skyboxMat.SetVector("_Tint", new Vector4(_skyboxTint, _skyboxTint, _skyboxTint, _skyboxTint));
-				skyboxMat.SetFloat("_Exposure", _skyboxExposure);
-
-				foreach (string target in new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"}) //BackTex can be omitted, but I think it's funnier this way
-					skyboxMat.SetTexture(target, _skyboxRt);
-
-				RenderSettings.skybox = skyboxMat;
-			};
+			_meshBehav.OnTextureSet = callback;
 		}
 
 		else {
@@ -689,12 +654,8 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
-	public void SetSkyboxParams(float tint, float exposure) {
-		Debug.Log($"Skybox tint={tint}, exposure={exposure}");
-
-		_skyboxTint = tint;
-		_skyboxExposure = exposure;
-	}
+	public bool IsMeshTextureCallbackSet() =>
+		_meshBehav.OnTextureSet != null;
 
 	public Depth GetCurrentDepth(DepthMapType type) =>
 		_meshBehav.GetDepth(type);

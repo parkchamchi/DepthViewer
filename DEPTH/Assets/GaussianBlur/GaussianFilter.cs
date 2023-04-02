@@ -5,16 +5,6 @@ public enum DownSampleModes {Off, Half, Quarter}
 public static class GaussianFilter {
 	public static DownSampleModes DownSampleMode = DownSampleModes.Quarter;
 
-	private static int _iteration = 4;
-	public static int Iteration {
-		get => _iteration;
-		set {
-			if (value < 0 || 8 < value)
-				Debug.LogWarning($"GaussianFilter: Interation {value} is out of the normal range [0, 8]");
-			_iteration = value;
-		}
-	}
-
 	private static Shader _shader;
 	private static Material _material;
 
@@ -24,7 +14,10 @@ public static class GaussianFilter {
 			Debug.LogError("GaussianFilter: Couldn't find the shader.");
 	}
 
-	public static void Filter(RenderTexture source, RenderTexture destination) {
+	public static void Filter(RenderTexture source, RenderTexture destination, int iteration=4) {
+		if (iteration < 0 || 8 < iteration)
+			Debug.LogWarning($"GaussianFilter: Interation {iteration} is out of the normal range [0, 8]");
+
 		if (_material == null) {
 			_material = new Material(_shader);
 			_material.hideFlags = HideFlags.HideAndDontSave;
@@ -51,7 +44,7 @@ public static class GaussianFilter {
 			Graphics.Blit(source, rt1);
 		}
 
-		for (var i = 0; i < Iteration; i++)
+		for (var i = 0; i < iteration; i++)
 		{
 			Graphics.Blit(rt1, rt2, _material, 1);
 			Graphics.Blit(rt2, rt1, _material, 2);

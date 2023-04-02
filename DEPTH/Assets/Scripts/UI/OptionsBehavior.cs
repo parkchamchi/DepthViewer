@@ -45,7 +45,18 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public Toggle Dof6Toggle;
 	public Toggle MouseMoveToggle;
+
 	public Toggle SkyboxToggle;
+	public Slider SkyboxTintSlider;
+	public Slider SkyboxExposureSlider;
+	public Toggle SkyboxBlurToggle;
+	public Slider SkyboxBlurIterSlider;
+
+	[SerializeField] private float _skyboxTint = 0.5f;
+	[SerializeField] private float _skyboxExposure = 0.5f;
+	[SerializeField] private bool _skyboxBlur = false;
+	[SerializeField, Range(0, 8)] private int _skyboxBlurIter = 4;
+	private RenderTexture _skyboxRt = null;
 
 	private MainBehavior _mainBehav;
 
@@ -286,6 +297,48 @@ public class OptionsBehavior : MonoBehaviour {
 	public void OnMouseMoveToggleValueChanged() =>
 		_mainBehav.SetMoveMeshByMouse(MouseMoveToggle.isOn);
 
+	private void SkyboxCallback(Texture tex) {
+		//Has a room for optimization
+
+		//Check if current `skyboxRt` is compatible
+		int w = tex.width;
+		int h = tex.height;
+		if (_skyboxRt == null || _skyboxRt.width != w || _skyboxRt.height != h) {
+			_skyboxRt?.Release();
+			_skyboxRt = new RenderTexture(w, h, 16);
+		}
+
+		//tex to _skyboxRt
+		Graphics.Blit(tex, _skyboxRt);
+
+		//Blur if it should
+		if (_skyboxBlur)
+			GaussianFilter.Filter(_skyboxRt, _skyboxRt, iteration: _skyboxBlurIter);
+
+		//The shader has to be under "Always Included Shaders" list in ProjectSettings/Graphics (see MeshShaders)
+		Material skyboxMat = new Material(Shader.Find("Skybox/6 Sided"));
+
+		skyboxMat.SetVector("_Tint", new Vector4(_skyboxTint, _skyboxTint, _skyboxTint, _skyboxTint));
+		skyboxMat.SetFloat("_Exposure", _skyboxExposure);
+
+		foreach (string target in new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"}) //BackTex can be omitted, but I think it's funnier this way
+			skyboxMat.SetTexture(target, _skyboxRt);
+
+		RenderSettings.skybox = skyboxMat;
+	}
+
 	public void OnSkyboxToggleValueChanged() =>
-		_mainBehav.ToggleSkybox();
+		_mainBehav.SetMeshTextureSetCallback(SkyboxToggle.isOn, SkyboxCallback);
+
+	public void OnSkyboxTintSliderValueChanged() =>
+		_skyboxTint = SkyboxTintSlider.value;
+
+	public void OnSkyboxExposureSliderValueChanged() =>
+		_skyboxExposure = SkyboxExposureSlider.value;
+	
+	public void OnSkyboxBlurToggleValueChanged() =>
+		_skyboxBlur = SkyboxBlurToggle.isOn;
+
+	public void OnSkyboxBlurIterSliderValueChanged() =>
+		_skyboxBlurIter = (int) SkyboxBlurIterSlider.value;
 }
