@@ -47,6 +47,7 @@ public class OptionsBehavior : MonoBehaviour {
 	public Toggle MouseMoveToggle;
 
 	public Toggle SkyboxToggle;
+	public Toggle SkyboxPanoramicToggle;
 	public Slider SkyboxTintSlider;
 	public Slider SkyboxExposureSlider;
 	public Toggle SkyboxBlurToggle;
@@ -54,6 +55,7 @@ public class OptionsBehavior : MonoBehaviour {
 
 	[SerializeField] private float _skyboxTint = 0.5f;
 	[SerializeField] private float _skyboxExposure = 0.5f;
+	[SerializeField] private bool _skyboxPanoramic = false;
 	[SerializeField] private bool _skyboxBlur = false;
 	[SerializeField, Range(0, 8)] private int _skyboxBlurIter = 4;
 	private RenderTexture _skyboxRt = null;
@@ -316,12 +318,20 @@ public class OptionsBehavior : MonoBehaviour {
 			GaussianFilter.Filter(_skyboxRt, _skyboxRt, iteration: _skyboxBlurIter);
 
 		//The shader has to be under "Always Included Shaders" list in ProjectSettings/Graphics (see MeshShaders)
-		Material skyboxMat = new Material(Shader.Find("Skybox/6 Sided"));
+		string shadername = (_skyboxPanoramic) ? "Skybox/Panoramic" : "Skybox/6 Sided";
+		Material skyboxMat = new Material(Shader.Find(shadername));
 
 		skyboxMat.SetVector("_Tint", new Vector4(_skyboxTint, _skyboxTint, _skyboxTint, _skyboxTint));
 		skyboxMat.SetFloat("_Exposure", _skyboxExposure);
+		if (_skyboxPanoramic) {
+			skyboxMat.SetFloat("_ImageType", 1); //180 proj
+			skyboxMat.SetFloat("_MirrorOnBack", 1);
+		}
 
-		foreach (string target in new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"}) //BackTex can be omitted, but I think it's funnier this way
+		string[] targets = (_skyboxPanoramic) ? 
+			new string[] {"_MainTex"}
+			: new string[] {"_FrontTex", "_LeftTex", "_RightTex", "_UpTex", "_DownTex", "_BackTex"};
+		foreach (string target in targets) //BackTex can be omitted, but I think it's funnier this way
 			skyboxMat.SetTexture(target, _skyboxRt);
 
 		RenderSettings.skybox = skyboxMat;
@@ -329,6 +339,9 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnSkyboxToggleValueChanged() =>
 		_mainBehav.SetMeshTextureSetCallback(SkyboxToggle.isOn, SkyboxCallback);
+
+	public void OnSkyboxPanoramicToggleValueChanged() =>
+		_skyboxPanoramic = SkyboxPanoramicToggle.isOn;
 
 	public void OnSkyboxTintSliderValueChanged() =>
 		_skyboxTint = SkyboxTintSlider.value;
