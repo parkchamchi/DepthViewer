@@ -160,12 +160,35 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	void Update() {
+		/* Hide the UI */
 		if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(Keymapper.Inst.HideUI))
 			HideUI();
 
-		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !UI.activeSelf || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
-			SetBrowseDir(Input.mouseScrollDelta.y < 0);
+		/* Scroll the directory */
+		//Check if the scroll key is in
+		bool shouldScroll = false;
+		bool scrollDirection = true;
 
+		if (Input.mouseScrollDelta.y != 0) {
+			shouldScroll = true;
+			scrollDirection = Input.mouseScrollDelta.y < 0;
+		}
+		else if (Input.GetKeyDown(Keymapper.Inst.PrevFileInDir)) {
+			shouldScroll = true;
+			scrollDirection = false;
+		}
+		else if (Input.GetKeyDown(Keymapper.Inst.NextFileInDir)) {
+			shouldScroll = true;
+			scrollDirection = true;
+		}
+		else {
+			shouldScroll = false; //not needed
+		}
+
+		if (_dirFilenames != null && shouldScroll && (OptionsScrollView == null || !UI.activeSelf || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
+			SetBrowseDir(scrollDirection);
+
+		/* Send the key to _texInputs */
 		if (_texInputs != null) {
 			_texInputs.UpdateTex();
 

@@ -19,6 +19,6 @@ public class Keymapper : MonoBehaviour {
 	void Start() {
 		Inst = GameObject.Find("Keymapper").GetComponent<Keymapper>();
 		if (Inst == null)
-			Debug.Log("Keymapper.Start(): Couldn't find the Keymapper object.");
+			Debug.LogError("Keymapper.Start(): Couldn't find the Keymapper object.");
 	}
 }
