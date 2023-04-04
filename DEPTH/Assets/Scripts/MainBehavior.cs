@@ -160,7 +160,7 @@ public class MainBehavior : MonoBehaviour {
 	}
 
 	void Update() {
-		if (Input.GetMouseButtonDown(1))
+		if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(Keymapper.Inst.HideUI))
 			HideUI();
 
 		if (_dirFilenames != null && Input.mouseScrollDelta.y != 0 && (OptionsScrollView == null || !UI.activeSelf || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
