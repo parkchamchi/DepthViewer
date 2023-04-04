@@ -14,6 +14,8 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode PrevDir = KeyCode.F3;
 	public KeyCode NextDir = KeyCode.F4;
 
+	public KeyCode ToggleShuffle = KeyCode.F5;
+
 	public static Keymapper Inst {get; private set;}
 
 	void Start() {

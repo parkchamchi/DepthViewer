@@ -66,9 +66,33 @@ public class MainBehavior : MonoBehaviour {
 
 	private string[] _dirFilenames; //set by BrowseDir()
 	private int _dirFileIdx;
-	private bool _dirRandom = false;
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
+	private bool _dirRandom = false;
+
+	public bool DirRandom {
+		get => _dirRandom;
+
+		set {
+			_dirRandom = value;
+
+			if (value) {//reshuffle
+				Debug.Log("Shuffle is on. (TODO: make the toggle on UI be responsive for the external change)");
+				ShuffleBrowseDirRandomIdxList();
+			}
+			else {
+				Debug.Log("Shuffle is off.");
+
+				//shuffle -> noshuffle: set the index to be what is currently being shown
+				if (_dirFilenames != null && _dirFilenames.Length >= 0) {
+					int idx = System.Array.FindIndex(_dirFilenames, (x) => x == FilepathInputField.text);
+					
+					if (idx >= 0)
+						_dirFileIdx = idx;
+				}
+			}
+		}
+	}
 
 	void Start() {
 		_meshBehav = GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
@@ -187,6 +211,13 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_dirFilenames != null && shouldScroll && (OptionsScrollView == null || !UI.activeSelf || !OptionsScrollView.activeSelf)) //null check for OptionsScrollView is not needed
 			SetBrowseDir(scrollDirection);
+
+		/* Toggle shuffle */
+		if (Input.GetKeyDown(Keymapper.Inst.ToggleShuffle)) {
+			Debug.Log("Debugging purpose.");
+			DirRandom = !DirRandom;
+			//ToggleBrowseDirRandom();
+		}
 
 		/* Send the key to _texInputs */
 		if (_texInputs != null) {
@@ -469,21 +500,8 @@ public class MainBehavior : MonoBehaviour {
 	public void ToggleBrowseDirPanel() =>
 		WindowManager.SetCurrentWindow(BrowseDirPanel);
 
-	public void ToggleBrowseDirRandom() {
-		_dirRandom = BrowseDirRandomToggle.isOn;
-
-		if (_dirRandom) //reshuffle
-			ShuffleBrowseDirRandomIdxList();
-		else {
-			//shuffle -> noshuffle: set the index to be what is currently being shown
-			if (_dirFilenames != null && _dirFilenames.Length >= 0) {
-				int idx = System.Array.FindIndex(_dirFilenames, (x) => x == FilepathInputField.text);
-				
-				if (idx >= 0)
-					_dirFileIdx = idx;
-			}
-		}
-	}
+	public void ToggleBrowseDirRandom() =>
+		DirRandom = BrowseDirRandomToggle.isOn;
 
 	private void ShuffleBrowseDirRandomIdxList() {
 		if (_dirFilenames == null) return;
