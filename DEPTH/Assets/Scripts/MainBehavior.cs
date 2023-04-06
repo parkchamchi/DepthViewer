@@ -562,38 +562,47 @@ public class MainBehavior : MonoBehaviour {
 		SelectFile(newfilename);
 	}
 
+public void SetBrowseDirName(string dirname) {
+	if (!Directory.Exists(dirname)) {
+		Debug.LogError($"BrowseDirs() callback: dir {dirname} does not exist. This shouldn't be seen when using the file browser...");
+		return;
+	}
+
+	int gifcount = 0; //number of the gif files in the directory.
+
+	//Add only: img, vid, gif
+	List<string> filenames_list = new List<string>();
+	foreach (string filename in Directory.GetFiles(dirname)) {
+		FileTypes ftype = Exts.FileTypeCheck(filename);
+		if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
+			filenames_list.Add(filename);
+
+			if (ftype == FileTypes.Gif)
+				gifcount++;
+		}
+	}
+
+	if (filenames_list.Count == 0)
+		return;
+	if (!BrowseDirGifToggle.isOn && (gifcount == filenames_list.Count)) //directory with only gif files
+		return;
+
+	BrowseDirText.text = dirname;
+	_dirFilenames = filenames_list.ToArray();
+	_dirFileIdx = 0;
+	_dirGifCount = gifcount;
+
+	ShuffleBrowseDirRandomIdxList();
+
+	SetBrowseDir();
+}
+
 /* Implementations of BrowseDirs() */
 #if UNITY_STANDALONE || UNITY_EDITOR
+	//Also used by Keymapper.cs
 	public void BrowseDirs() =>
-		_fileSelecter.SelectDir((dirname) => {
-			int gifcount = 0; //number of the gif files in the directory.
+		_fileSelecter.SelectDir(SetBrowseDirName);
 
-			//Add only: img, vid, gif
-			List<string> filenames_list = new List<string>();
-			foreach (string filename in Directory.GetFiles(dirname)) {
-				FileTypes ftype = Exts.FileTypeCheck(filename);
-				if (ftype == FileTypes.Img || ftype == FileTypes.Vid || ftype == FileTypes.Gif) {
-					filenames_list.Add(filename);
-
-					if (ftype == FileTypes.Gif)
-						gifcount++;
-				}
-			}
-
-			if (filenames_list.Count == 0)
-				return;
-			if (!BrowseDirGifToggle.isOn && (gifcount == filenames_list.Count)) //directory with only gif files
-				return;
-
-			BrowseDirText.text = dirname;
-			_dirFilenames = filenames_list.ToArray();
-			_dirFileIdx = 0;
-			_dirGifCount = gifcount;
-
-			ShuffleBrowseDirRandomIdxList();
-
-			SetBrowseDir();
-		});
 #else
 	public void BrowseDirs() {
 		Debug.LogError("Not implemented.");

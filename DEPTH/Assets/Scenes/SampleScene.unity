@@ -12062,6 +12062,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 22426080, guid: 67117722a812a2e46ab8cb8eafbf5f5e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 22428984, guid: 67117722a812a2e46ab8cb8eafbf5f5e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -17766,6 +17770,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1140753409}
   - component: {fileID: 1140753408}
+  - component: {fileID: 1140753410}
   m_Layer: 0
   m_Name: Keymapper
   m_TagString: Untagged
@@ -17790,6 +17795,7 @@ MonoBehaviour:
   NextFileInDir: 283
   PrevDir: 284
   NextDir: 285
+  ToggleShuffle: 286
 --- !u!4 &1140753409
 Transform:
   m_ObjectHideFlags: 0
@@ -17805,6 +17811,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1140753410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1140753407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c7b2eed4baad0540b4bdd02a1825918, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DirNameList: []
+  DirIdx: -1
 --- !u!1 &1143830102
 GameObject:
   m_ObjectHideFlags: 0

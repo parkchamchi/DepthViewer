@@ -140,4 +140,7 @@ public static class Utils {
 
 		return newtex;
 	}
+
+	public static MainBehavior GetMainBehav() =>
+		GameObject.Find("MainManager").GetComponent<MainBehavior>();
 }
