@@ -32352,7 +32352,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2128267913}
         m_TargetAssemblyTypeName: MainBehavior, Assembly-CSharp
-        m_MethodName: ToggleBrowseDirRandom
+        m_MethodName: OnBrowseDirRandomToggleValueChanged
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

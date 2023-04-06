@@ -74,10 +74,12 @@ public class MainBehavior : MonoBehaviour {
 		get => _dirRandom;
 
 		set {
+			//Avoid the recursive call
+			if (_dirRandom == value) return;
 			_dirRandom = value;
 
 			if (value) {//reshuffle
-				Debug.Log("Shuffle is on. (TODO: make the toggle on UI be responsive for the external change)");
+				Debug.Log("Shuffle is on.");
 				ShuffleBrowseDirRandomIdxList();
 			}
 			else {
@@ -91,6 +93,9 @@ public class MainBehavior : MonoBehaviour {
 						_dirFileIdx = idx;
 				}
 			}
+
+			if (BrowseDirRandomToggle.isOn != value)	
+				BrowseDirRandomToggle.isOn = value;
 		}
 	}
 
@@ -213,11 +218,8 @@ public class MainBehavior : MonoBehaviour {
 			SetBrowseDir(scrollDirection);
 
 		/* Toggle shuffle */
-		if (Input.GetKeyDown(Keymapper.Inst.ToggleShuffle)) {
-			Debug.Log("Debugging purpose.");
+		if (Input.GetKeyDown(Keymapper.Inst.ToggleShuffle))
 			DirRandom = !DirRandom;
-			//ToggleBrowseDirRandom();
-		}
 
 		/* Send the key to _texInputs */
 		if (_texInputs != null) {
@@ -500,8 +502,10 @@ public class MainBehavior : MonoBehaviour {
 	public void ToggleBrowseDirPanel() =>
 		WindowManager.SetCurrentWindow(BrowseDirPanel);
 
-	public void ToggleBrowseDirRandom() =>
+	public void OnBrowseDirRandomToggleValueChanged() {
+		//Called when the toggle on UI is changed
 		DirRandom = BrowseDirRandomToggle.isOn;
+	}
 
 	private void ShuffleBrowseDirRandomIdxList() {
 		if (_dirFilenames == null) return;
