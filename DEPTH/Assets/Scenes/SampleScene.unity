@@ -17796,6 +17796,10 @@ MonoBehaviour:
   PrevDir: 284
   NextDir: 285
   ToggleShuffle: 286
+  VideoRewind: 260
+  VideoPause: 261
+  VideoForward: 262
+  DirRandomAccessKeys: 
 --- !u!4 &1140753409
 Transform:
   m_ObjectHideFlags: 0

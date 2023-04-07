@@ -25,7 +25,15 @@ public class DirIterator : MonoBehaviour {
 			else if (Input.GetKeyDown(Keymapper.Inst.NextDir)) {
 				DirIdx++;
 				DirIdx %= DirNameList.Length;
-			}	
+			}
+			else if (Keymapper.Inst.DirRandomAccessKeys != null) {
+				KeyCode[] keys = Keymapper.Inst.DirRandomAccessKeys;
+
+				for (int i = 0; i < keys.Length; i++) {
+					if (Input.GetKeyDown(keys[i])) 
+						DirIdx = i;
+				}
+			}
 		}
 
 		/* Check if DirIdx changed */

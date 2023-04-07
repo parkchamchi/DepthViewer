@@ -20,6 +20,8 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode VideoPause = KeyCode.Keypad5;
 	public KeyCode VideoForward = KeyCode.Keypad6;
 
+	public KeyCode[] DirRandomAccessKeys;
+
 	public static Keymapper Inst {get; private set;}
 
 	void Start() {
