@@ -284,8 +284,16 @@ public class ImgVidDepthTexInputs : TexInputs {
 			return;
 		}
 
-		if (_ftype == FileTypes.Vid)
+		if (_ftype == FileTypes.Vid) {
 			UpdateVid();
+
+			if (Input.GetKeyDown(Keymapper.Inst.VideoRewind))
+				Skip(-5f);
+			else if (Input.GetKeyDown(Keymapper.Inst.VideoPause))
+				PausePlay();
+			else if (Input.GetKeyDown(Keymapper.Inst.VideoForward))
+				Skip(+5f);
+		}
 	}
 
 	private void OnFrameReady(VideoPlayer vp, long frame) {
@@ -629,16 +637,16 @@ public class ImgVidDepthTexInputs : TexInputs {
 
 	public void SendMsg(string msg) {
 		switch (msg) {
-		case "Keypad4":
+		case "VideoRewind":
 			Skip(-5f);
 			break;
 
-		case "Keypad5":
 		case "PausePlay":
+		case "VideoPause":
 			PausePlay();
 			break;
 
-		case "Keypad6":
+		case "VideoForward":
 			Skip(+5f);
 			break;
 

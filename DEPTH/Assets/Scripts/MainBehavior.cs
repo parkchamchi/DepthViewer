@@ -122,8 +122,9 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		/* If this key is pressed, _texInputs is informed. */
+		//Not used anymore.
 		_sendMsgKeyCodes = new KeyCode[] {
-			KeyCode.Keypad4, KeyCode.Keypad5, KeyCode.Keypad6
+			
 		};
 
 		_fileSelecter = new StandaloneFileSelecter();

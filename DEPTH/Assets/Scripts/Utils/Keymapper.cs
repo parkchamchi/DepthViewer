@@ -16,6 +16,10 @@ public class Keymapper : MonoBehaviour {
 
 	public KeyCode ToggleShuffle = KeyCode.F5;
 
+	public KeyCode VideoRewind = KeyCode.Keypad4;
+	public KeyCode VideoPause = KeyCode.Keypad5;
+	public KeyCode VideoForward = KeyCode.Keypad6;
+
 	public static Keymapper Inst {get; private set;}
 
 	void Start() {
