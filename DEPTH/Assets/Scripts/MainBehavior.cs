@@ -626,6 +626,43 @@ public class MainBehavior : MonoBehaviour {
 	public void SetTargetValToNaN() =>
 		_meshBehav.TargetVal = System.Single.NaN;
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	// SKYBOX
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	public void SetMeshTextureSetCallback(bool val, System.Action<Texture> callback=null) {
+		/*
+		Set the callback the mesh will call when the texture is ready.
+		Used for the skybox.
+		*/
+
+		if (val) {
+			Debug.Log("Setting the skybox.");
+
+			//Have the camera see the skybox
+			Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+			camera.clearFlags = CameraClearFlags.Skybox;
+
+			_meshBehav.OnTextureSet = callback;
+		}
+
+		else {
+			Debug.Log("Disabling the skybox.");
+
+			Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+			camera.clearFlags = CameraClearFlags.SolidColor;
+			_meshBehav.OnTextureSet = null;
+			RenderSettings.skybox = null;
+		}
+	}
+
+	public bool IsMeshTextureCallbackSet() =>
+		_meshBehav.OnTextureSet != null;
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	// SKYBOX END
+	////////////////////////////////////////////////////////////////////////////////////////
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
