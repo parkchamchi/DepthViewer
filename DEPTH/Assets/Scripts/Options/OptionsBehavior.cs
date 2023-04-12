@@ -92,6 +92,8 @@ public class OptionsBehavior : MonoBehaviour {
 	public Toggle SkyboxBlurToggle;
 	public Slider SkyboxBlurIterSlider;
 
+	public Toggle SkyboxUseDefaultMatToggle;
+
 	[SerializeField] private float _skyboxTint = 0.5f;
 	[SerializeField] private float _skyboxExposure = 0.5f;
 	[SerializeField] private bool _skyboxPanoramic = false;
@@ -99,8 +101,16 @@ public class OptionsBehavior : MonoBehaviour {
 	[SerializeField, Range(0, 8)] private int _skyboxBlurIter = 4;
 	private RenderTexture _skyboxRt = null;
 
+	[SerializeField] private bool _skyboxUseDefaultMat = false;
+	[SerializeField] private Material _skyboxDefaultMat;
+
 	private void SkyboxCallback(Texture tex) {
 		//Has a room for optimization
+
+		if (_skyboxUseDefaultMat) {
+			RenderSettings.skybox = _skyboxDefaultMat;
+			return;
+		}
 
 		//Check if current `skyboxRt` is compatible
 		int w = tex.width;
@@ -164,6 +174,11 @@ public class OptionsBehavior : MonoBehaviour {
 
 	public void OnSkyboxBlurIterSliderValueChanged() {
 		_skyboxBlurIter = (int) SkyboxBlurIterSlider.value;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
+
+	public void OnSkyboxUseDefaultMatToggleValueChanged() {
+		_skyboxUseDefaultMat = SkyboxUseDefaultMatToggle.isOn;
 		_mainBehav.ManuallyCallMeshTextureCallback();
 	}
 
