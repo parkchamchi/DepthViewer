@@ -656,8 +656,13 @@ public class MainBehavior : MonoBehaviour {
 		}
 	}
 
+	/*
 	public bool IsMeshTextureCallbackSet() =>
 		_meshBehav.OnTextureSet != null;
+	*/
+
+	public void ManuallyCallMeshTextureCallback() =>
+		_meshBehav.ManuallyCallOnTextureSetCallback();
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// SKYBOX END

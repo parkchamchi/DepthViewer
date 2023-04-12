@@ -55,7 +55,25 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public event System.Action<string, float> ParamChanged;
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	// SKYBOX
+	////////////////////////////////////////////////////////////////////////////////////////
+
 	public System.Action<Texture> OnTextureSet {set; get;} //The callback when the texture is set (used for skybox)
+
+	public void ManuallyCallOnTextureSetCallback() {
+		//For images
+
+		Texture tex = _material.mainTexture;
+		if (OnTextureSet != null && tex != null) {
+			//Debug.Log("ManuallyCallOnTextureSetCallback(): aye");
+			OnTextureSet(tex);
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	// SKYBOX END
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	public const float DefaultAlpha = 1f;
 	private float _alpha = DefaultAlpha;

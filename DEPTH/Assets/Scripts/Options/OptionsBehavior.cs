@@ -137,23 +137,35 @@ public class OptionsBehavior : MonoBehaviour {
 		RenderSettings.skybox = skyboxMat;
 	}
 
-	public void OnSkyboxToggleValueChanged() =>
+	public void OnSkyboxToggleValueChanged() {
 		_mainBehav.SetMeshTextureSetCallback(SkyboxToggle.isOn, SkyboxCallback);
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
-	public void OnSkyboxPanoramicToggleValueChanged() =>
+	public void OnSkyboxPanoramicToggleValueChanged() {
 		_skyboxPanoramic = SkyboxPanoramicToggle.isOn;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
-	public void OnSkyboxTintSliderValueChanged() =>
+	public void OnSkyboxTintSliderValueChanged() {
 		_skyboxTint = SkyboxTintSlider.value;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
-	public void OnSkyboxExposureSliderValueChanged() =>
+	public void OnSkyboxExposureSliderValueChanged() {
 		_skyboxExposure = SkyboxExposureSlider.value;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
-	public void OnSkyboxBlurToggleValueChanged() =>
+	public void OnSkyboxBlurToggleValueChanged() {
 		_skyboxBlur = SkyboxBlurToggle.isOn;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
-	public void OnSkyboxBlurIterSliderValueChanged() =>
+	public void OnSkyboxBlurIterSliderValueChanged() {
 		_skyboxBlurIter = (int) SkyboxBlurIterSlider.value;
+		_mainBehav.ManuallyCallMeshTextureCallback();
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	// SKYBOX END
