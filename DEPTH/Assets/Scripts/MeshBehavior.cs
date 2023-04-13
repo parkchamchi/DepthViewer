@@ -320,6 +320,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 
+	[Tooltip("TEMP. TEST PURPOSE: Unlike other properties, this is currently implemented in a way that it changes the depth map itself & won't update the image input.")]
 	[SerializeField, Range(0, 7)]
 	private int _subsampleL2 = 0;
 
