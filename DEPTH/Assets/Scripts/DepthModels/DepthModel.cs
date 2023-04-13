@@ -64,6 +64,19 @@ public class Depth {
 
 		return new Depth(lin, X, Y, DepthMapType.Linear);
 	}
+
+	public Depth Subsample(int step) {
+		int newx = X / step;
+		int newy = Y / step;
+
+		float[] newvalue = new float[newx*newy];
+		for (int h = 0; h < newy; h++)
+			for (int w = 0; w < newy; w++)
+				newvalue[h*newx + w] = _value[(h*step)*X + (w*step)];
+
+		Depth sampled = new Depth(newvalue, newx, newy, Type);
+		return sampled;
+	}
 }
 
 public interface BaseDepthModel : IDisposable {

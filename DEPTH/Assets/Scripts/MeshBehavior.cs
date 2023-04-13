@@ -123,7 +123,6 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	private	int[] _triangles;
 	private Material _material;
 
-	//private float[] _depths; //for UpdateDepth()
 	private Depth _depth;
 
 	private const float _width = 320; //canvas size
@@ -321,6 +320,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 	}
 
+	[SerializeField, Range(0, 7)]
+	private int _subsampleL2 = 0;
+
 	public void ToDefault() {
 		Alpha = DefaultAlpha;
 		Beta = DefaultBeta;
@@ -435,7 +437,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		_uv = new Vector2[_vertices.Length];
 		for (int i = 0; i < _vertices.Length; i++) {
 			_vertices[i] = new Vector3(x_start + i%x * x_gap, y_start - i/x * y_gap, 0);
-			_uv[i] = new Vector2((float) (i%x) / x, (float) (y - (i/x)) / y);
+			_uv[i] = new Vector2((float) (i%x) / (x-1), (float) (y-1 - (i/x)) / (y-1));
 		}
 
 		_triangles = new int[(y-1)*(x-1)*6];
@@ -592,6 +594,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			Debug.LogError("SetScene(): depth == null");
 			return;
 		}
+		
+		if (_subsampleL2 > 0)
+			depth = depth.Subsample((int) Mathf.Pow(2, _subsampleL2));
 
 		if (ratio <= 0) {
 			if (texture != null)
