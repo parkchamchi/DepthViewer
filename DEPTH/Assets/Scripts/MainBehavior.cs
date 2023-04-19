@@ -199,7 +199,7 @@ public class MainBehavior : MonoBehaviour {
 		bool shouldScroll = false;
 		bool scrollDirection = true;
 
-		if (Input.mouseScrollDelta.y != 0) {
+		if (Keymapper.Inst.UseMouseWheel && Input.mouseScrollDelta.y != 0) {
 			shouldScroll = true;
 			scrollDirection = Input.mouseScrollDelta.y < 0;
 		}

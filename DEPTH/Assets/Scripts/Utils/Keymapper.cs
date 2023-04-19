@@ -10,7 +10,7 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode PrevFileInDir = KeyCode.F1;
 	public KeyCode NextFileInDir = KeyCode.F2;
 
-	//Not yet used
+	//For editor only
 	public KeyCode PrevDir = KeyCode.F3;
 	public KeyCode NextDir = KeyCode.F4;
 
@@ -19,6 +19,9 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode VideoRewind = KeyCode.Keypad4;
 	public KeyCode VideoPause = KeyCode.Keypad5;
 	public KeyCode VideoForward = KeyCode.Keypad6;
+
+	//For files in dir
+	public bool UseMouseWheel = true;
 
 	public KeyCode[] DirRandomAccessKeys;
 
