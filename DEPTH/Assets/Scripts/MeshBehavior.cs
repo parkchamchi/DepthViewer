@@ -293,6 +293,19 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		get {return _projRatio;}
 	}
 
+	public const float DefaultProjConc = 0f;
+	private float _projConc = DefaultProjConc;
+	public float ProjConc {
+		set {
+			_projConc = value;
+			if (_shouldUpdateDepth) UpdateDepth();
+
+			ParamChanged?.Invoke("ProjConc", value);
+		}
+
+		get {return _projConc;}
+	}
+
 	private float _threshold = 0f;
 	public float Threshold {
 		set {
@@ -528,10 +541,19 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			/*
 			Use parameter ProjRatio [0, 1] to set the magnitude
 			*/
+			/*
+			ProjConc:
+				(<= 0): conc(z) == 1
+				(> 0): conc(z) == (1 - exp(-az)) / (1 - exp(-a)), where a == ProjConc
+
+				conc(0) == 0, conc(1) == 0. As ProjConc gets increased, c will be more above from the linear function, which will project the vertices farther from the score more.
+			*/
 
 			Vector3 p = _vertices[i];
+			float absz = p.z * scale;
+			float conc = (_projConc <= 0) ? 1 : (1 - MathF.Exp(-_projConc * absz)) / (1 - MathF.Exp(-absz));
 
-			float prop = (p.z * scale * _projRatio + CamDist) / (CamDist); //multiply p.z by scale to get the absolute value
+			float prop = (absz * conc * _projRatio + CamDist) / (CamDist); //multiply p.z by scale to get the absolute value
 			float orig_rad = MathF.Sqrt(p.x*p.x + p.y*p.y);
 			if (orig_rad == 0) orig_rad = 0.00001f; //Avoid divide-by-zero
 			float new_rad = prop * orig_rad;
