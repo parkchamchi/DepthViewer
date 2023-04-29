@@ -41,7 +41,14 @@ public class ZmqDepthModel : DepthModel {
 			Debug.Log("Connected.");
 
 			Debug.Log("Sending Hello");
-			client.SendFrame("Hello");
+			client.SendFrame(
+				@"
+				ptype=REQ
+				name=DEPTH
+				!HEADEREND
+				asdfasdfajiofds ofiajfn asdfahsi
+				"
+			);
 
 			string message = null;
 			bool gotMessage = false;
