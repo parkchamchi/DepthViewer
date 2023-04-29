@@ -780,7 +780,13 @@ public void SetBrowseDirName(string dirname) {
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		Debug.Log("Nothing here...");
+		//Debug.Log("Nothing here...");
+		Cleanup();
+		_donnx?.Dispose();
+
+		UITextSet.StatusText.text = "RELOAD";
+
+		_donnx = new ZmqDepthModel();
 
 		Debug.Log("DebugTmp() exiting.");
 	}
