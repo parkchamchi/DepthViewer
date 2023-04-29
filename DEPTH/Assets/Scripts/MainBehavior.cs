@@ -780,7 +780,7 @@ public void SetBrowseDirName(string dirname) {
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		//Debug.Log("Nothing here...");
+		Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}

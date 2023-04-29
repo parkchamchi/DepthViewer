@@ -159,6 +159,9 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [In-game Debug Console for Unity 3D](https://github.com/yasirkula/UnityIngameDebugConsole) (MIT License)
 - [Pcx - Point Cloud Importer/Renderer for Unity](https://github.com/keijiro/Pcx) (The Unlicense)
 - [GaussianBlur](https://github.com/keijiro/GaussianBlur) (MIT License)
+- [NetMQ](https://github.com/zeromq/netmq) (LGPL)
+- [AsyncIO](https://github.com/somdoron/AsyncIO) (MPL 2.0)
+- [NaCl.net](https://github.com/somdoron/NaCl.net) (MPL 2.0)
 
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)
