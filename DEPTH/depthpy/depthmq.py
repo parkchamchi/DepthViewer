@@ -3,10 +3,29 @@ import zmq
 import argparse
 
 """
+Header is an ASCII string of key=value pairs. It ends with `!HEADERENDS\n`.
+The rest is the data bytestring.
+
+***************************
+ptype=REQ
+name=HANDSHAKE_DEPTH
+pversion=1
+client_program=DepthViewer
+client_program_version=v0.8.11
+!HEADEREND
+***************************
+ptype=RES
+name=HANDSHAKE_DEPTH
+model_type=dpt_hybrid_384
+accepted_input_formats=jpg,ppm
+output_format=pfm
+!HEADEREND
+***************************
 
 ***************************
 ptype=REQ
 name=DEPTH
+input_format=jpg
 !HEADEREND
 (bytestring)
 ***************************
@@ -19,13 +38,15 @@ name=DEPTH
 Key "data" is reserved.
 """
 
+model_type = b"NotSetYet"
+accepted_input_formats = b"jpg, ppm"
+output_format = b"pfm"
+
 def process():
 	print('*'*64)
 
 	message = socket.recv()
-	message_decoded = {}
-
-	data = None
+	mdict = {}
 
 	#Decode. Assumes that the message is in the correct format
 	while message != b"": #while the message is exhausted
@@ -42,7 +63,7 @@ def process():
 		if line.startswith(b'!'):
 			if line == b"!HEADEREND":
 				#The rest is the data
-				data = message
+				mdict[b"data"] = message
 				break
 			else:
 				print(f"Unknown line: {line}")
@@ -53,15 +74,57 @@ def process():
 			print(f"Illegal key-value line: {line}")
 			continue
 		key, value = [token.strip() for token in line.split(b'=', maxsplit=1)] #strip the key and the token
-		message_decoded[key] = value
+		mdict[key] = value
 
 	#Check the decoded message
-	print(message_decoded)
-	if data:
-		print(f"len(data): {len(data)}")
-		print(data)
+	print(mdict)
+	
+	#Handle
+	handler = on_unknown_ptype_name
+	t = (mdict[b"ptype"], mdict[b"name"])
+	if t == (b"REQ", b"HANDSHAKE_DEPTH"):
+		handler = on_req_handshake_depth
 
-	socket.send(b"hi")
+	print(f"Using handler {handler}")
+	res = handler(mdict)
+
+	socket.send(res)
+
+def create_message(mdict, data=None) -> bytes:
+	message = b""
+	for key, value in mdict.items():
+		message += key + b'=' + value + b'\n'
+	message += b"!HEADEREND\n"
+
+	if data is not None:
+		message += data
+
+	return message
+
+def create_error_message(msg: str):
+	return create_message({
+		b"ptype": b"RES",
+		b"name": b"ERROR",
+	}, data=msg.encode("ascii"))
+
+def on_unknown_ptype_name(mdict):
+	msg = f"Unknown (ptype, name): ({mdict[b'ptype']}, {mdict[b'name']})".encode("ascii")
+	print(msg)
+
+	return create_error_message(msg)
+
+def on_req_handshake_depth(mdict):
+	pversion = mdict[b"pversion"]
+	if pversion != b"1":
+		return create_error_message(f"Unsupported pversion: {pversion}")
+
+	return create_message({
+		b"ptype": b"RES",
+		b"name": mdict[b"name"],
+		b"model_type": model_type,
+		b"accepted_input_formats": accepted_input_formats,
+		b"output_format": output_format,
+	})
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
