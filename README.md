@@ -82,6 +82,13 @@ e
 ```
 This saves the current parameters (`Scale`, ...) into the depthfile so that it can be used later.
 
+## Using ZeroMQ + Python + PyTorch
+May be unstable.
+1. Run [`DEPTH/depthpy/depthmq.py`](DEPTH/depthpy/depthmq.py). (Also see [here](./DEPTH/depthpy/README.md) for its dependencies, plus `pyzmq` is required)
+2. In the DepthViewer program, open the console and type `zmq 5555`.
+
+Use `python depthmq.py -h` for more options such as port (default: `5555`), model (default: `dpt_hybrid_384`)
+
 ## Tested formats:
 ### Images
 - .jpg
