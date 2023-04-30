@@ -89,6 +89,10 @@ public interface DepthModel : BaseDepthModel {
 	void PrintMetadata() {Debug.LogError("PrintMetadata(): Not implemented.");}
 }
 
+public interface SelfDisposingDepthModel : DepthModel {
+	bool IsDisposed {get;}
+}
+
 public interface AsyncDepthModel {
 	bool IsAvailable {get;}
 	bool IsWaiting {get;}

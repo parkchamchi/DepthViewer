@@ -155,6 +155,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_mousemove", "Whether the mesh would follow the mouse", "SetMoveMeshByMouse", this);
 		addcmd("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
+		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -230,6 +231,8 @@ public class MainBehavior : MonoBehaviour {
 				if (Input.GetKeyDown(key))
 					SendMsgToTexInputs(key.ToString());
 		}
+		else
+			UITextSet.StatusText.text = "Input is not set. (See console `)";
 	}
 
 	private void Cleanup() {
@@ -423,6 +426,19 @@ public class MainBehavior : MonoBehaviour {
 
 		Debug.Log($"Loaded the model: {modelTypeStr}");
 	}
+
+	public void LoadZmqModel(int port=5555) {
+		Cleanup();
+		_donnx?.Dispose();
+
+		UITextSet.StatusText.text = "RELOAD";
+
+		_donnx = _depthModelBehav.GetZmqDepthModel(port, () => {
+			Cleanup();
+			_donnx = null;
+			UITextSet.StatusText.text = "ZMQ DISPOSED";
+		});
+	}	
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);
@@ -780,13 +796,7 @@ public void SetBrowseDirName(string dirname) {
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		//Debug.Log("Nothing here...");
-		Cleanup();
-		_donnx?.Dispose();
-
-		UITextSet.StatusText.text = "RELOAD";
-
-		_donnx = new ZmqDepthModel();
+		Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}

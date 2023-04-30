@@ -23,27 +23,32 @@ as reference.
 
 using Mdict = System.Collections.Generic.Dictionary<string, string>;
 
-public class ZmqDepthModel : DepthModel {
+public class ZmqDepthModel : SelfDisposingDepthModel {
 	public string ModelType {get; private set;}
+	public bool IsDisposed {get; private set;} = false;
 
-	private const float _timeout = 3;
+	private const float _timeout = 2;
+	private const int _failTolerance = 3; //Disconnects after n consecutive failures.
 
-	private string _addr;
 	private RequestSocket _socket;
 	private Mdict _handshakeMdict;
 	private DepthMapType _dtype;
+	private System.Action _onDisposedCallback;
+
+	private int _consecutiveFails = 0;
 
 	private RenderTexture _rt;
 
-	public ZmqDepthModel(string addr="tcp://localhost:5555") {
-		Debug.Log($"ZmqDepthModel(): addr: {addr}");
-		_addr = addr;
+	public ZmqDepthModel(int port=5555, System.Action onDisposedCallback=null) {
+		Debug.Log($"ZmqDepthModel(): port: {port}");
+		_onDisposedCallback = onDisposedCallback;
 
 		//"this line is needed to prevent unity freeze after one use, not sure why yet" It's of `AsyncIO`.
 		ForceDotNet.Force();
 		_socket = new RequestSocket();
-		Debug.Log($"Connecting to {_addr}");
-		_socket.Connect(_addr);
+		string addr = $"tcp://localhost:{port}";
+		Debug.Log($"Connecting to {addr}");
+		_socket.Connect(addr);
 		Handshake();
 	}
 
@@ -53,7 +58,14 @@ public class ZmqDepthModel : DepthModel {
 	}
 
 	private bool Send(byte[] tosend, out byte[] output) {
-		_socket.SendFrame(tosend);
+		try {
+			_socket.SendFrame(tosend);
+		}
+		catch (NetMQ.FiniteStateMachineException exc) {
+			Debug.LogWarning($"Send(): Failed to send the request. Is the server down?: {exc}");
+			output = null;
+			return false;
+		}
 
 		byte[] message = null;
 		bool gotMessage = false;
@@ -155,7 +167,7 @@ public class ZmqDepthModel : DepthModel {
 		Debug.Log("Handshaking...");
 
 		bool success;
-		byte[] output;
+		byte[] output = null;
 
 		success = Send(
 			@$"
@@ -201,7 +213,7 @@ public class ZmqDepthModel : DepthModel {
 			}
 		}
 		else
-			Debug.Log("The server did not respond.");
+			Debug.LogWarning("The server did not respond.");
 
 		//Cleanup when it failed
 		if (!success) {
@@ -255,6 +267,11 @@ public class ZmqDepthModel : DepthModel {
 	}
 
 	public Depth Run(Texture inputTexture) {
+		if (IsDisposed) {
+			Debug.LogError("ZmqDepthModel: This was already disposed. (This should not be seen)");
+			return null;
+		}
+
 		string inputFormat = "jpg";
 		byte[] headerbytes = Encoding.ASCII.GetBytes(
 			$@"
@@ -291,6 +308,7 @@ public class ZmqDepthModel : DepthModel {
 				}
 				else {
 					Depth depth = DepthFileUtils.ReadPgmOrPfm(data, _dtype);
+					_consecutiveFails = 0;
 					return depth; //Exit normally
 				}
 			}
@@ -304,12 +322,22 @@ public class ZmqDepthModel : DepthModel {
 
 		//Cleanup
 		Debug.Log("ZmqDepthModel(): failed.");
+		_consecutiveFails++;
+		if (_consecutiveFails > _failTolerance) {
+			Debug.Log($"ZmqDepthModel: Disposing after {_consecutiveFails} failures.");
+			Dispose();
+		}
+
 		return null;
 	}
 
 	public void Dispose() {
 		_socket.Dispose();
 		NetMQConfig.Cleanup(); //"this line is needed to prevent unity freeze after one use, not sure why yet"
+
+		IsDisposed = true;
+		if (_onDisposedCallback != null)
+			_onDisposedCallback();
 	}
 }
 

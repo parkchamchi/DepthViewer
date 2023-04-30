@@ -80,6 +80,16 @@ public class DepthModelBehavior : MonoBehaviour {
 
 		return _donnx;
 	}
+
+	//Wrapper
+	public DepthModel GetZmqDepthModel(int port=5555, System.Action onDisposedCallback=null) {
+		_donnx?.Dispose();
+		_donnx = null;
+
+		_donnx = new ZmqDepthModel(port, onDisposedCallback);
+
+		return _donnx;
+	}
 }
 
 public class BarracudaDepthModel : DepthModel {
