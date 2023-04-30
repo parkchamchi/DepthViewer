@@ -21,6 +21,8 @@ Using
 as reference.
 */
 
+using Mdict = System.Collections.Generic.Dictionary<string, string>;
+
 public class ZmqDepthModel : DepthModel {
 	public string ModelType {get; private set;}
 
@@ -28,6 +30,8 @@ public class ZmqDepthModel : DepthModel {
 	private RequestSocket _socket;
 
 	private const float _timeout = 3;
+
+	private Mdict _handshakeMdict;
 
 	public ZmqDepthModel(string addr="tcp://localhost:5555") {
 		Debug.Log($"ZmqDepthModel(): addr: {addr}");
@@ -64,11 +68,11 @@ public class ZmqDepthModel : DepthModel {
 		return gotMessage;
 	}
 
-	private void Parse(byte[] bytes, out Dictionary<string, string> mdict, out byte[] data) {
+	private void Parse(byte[] bytes, out Mdict mdict, out byte[] data) {
 		int idx;
 		List<byte> lineList = new List<byte>();
 
-		mdict = new Dictionary<string, string>();
+		mdict = new Mdict();
 		data = null;
 
 		for (idx = 0; idx < bytes.Length; idx++) {
@@ -121,6 +125,30 @@ public class ZmqDepthModel : DepthModel {
 		}
 	}
 
+	private string ReconstructHeader(Mdict mdict) {
+		string header = "";
+		foreach (KeyValuePair<string, string> item in mdict)
+			header += $"{item.Key}={item.Value}\n";
+
+		return header;
+	}
+
+	private void GetPtypePname(Mdict mdict, out string ptype, out string pname) {
+		ptype = mdict["ptype"];
+		pname = mdict["pname"];
+	}
+
+	private void OnUnknownPtypePname(Mdict mdict) {
+		string ptype, pname;
+		GetPtypePname(mdict, out ptype, out pname);
+		Debug.LogWarning($"Got unknown (pname, ptype): ({pname}, {ptype})");
+	}
+
+	private void OnResError(Mdict mdict, byte[] data) {
+		string errorMsg = Encoding.ASCII.GetString(data);
+		Debug.LogWarning($"The server responded with the error message: {errorMsg}");
+	}
+
 	private void Handshake() {
 		Debug.Log("Handshaking...");
 
@@ -130,7 +158,7 @@ public class ZmqDepthModel : DepthModel {
 		success = Send(
 			@$"
 			ptype=REQ
-			name=HANDSHAKE_DEPTH
+			pname=HANDSHAKE_DEPTH
 			
 			pversion=1
 			client_program=DepthViewer
@@ -139,17 +167,26 @@ public class ZmqDepthModel : DepthModel {
 			out output
 		);
 
+		byte[] data;
+
 		if (success) {
 			//Check errors... and if there's any problem set success to false
-			Dictionary<string, string> mdict;
-
 			try {
-				Parse(output, out mdict, out _);
+				Parse(output, out _handshakeMdict, out data);
+				Debug.Log(ReconstructHeader(_handshakeMdict));
 
-				string header = "";
-				foreach (KeyValuePair<string, string> item in mdict)
-					header += $"{item.Key}={item.Value}\n";
-				Debug.Log(header);
+				string ptype, pname;
+				GetPtypePname(_handshakeMdict, out ptype, out pname);
+
+				//Wrong ptype/pname
+				if (!(ptype == "RES" && pname == "HANDSHAKE_DEPTH")) {
+					if (ptype == "RES" && pname == "ERROR")
+						OnResError(_handshakeMdict, data);
+					else
+						OnUnknownPtypePname(_handshakeMdict);
+
+					success = false;
+				}
 			}
 			catch (Exception exc) {
 				Debug.LogError($"Failed to parse: {exc}");
@@ -158,10 +195,15 @@ public class ZmqDepthModel : DepthModel {
 		else
 			Debug.Log("The server did not respond.");
 
-		if (!success) {
-			Debug.Log("Handshake failure.");
+		if (success) {
+			ModelType = _handshakeMdict["model_type"];
+			Debug.Log($"Handshake success. ModelType: {ModelType}");
+		}
+		else {
+			Debug.LogWarning("Handshake failure.");
 			Dispose();
 		}
+
 	}
 
 	public Depth Run(Texture inputTexture) {
@@ -171,7 +213,7 @@ public class ZmqDepthModel : DepthModel {
 		success = Send(
 			@"
 			ptype=REQ
-			name=DEPTH
+			pname=DEPTH
 			input_format=jpg
 			!HEADEREND
 			asdfasdfajiofds ofiajfn asdfahsi", 
