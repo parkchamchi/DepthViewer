@@ -2,6 +2,7 @@ import depth
 from midas.model_loader import default_models, load_model
 
 import zmq
+import numpy as np
 
 import argparse
 
@@ -24,6 +25,7 @@ pname=HANDSHAKE_DEPTH
 model_type=dpt_hybrid_384
 accepted_input_formats=jpg,ppm
 output_format=pfm
+depth_map_type=Inverse
 
 server_program=depthmq
 server_program_version=v0.8.11
@@ -57,6 +59,7 @@ def process():
 
 	message = socket.recv()
 	mdict = {}
+	data = b""
 
 	#Decode. Assumes that the message is in the correct format
 	while message != b"": #while the message is exhausted
@@ -76,7 +79,7 @@ def process():
 		if line.startswith('!'):
 			if line == "!HEADEREND":
 				#The rest is the data
-				mdict["data"] = message
+				data = message
 				break
 			else:
 				print(f"Unknown line: {line}")
@@ -91,15 +94,19 @@ def process():
 
 	#Check the decoded message
 	print(mdict)
+	if len(data) > 0:
+		print(f"len(data): {len(data)}")
 	
 	#Handle
 	handler = on_unknown_ptype_pname
 	t = (mdict["ptype"], mdict["pname"])
 	if t == ("REQ", "HANDSHAKE_DEPTH"):
 		handler = on_req_handshake_depth
+	elif t == ("REQ", "DEPTH"):
+		handler = on_req_depth
 
 	print(f"Using handler {handler}")
-	res = handler(mdict)
+	res = handler(mdict, data)
 
 	socket.send(res)
 
@@ -121,13 +128,13 @@ def create_error_message(msg: str):
 		"pname": "ERROR",
 	}, data=msg.encode("ascii"))
 
-def on_unknown_ptype_pname(mdict):
-	msg = f"Unknown (ptype, pname): ({mdict['ptype']}, {mdict['pname']})".encode("ascii")
+def on_unknown_ptype_pname(mdict, data=None):
+	msg = f"Unknown (ptype, pname): ({mdict['ptype']}, {mdict['pname']})"
 	print(msg)
 
 	return create_error_message(msg)
 
-def on_req_handshake_depth(mdict):
+def on_req_handshake_depth(mdict, data=None):
 	pversion = mdict["pversion"]
 	if pversion != "1":
 		return create_error_message(f"Unsupported pversion: {pversion}")
@@ -138,10 +145,30 @@ def on_req_handshake_depth(mdict):
 		"model_type": model_type,
 		"accepted_input_formats": accepted_input_formats,
 		"output_format": output_format,
+		"depth_map_type": "Inverse",
 
 		"server_program": "depthmq",
 		"server_program_version": depth.VERSION,
 	})
+
+def on_req_depth(mdict, data):
+	input_format = mdict["input_format"]
+
+	if input_format in ["jpg", "ppm"]:
+		img = runner.read_image_bytes(data)
+		
+		res = runner.run_frame(img, no_pgm=True, as_uint8=False) #ndarray
+		res = depth.write_pfm(res)
+
+	else:
+		error_msg = f"Error: unknown input_format: {input_format}"
+		print(error_msg)
+		return create_error_message(error_msg)
+	
+	return create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
+	}, data=res)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -183,9 +210,14 @@ if __name__ == "__main__":
 	model_type = args.model_type
 	runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
 
+	print("depthmq: Preparing the model. This may take some time.")
+	dummy = np.zeros((512, 512, 3), dtype=np.float32)
+	runner.run_frame(dummy, no_pgm=True)
+	print("depthmq: Done.")
+
 	port = args.port if args.port is not None else default_port
 	addr = f"tcp://*:{port}"
-	print(f"Binding to {addr}")
+	print(f"depthmq: Binding to {addr}")
 	context = zmq.Context()
 	socket = context.socket(zmq.REP)
 	socket.bind(addr)

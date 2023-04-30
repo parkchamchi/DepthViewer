@@ -12,6 +12,7 @@ import io
 import time
 import hashlib
 import traceback
+import sys
 
 import numpy as np
 import cv2
@@ -91,7 +92,13 @@ class Runner():
 		self.model_type = model_type
 		self.model_params = new_model_params
 
-	def run_frame(self, img, no_pgm=False):
+	def run_frame(self, img, no_pgm=False, as_uint8=True):
+		"""
+		`no_pgm` and `as_uint8` are legacy things.
+		"""
+
+		assert not (not no_pgm and not as_uint8)
+
 		# input
 		img_input = self.transform({"image": img})["image"]
 
@@ -110,7 +117,7 @@ class Runner():
 				prediction = prediction.squeeze().cpu().numpy()
 
 		# output
-		out = self.normalize(prediction)
+		out = self.normalize(prediction, as_uint8)
 		if no_pgm:
 			return out
 
@@ -227,9 +234,9 @@ class Runner():
 		
 			mem_buffer.close()
 
-	def normalize(self, image):
+	def normalize(self, image, as_uint8=True):
 		maxval = 255
-		dtype = np.uint8
+		dtype = np.uint8 if as_uint8 else np.float32
 
 		image = image.astype(np.float32)
 
@@ -237,8 +244,10 @@ class Runner():
 		depth_max = image.max()
 
 		if depth_max - depth_min > np.finfo("float").eps:
-			normalized = maxval * (image - depth_min) / (depth_max - depth_min)
-			normalized = normalized.astype(dtype)
+			normalized = (image - depth_min) / (depth_max - depth_min)
+			if as_uint8:
+				normalized *= maxval
+				normalized = normalized.astype(dtype)
 		else:
 			normalized = np.zeros(image.shape, dtype=dtype)
 
@@ -347,6 +356,27 @@ class Runner():
 		img = cv2.imdecode(img, cv2.IMREAD_UNCHANGED)
 		img = self.as_input(img)
 		return img
+	
+def write_pfm(image, scale=1) -> bytes:
+	#Modified from https://github.com/isl-org/MiDaS/blob/master/utils.py
+	#This was originally from zoeserver.py
+
+	assert len(image.shape) == 2
+	image = np.flipud(image)
+
+	pfm = b""
+	pfm += "Pf\n".encode("ascii")
+	pfm += "%d %d\n".encode("ascii") % (image.shape[1], image.shape[0])
+
+	endian = image.dtype.byteorder
+	#print(image.dtype, image.dtype.byteorder, sys.byteorder)
+	if endian == "<" or endian == "=" and sys.byteorder == "little":
+		scale = -scale
+	pfm += "%f\n".encode("ascii") % scale
+
+	pfm += image.tobytes()
+
+	return pfm
 
 #######################
 

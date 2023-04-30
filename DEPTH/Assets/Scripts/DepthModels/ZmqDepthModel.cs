@@ -26,12 +26,14 @@ using Mdict = System.Collections.Generic.Dictionary<string, string>;
 public class ZmqDepthModel : DepthModel {
 	public string ModelType {get; private set;}
 
-	private string _addr;
-	private RequestSocket _socket;
-
 	private const float _timeout = 3;
 
+	private string _addr;
+	private RequestSocket _socket;
 	private Mdict _handshakeMdict;
+	private DepthMapType _dtype;
+
+	private RenderTexture _rt;
 
 	public ZmqDepthModel(string addr="tcp://localhost:5555") {
 		Debug.Log($"ZmqDepthModel(): addr: {addr}");
@@ -187,43 +189,122 @@ public class ZmqDepthModel : DepthModel {
 
 					success = false;
 				}
+				else {
+					ModelType = _handshakeMdict["model_type"];
+					_dtype = (DepthMapType) Enum.Parse(typeof (DepthMapType), _handshakeMdict["depth_map_type"]);
+					Debug.Log($"Handshake success. ModelType: {ModelType}");
+				}
 			}
 			catch (Exception exc) {
 				Debug.LogError($"Failed to parse: {exc}");
+				success = false;
 			}
 		}
 		else
 			Debug.Log("The server did not respond.");
 
-		if (success) {
-			ModelType = _handshakeMdict["model_type"];
-			Debug.Log($"Handshake success. ModelType: {ModelType}");
-		}
-		else {
+		//Cleanup when it failed
+		if (!success) {
 			Debug.LogWarning("Handshake failure.");
 			Dispose();
 		}
+	}
 
+	private byte[] TexToJpg(Texture tex) {
+		Texture2D tex2d;
+		bool isTex2d = (tex is Texture2D);
+
+		if (isTex2d) {
+			tex2d = (Texture2D) tex;
+		}
+		else {
+			/*RenderTexture -> Texture2D*/
+			int w = tex.width;
+			int h = tex.height;
+
+			//If _rt is not compatible, make a new one
+			if (_rt == null || _rt.width != w || _rt.height != h) {
+				_rt?.Release();
+				_rt = new RenderTexture(w, h, 16);
+			}
+			Graphics.Blit(tex, _rt); //tex -> _rt
+
+			tex2d = new Texture2D(w, h);
+			RenderTexture.active = _rt;
+			tex2d.ReadPixels(new Rect(0, 0, w, h), 0, 0); //_rt -> tex2d
+			RenderTexture.active = null;
+		}
+
+		byte[] bytes = tex2d.EncodeToJPG();
+
+		if (!isTex2d)
+			UnityEngine.Object.Destroy(tex2d);
+
+		return bytes;
+	}
+
+	private byte[] TexToBytes(Texture tex, string format) {
+		switch (format) {
+		case "jpg":
+			return TexToJpg(tex);
+
+		default:
+			Debug.LogError($"TexToBytes(): Got unknown format: {format}");
+			return null;
+		}
 	}
 
 	public Depth Run(Texture inputTexture) {
-		bool success;
-		byte[] output;
-
-		success = Send(
-			@"
+		string inputFormat = "jpg";
+		byte[] headerbytes = Encoding.ASCII.GetBytes(
+			$@"
 			ptype=REQ
 			pname=DEPTH
-			input_format=jpg
-			!HEADEREND
-			asdfasdfajiofds ofiajfn asdfahsi", 
-			out output
+			input_format={inputFormat}
+			!HEADEREND" + "\n"
 		);
+		byte[] imgbytes = TexToBytes(inputTexture, inputFormat);
 
-		if (success) Debug.Log("Received: " + output);
-		else Debug.LogWarning("Failed.");
+		byte[] message = new byte[headerbytes.Length + imgbytes.Length];
+		headerbytes.CopyTo(message, 0);
+		imgbytes.CopyTo(message, headerbytes.Length);
 
-		return new Depth(new float[] {0, 0, 1, 1}, 2, 2);
+		bool success;
+		byte[] output;
+		success = Send(message, out output);
+
+		Mdict mdict;
+		byte[] data;
+
+		if (success) {
+			try {
+				Parse(output, out mdict, out data);
+				
+				string ptype, pname;
+				GetPtypePname(mdict, out ptype, out pname);
+
+				if (!(ptype == "RES" && pname == "DEPTH")) {
+					if (ptype == "RES" && pname == "ERROR")
+						OnResError(mdict, data);
+					else
+						OnUnknownPtypePname(mdict);
+				}
+				else {
+					Depth depth = DepthFileUtils.ReadPgmOrPfm(data, _dtype);
+					return depth; //Exit normally
+				}
+			}
+			catch (Exception exc) {
+				Debug.LogError($"Failed to parse: {exc}");
+			}
+		}
+		else {
+			Debug.LogWarning("The server did not respond.");
+		}
+
+		//Cleanup
+		Debug.Log("ZmqDepthModel(): failed.");
+		return null;
 	}
 
 	public void Dispose() {

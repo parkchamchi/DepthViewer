@@ -1,8 +1,9 @@
+from depth import write_pfm
+
 import flask
 import torch
 from PIL import Image
 import numpy as np
-
 import cv2
 
 import argparse
@@ -17,25 +18,6 @@ model = None
 max_height = 384
 
 app = flask.Flask(__name__)
-
-def write_pfm(image, scale=1) -> bytes:
-    #Modified from https://github.com/isl-org/MiDaS/blob/master/utils.py
-
-	assert len(image.shape) == 2
-	image = np.flipud(image)
-
-	pfm = b""
-	pfm += "Pf\n".encode("ascii")
-	pfm += "%d %d\n".encode("ascii") % (image.shape[1], image.shape[0])
-
-	endian = image.dtype.byteorder
-	if endian == "<" or endian == "=" and sys.byteorder == "little":
-		scale = -scale
-	pfm += "%f\n".encode("ascii") % scale
-
-	pfm += image.tobytes()
-
-	return pfm
 
 @app.route("/zoeserver/pfm", methods=["POST"])
 def pfm():

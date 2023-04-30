@@ -576,23 +576,23 @@ public static class DepthFileUtils {
 		_archiveMode = origMode;
 	}
 
-	public static Depth ReadPgmOrPfm(byte[] data) {
+	public static Depth ReadPgmOrPfm(byte[] data, DepthMapType dtype=DepthMapType.Inverse) {
 		if (data == null || data.Length < 2) {
 			Debug.LogError("ReadPgmOfPfm(): invalid data");
 			return null;
 		}
 
 		if (data[0] == 'P' && data[1] == '5')
-			return ReadPgm(data);
+			return ReadPgm(data, dtype);
 		else if (data[0] == 'P' && data[1] == 'f')
-			return ReadPfm(data);
+			return ReadPfm(data, dtype);
 		else {
 			Debug.LogError("ReadPgmOfPfm(): Invalid header");
 			return null;
 		}
 	}
 
-	public static Depth ReadPgm(byte[] pgm) {
+	public static Depth ReadPgm(byte[] pgm, DepthMapType dtype=DepthMapType.Inverse) {
 		int idx = 0;
 		int width = 0, height = 0, maxval = 0;
 		
@@ -643,10 +643,10 @@ public static class DepthFileUtils {
 		for (int j = 0; j < depths.Length; j++)
 			depths[j] = (float) pgm[idx++] / maxval;
 
-		return new Depth(depths, width, height);
+		return new Depth(depths, width, height, dtype);
 	}
 
-	public static Depth ReadPfm(byte[] pfm) {
+	public static Depth ReadPfm(byte[] pfm, DepthMapType dtype=DepthMapType.Inverse) {
 		int idx = 0;
 		int width = 0, height = 0;
 
@@ -706,7 +706,7 @@ public static class DepthFileUtils {
 				depths[h*width + w] = BitConverter.ToSingle(new ReadOnlySpan<byte>(pfm, idx + offset, 4));
 			}
 		
-		return new Depth(depths, width, height);
+		return new Depth(depths, width, height, dtype);
 	}
 
 	public static bool IsSpace(char c) {
