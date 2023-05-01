@@ -41,7 +41,7 @@ class ModelParams():
 		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}}}" #pseudo-dictionary
 
 class Runner():
-	def framework_init(self):
+	def framework_init(self, **kwargs):
 		#To be called in __init__
 		raise NotImplementedError()
 

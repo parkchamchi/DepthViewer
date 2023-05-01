@@ -206,9 +206,12 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	print("depthmq: Init.")
-	runner = depth.PyTorchRunner()
 	model_type = args.model_type
+	runner = depth.PyTorchRunner()
 	runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
+	#from ortrunner import OrtRunner
+	#runner = OrtRunner()
+	#runner.load_model(model_type=model_type)
 
 	print("depthmq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)
