@@ -41,18 +41,21 @@ class ModelParams():
 		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}}}" #pseudo-dictionary
 
 class Runner():
+	def framework_init(self):
+		#To be called in __init__
+		raise NotImplementedError()
+
+	def load_model(self, model_type, **kwargs):
+		#This should set self.model_type (and optionally self.model_params)
+		raise NotImplementedError()
+
+	def run_frame(self, img):
+		raise NotImplementedError()
 	
 	def __init__(self):
-
-		# set torch options
-		torch.backends.cudnn.enabled = True
-		torch.backends.cudnn.benchmark = True
-
 		print("Initialize")
 
-		# select device
-		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-		print("device: %s" % self.device)
+		self.framework_init()
 
 		self.framecount = 1 #for video
 		self.framerate = 0
@@ -67,53 +70,6 @@ class Runner():
 
 		os.chdir(orig_cwd)
 		return res
-
-	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None):
-		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
-
-		#check if the model exists
-		if not self.model_exists(model_type):
-			raise ValueError(f"Model not found: {model_type}")
-
-		#check if it's the already loaded
-		if self.model_type == model_type and self.model_params == new_model_params:
-			return
-
-		print(f"Loading model {model_type}...")
-		print(new_model_params)
-
-		orig_cwd = os.getcwd()
-		os.chdir(os.path.dirname(os.path.abspath(__file__)))
-		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, default_models[model_type], model_type, optimize, height, square)
-		os.chdir(orig_cwd)
-
-		print("Loaded the model.")
-
-		self.model_type = model_type
-		self.model_params = new_model_params
-
-	def run_frame(self, img):
-
-		# input
-		img_input = self.transform({"image": img})["image"]
-
-		# compute
-		with torch.no_grad():
-			if "openvino" in self.model_type:
-				#not tested
-				sample = [np.reshape(img_input, (1, 3, self.net_w, self.net_h))]
-				prediction = self.model(sample)[self.model.output(0)][0]
-			else:
-				sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
-				if self.model_params.optimize == True and self.device == torch.device("cuda"):
-					sample = sample.to(memory_format=torch.channels_last)  
-					sample = sample.half()
-				prediction = self.model.forward(sample)
-				prediction = prediction.squeeze().cpu().numpy()
-
-		# output
-		out = self.normalize(prediction)
-		return out
 
 	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
@@ -373,6 +329,62 @@ class Runner():
 		pfm += image.tobytes()
 
 		return pfm
+	
+class PyTorchRunner(Runner):
+	def framework_init(self):
+		# set torch options
+		torch.backends.cudnn.enabled = True
+		torch.backends.cudnn.benchmark = True
+
+		# select device
+		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+		print("device: %s" % self.device)
+
+	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None):
+		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
+
+		#check if the model exists
+		if not self.model_exists(model_type):
+			raise ValueError(f"Model not found: {model_type}")
+
+		#check if it's the already loaded
+		if self.model_type == model_type and self.model_params == new_model_params:
+			return
+
+		print(f"Loading model {model_type}...")
+		print(new_model_params)
+
+		orig_cwd = os.getcwd()
+		os.chdir(os.path.dirname(os.path.abspath(__file__)))
+		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, default_models[model_type], model_type, optimize, height, square)
+		os.chdir(orig_cwd)
+
+		print("Loaded the model.")
+
+		self.model_type = model_type
+		self.model_params = new_model_params
+
+	def run_frame(self, img):
+		# input
+		img_input = self.transform({"image": img})["image"]
+
+		# compute
+		with torch.no_grad():
+			if "openvino" in self.model_type:
+				#not tested
+				sample = [np.reshape(img_input, (1, 3, self.net_w, self.net_h))]
+				prediction = self.model(sample)[self.model.output(0)][0]
+			else:
+				sample = torch.from_numpy(img_input).to(self.device).unsqueeze(0)
+				if self.model_params.optimize == True and self.device == torch.device("cuda"):
+					sample = sample.to(memory_format=torch.channels_last)  
+					sample = sample.half()
+				prediction = self.model.forward(sample)
+				prediction = prediction.squeeze().cpu().numpy()
+
+		# output
+		out = self.normalize(prediction)
+		return out
 
 #######################
 
@@ -441,7 +453,7 @@ if __name__ == "__main__":
 			print(f"Image: already exists: {args.output}. Use --noupdate to replace it.")
 			exit(0)
 
-		runner = Runner()
+		runner = PyTorchRunner()
 		runner.load_model(model_type=args.model_type, optimize=args.optimize, height=args.height, square=args.square)
 
 		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)

@@ -5,7 +5,7 @@ import flask
 import argparse
 
 print("Loading the depth.py Runner")
-runner = depth.Runner()
+runner = depth.PyTorchRunner()
 print("Loaded.")
 
 loaded_model = ""

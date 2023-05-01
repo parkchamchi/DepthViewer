@@ -206,7 +206,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	print("depthmq: Init.")
-	runner = depth.Runner()
+	runner = depth.PyTorchRunner()
 	model_type = args.model_type
 	runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
 

@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 
 sys.path.append("..")
-from depth import default_models, Runner
+from depth import default_models, PyTorchRunner
 
 """
 Compare the models available in ../weights/
@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input", help="The input image.")
 args = parser.parse_args()
 
-runner = Runner()
+runner = PyTorchRunner()
 
 print("Reading the input image.")
 img = runner.read_image(args.input)[0]
