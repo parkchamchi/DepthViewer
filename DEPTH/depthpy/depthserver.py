@@ -46,7 +46,8 @@ def pgm(model_type):
 	data = flask.request.data
 	image = runner.read_image_bytes(data)
 
-	out, _, _ = runner.run_frame(image)
+	out = runner.run_frame(image)
+	out = runner.get_pgm(out)
 
 	return out
 

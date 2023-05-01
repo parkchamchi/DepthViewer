@@ -46,7 +46,7 @@ for model_type in available_models:
 	print("Loaded the model.")
 
 	print("Running.")
-	out = runner.run_frame(img, no_pgm=True)
+	out = runner.run_frame(img)
 
 	#plot
 	plt.subplot(grid_size, grid_size, available_models.index(model_type)+1)

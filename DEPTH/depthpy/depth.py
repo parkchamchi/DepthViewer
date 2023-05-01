@@ -92,12 +92,7 @@ class Runner():
 		self.model_type = model_type
 		self.model_params = new_model_params
 
-	def run_frame(self, img, no_pgm=False, as_uint8=True):
-		"""
-		`no_pgm` and `as_uint8` are legacy things.
-		"""
-
-		assert not (not no_pgm and not as_uint8)
+	def run_frame(self, img):
 
 		# input
 		img_input = self.transform({"image": img})["image"]
@@ -117,12 +112,8 @@ class Runner():
 				prediction = prediction.squeeze().cpu().numpy()
 
 		# output
-		out = self.normalize(prediction, as_uint8)
-		if no_pgm:
-			return out
-
-		height, width = out.shape[:2]
-		return self.get_pgm(out), width, height #width and height can be ignored
+		out = self.normalize(prediction)
+		return out
 
 	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
@@ -176,7 +167,9 @@ class Runner():
 				i += 1
 				continue
 			
-			pgm, width, height = self.run_frame(img)
+			out_ndarray = self.run_frame(img)
+			height, width = out_ndarray.shape[:2]
+			pgm = self.get_pgm(out_ndarray)
 			zout.writestr(pgmname, pgm)
 
 			#save width, height & the original size
@@ -234,29 +227,33 @@ class Runner():
 		
 			mem_buffer.close()
 
-	def normalize(self, image, as_uint8=True):
-		maxval = 255
-		dtype = np.uint8 if as_uint8 else np.float32
-
-		image = image.astype(np.float32)
+	def normalize(self, image):
+		#dtype = np.float32
+		#image = image.astype(dtype)
+		dtype = image.dtype
 
 		depth_min = image.min()
 		depth_max = image.max()
 
 		if depth_max - depth_min > np.finfo("float").eps:
-			normalized = (image - depth_min) / (depth_max - depth_min)
-			if as_uint8:
-				normalized *= maxval
-				normalized = normalized.astype(dtype)
+			normalized = (image - depth_min) / (depth_max - depth_min)				
 		else:
 			normalized = np.zeros(image.shape, dtype=dtype)
 
 		return normalized
+	
+	def as_uint8(self, image):
+		maxval = 255
+		image *= maxval
+		image = image.astype(np.uint8)
+
+		return image
 
 	def get_pgm(self, image) -> bytes:
 		# 1byte per pixel
 
-		if image.dtype != np.uint8:
+		image = self.as_uint8(image)
+		if image.dtype != np.uint8: #This line is not needed now
 			raise ValueError("Expecting np.uint8, received {}".format(image.dtype))
 
 		height, width = image.shape[:2]
@@ -291,7 +288,6 @@ class Runner():
 		File should not be just .imread()'ed since it does not support unicode
 		"""
 
-	
 		img = cv2.imread(path)
 		if img is None:
 			print("Error: could not open. This may occur when the path is non-ascii. Trying the other method...")
@@ -357,26 +353,26 @@ class Runner():
 		img = self.as_input(img)
 		return img
 	
-def write_pfm(image, scale=1) -> bytes:
-	#Modified from https://github.com/isl-org/MiDaS/blob/master/utils.py
-	#This was originally from zoeserver.py
+	def get_pfm(self, image, scale=1) -> bytes:
+		#Modified from https://github.com/isl-org/MiDaS/blob/master/utils.py
+		#This was originally from zoeserver.py
 
-	assert len(image.shape) == 2
-	image = np.flipud(image)
+		assert len(image.shape) == 2
+		image = np.flipud(image)
 
-	pfm = b""
-	pfm += "Pf\n".encode("ascii")
-	pfm += "%d %d\n".encode("ascii") % (image.shape[1], image.shape[0])
+		pfm = b""
+		pfm += "Pf\n".encode("ascii")
+		pfm += "%d %d\n".encode("ascii") % (image.shape[1], image.shape[0])
 
-	endian = image.dtype.byteorder
-	#print(image.dtype, image.dtype.byteorder, sys.byteorder)
-	if endian == "<" or endian == "=" and sys.byteorder == "little":
-		scale = -scale
-	pfm += "%f\n".encode("ascii") % scale
+		endian = image.dtype.byteorder
+		#print(image.dtype, image.dtype.byteorder, sys.byteorder)
+		if endian == "<" or endian == "=" and sys.byteorder == "little":
+			scale = -scale
+		pfm += "%f\n".encode("ascii") % scale
 
-	pfm += image.tobytes()
+		pfm += image.tobytes()
 
-	return pfm
+		return pfm
 
 #######################
 

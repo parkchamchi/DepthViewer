@@ -1,5 +1,3 @@
-from depth import write_pfm
-
 import flask
 import torch
 from PIL import Image
@@ -12,12 +10,33 @@ import sys
 
 """
 Uses https://github.com/isl-org/ZoeDepth for metric depth estimation
+TODO: use the same interface w/ depth.py
 """
 
 model = None
 max_height = 384
 
 app = flask.Flask(__name__)
+
+def get_pfm(image, scale=1) -> bytes:
+	#Modified from https://github.com/isl-org/MiDaS/blob/master/utils.py
+
+	assert len(image.shape) == 2
+	image = np.flipud(image)
+
+	pfm = b""
+	pfm += "Pf\n".encode("ascii")
+	pfm += "%d %d\n".encode("ascii") % (image.shape[1], image.shape[0])
+
+	endian = image.dtype.byteorder
+	#print(image.dtype, image.dtype.byteorder, sys.byteorder)
+	if endian == "<" or endian == "=" and sys.byteorder == "little":
+		scale = -scale
+	pfm += "%f\n".encode("ascii") % scale
+
+	pfm += image.tobytes()
+
+	return pfm
 
 @app.route("/zoeserver/pfm", methods=["POST"])
 def pfm():
@@ -40,7 +59,7 @@ def pfm():
 		newshape = (int((w/h) * max_height), max_height)
 		depth = cv2.resize(depth, newshape, interpolation=cv2.INTER_AREA)
 
-	return write_pfm(depth)
+	return get_pfm(depth)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()

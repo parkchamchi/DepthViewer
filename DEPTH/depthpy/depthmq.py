@@ -157,8 +157,8 @@ def on_req_depth(mdict, data):
 	if input_format in ["jpg", "ppm"]:
 		img = runner.read_image_bytes(data)
 		
-		res = runner.run_frame(img, no_pgm=True, as_uint8=False) #ndarray
-		res = depth.write_pfm(res)
+		res = runner.run_frame(img) #ndarray
+		res = runner.get_pfm(res)
 
 	else:
 		error_msg = f"Error: unknown input_format: {input_format}"
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
 	print("depthmq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)
-	runner.run_frame(dummy, no_pgm=True)
+	runner.run_frame(dummy)
 	print("depthmq: Done.")
 
 	port = args.port if args.port is not None else default_port
