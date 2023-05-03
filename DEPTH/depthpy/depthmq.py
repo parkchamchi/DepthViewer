@@ -1,5 +1,5 @@
 import depth
-from midas.model_loader import default_models, load_model
+from midas.model_loader import default_models
 
 import zmq
 import numpy as np
@@ -7,7 +7,7 @@ import numpy as np
 import argparse
 
 """
-Header is an ASCII string of key=value pairs. It ends with `!HEADERENDS\n`.
+Header is an ASCII string of key=value pairs. It ends with `!HEADEREND\n`.
 The rest is the data bytestring.
 
 ***************************
