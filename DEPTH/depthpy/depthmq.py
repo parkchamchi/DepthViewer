@@ -203,15 +203,28 @@ if __name__ == "__main__":
 		'images is tried to be preserved if supported by the model.'
 	)
 
+	parser.add_argument("--ort",
+		action="store_true",
+		help="Use OnnxRuntime instead of PyTorch. May be unstable. Options like `--optimize`, `--optimize`, `--square` will be ignored if this is set.",
+	)
+	parser.add_argument("--ort_ep",
+		default="cpu",
+		help="Execution provider to use with ORT.",
+		choices=["cpu", "cuda", "dml"],
+	)
+
 	args = parser.parse_args()
 
 	print("depthmq: Init.")
 	model_type = args.model_type
-	runner = depth.PyTorchRunner()
-	runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
-	#from ortrunner import OrtRunner
-	#runner = OrtRunner()
-	#runner.load_model(model_type=model_type)
+
+	if not args.ort:
+		runner = depth.PyTorchRunner()
+		runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
+	else:
+		from ortrunner import OrtRunner
+		runner = OrtRunner()
+		runner.load_model(model_type=model_type, provider=args.ort_ep)
 
 	print("depthmq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)

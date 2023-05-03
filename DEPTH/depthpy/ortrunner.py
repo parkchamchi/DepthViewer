@@ -13,7 +13,8 @@ class OrtRunner(Runner):
 	def framework_init(self):
 		pass
 		
-	def load_model(self, model_type, provider="cuda"):
+	def load_model(self, model_type, provider="cuda", **kwargs):
+		print(f"OrtRunner: using provider {provider}")
 		if provider == "cpu":
 			providers = ["CPUExecutionProvider"]
 		elif provider == "cuda":
