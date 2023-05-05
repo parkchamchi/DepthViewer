@@ -759,9 +759,21 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	}
 
 	public void SavePrefab() {
+		Texture tex = _material.mainTexture;
+		if (tex is RenderTexture) {
+			Debug.LogWarning("SavePrefab(): texture is RenderTexture. Not saving. (Will implement this on request)");
+			//Or, convert it to Texture2D
+
+			return;
+		}
+
 		string path = "Assets/Generated/";
-		//UnityEditor.AssetDatabase.CreateAsset(_mesh, path + "mesh.asset");
-		//UnityEditor.AssetDatabase.CreateAsset(_material, path + "material.asset");
+		string timestamp = Utils.GetTimestamp();
+		UnityEditor.AssetDatabase.CreateAsset(_mesh, path + timestamp + ".mesh.asset");
+		//UnityEditor.AssetDatabase.CreateAsset(_material, path + timestamp + ".material.asset");
+		UnityEditor.AssetDatabase.CreateAsset(_material.mainTexture, path + timestamp + ".tex.asset");
+
+		/* //This does not work (does not save the mesh and the material)
 		path += "depthplane.prefab";
 		path = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(path); //Appends if the path already exists
 		
@@ -772,5 +784,10 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 			Debug.Log($"SavePrefab(): Saved the prefab: {path}");
 		else
 			Debug.LogError("SavePrefab(): Failed to save the prefab.");
+		*/
+
+		Debug.Log("OK, Exiting.");
+		Application.Quit();
+		UnityEditor.EditorApplication.isPlaying = false;
 	}
 }
