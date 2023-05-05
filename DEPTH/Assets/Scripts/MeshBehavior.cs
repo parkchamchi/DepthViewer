@@ -758,7 +758,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		return;
 	}
 
-	public void SavePrefab() {
+	public void SaveAsAsset() {
 		Texture tex = _material.mainTexture;
 		if (tex is RenderTexture) {
 			Debug.LogWarning("SavePrefab(): texture is RenderTexture. Not saving. (Will implement this on request)");

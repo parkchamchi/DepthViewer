@@ -156,6 +156,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
+		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -792,12 +793,14 @@ public void SetBrowseDirName(string dirname) {
 		Debug.Log($"DoF: {dof}");
 	}
 
+	public void SaveMeshAsAsset() =>
+		_meshBehav.SaveAsAsset();
+
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
 		Debug.Log("DebugTmp() called.");
 
-		//Debug.Log("Nothing here...");
-		_meshBehav.SavePrefab();
+		Debug.Log("Nothing here...");
 
 		Debug.Log("DebugTmp() exiting.");
 	}
