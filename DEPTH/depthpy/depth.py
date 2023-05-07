@@ -13,6 +13,7 @@ import time
 import hashlib
 import traceback
 import sys
+from typing import Union
 
 import numpy as np
 import cv2
@@ -62,14 +63,23 @@ class Runner():
 
 		self.model_params = self.model_type = None
 
-	def model_exists(self, model_type):
+	def model_exists(self, model_type) -> Union[str, None]:
 		orig_cwd = os.getcwd()
 		os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-		res = model_type in default_models
+		if model_type in default_models:
+			model_path = default_models[model_type]
+		else:
+			print(f"`{model_type}` does not exist in `default_models`...", end=" ")
+			ext = ".pt" if "openvino_" not in model_type else ".xml"
+			model_path = f"weights/{model_type}{ext}"
+			print(f"Assuming {model_path}")
 
+		if not os.path.exists(model_path):
+			model_path = None
+			
 		os.chdir(orig_cwd)
-		return res
+		return model_path
 
 	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
 		"""Run MonoDepthNN to compute depth maps.
@@ -344,7 +354,8 @@ class PyTorchRunner(Runner):
 		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
 
 		#check if the model exists
-		if not self.model_exists(model_type):
+		model_path = self.model_exists(model_type)
+		if not model_path:
 			raise ValueError(f"Model not found: {model_type}")
 
 		#check if it's the already loaded
@@ -356,7 +367,7 @@ class PyTorchRunner(Runner):
 
 		orig_cwd = os.getcwd()
 		os.chdir(os.path.dirname(os.path.abspath(__file__)))
-		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, default_models[model_type], model_type, optimize, height, square)
+		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, model_path, model_type, optimize, height, square)
 		os.chdir(orig_cwd)
 
 		print("Loaded the model.")

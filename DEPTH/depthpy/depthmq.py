@@ -1,5 +1,4 @@
 import depth
-from midas.model_loader import default_models
 
 import zmq
 import numpy as np
@@ -182,7 +181,6 @@ if __name__ == "__main__":
 	parser.add_argument('-t', '--model_type',
 		default="dpt_hybrid_384",
 		help="model type",
-		choices=default_models.keys()
 	)
 
 	parser.add_argument("--optimize",

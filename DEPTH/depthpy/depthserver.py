@@ -1,3 +1,7 @@
+"""
+Deprecated. Use depthmq.py instead.
+"""
+
 import depth
 
 import flask

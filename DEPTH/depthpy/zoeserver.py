@@ -1,3 +1,7 @@
+"""
+Deprecated. Use depthmq.py instead.
+"""
+
 import flask
 import torch
 from PIL import Image

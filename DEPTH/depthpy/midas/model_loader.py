@@ -193,6 +193,32 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
         normalization = NormalizeImage(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
         )
+        
+    ####################################################################
+    # Custom OpenVINO models
+    # The code can be generalized more (later if needed)
+    # https://github.com/parkchamchi/DepthViewer/issues/1#issuecomment-1537300649
+    ####################################################################
+    
+    elif "openvino_" in model_type and "midas_v21" not in model_type: #exclude the v2.1 models
+        print(f"Preparing the OpenVINO model {model_type}...")
+
+        net_w = model_type.split('_')[-1]
+        net_w = int(net_w)
+        net_h = net_w
+        print(f"Assuming {net_w}x{net_h}...")
+
+        resize_mode = "minimal"
+        normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+
+        print(f"Compiling {model_path}...")
+        ie = Core()
+        uncompiled_model = ie.read_model(model=model_path)
+        model = ie.compile_model(uncompiled_model, "GPU")
+
+    ####################################################################
+    # END Custom OpenVINO models
+    ####################################################################
 
     else:
         print(f"model_type '{model_type}' not implemented, use: --model_type large")
