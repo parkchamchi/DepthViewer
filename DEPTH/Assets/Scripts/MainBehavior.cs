@@ -224,16 +224,27 @@ public class MainBehavior : MonoBehaviour {
 		if (Input.GetKeyDown(Keymapper.Inst.ToggleShuffle))
 			DirRandom = !DirRandom;
 
-		/* Send the key to _texInputs */
-		if (_texInputs != null) {
+		string statusText = null;
+		/* Check if the model got disposed */
+		if (_donnx == null)
+			statusText = "Model is not set!";
+		else if (_donnx.IsDisposed) {
+			Cleanup();
+			statusText = "Model got disposed!";
+		}
+		else if (_texInputs != null) {
 			_texInputs.UpdateTex();
 
+			/* Send the key to _texInputs (Not used anymore) */
 			foreach (var key in _sendMsgKeyCodes)
 				if (Input.GetKeyDown(key))
 					SendMsgToTexInputs(key.ToString());
 		}
 		else
-			UITextSet.StatusText.text = "Input is not set. (See console `)";
+			statusText = "Input is not set. (See console `)";
+
+		if (statusText != null)
+			UITextSet.StatusText.text = statusText;
 	}
 
 	private void Cleanup() {
@@ -375,7 +386,7 @@ public class MainBehavior : MonoBehaviour {
 			Debug.LogError("OnlineTexStart() called when !otex.Supported");
 			return;
 		}
-		if (_serverBehav.IsWaiting) {
+		if (_serverBehav.IsWaiting) { //TODO: REMOVE ALL REFERENCES FOR ServerBehavior (DEPRECATED) AND ALL LINES INVOLVING "Waiting for the server", HERE AND ALSO IN `Img...Behav`.
 			UITextSet.StatusText.text = "Waiting for the server.";
 			return;
 		}
@@ -391,7 +402,7 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 		_donnx?.Dispose();
 
-		UITextSet.StatusText.text = "RELOAD";
+		UITextSet.StatusText.text = "RELOAD"; //Not effective anymore (TODO: delete this line)
 
 		_donnx = _depthModelBehav.GetBuiltIn();
 
@@ -403,7 +414,7 @@ public class MainBehavior : MonoBehaviour {
 		Cleanup();
 		_donnx?.Dispose();
 
-		UITextSet.StatusText.text = "RELOAD";
+		UITextSet.StatusText.text = "RELOAD"; //Not effective anymore (TODO: delete this line)
 
 		Debug.Log($"Loading model: {onnxpath}");
 
@@ -434,11 +445,7 @@ public class MainBehavior : MonoBehaviour {
 
 		UITextSet.StatusText.text = "RELOAD";
 
-		_donnx = _depthModelBehav.GetZmqDepthModel(port, () => {
-			Cleanup();
-			_donnx = null;
-			UITextSet.StatusText.text = "ZMQ DISPOSED";
-		});
+		_donnx = _depthModelBehav.GetZmqDepthModel(port);
 	}	
 
 	public void HideUI() {

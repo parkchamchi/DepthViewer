@@ -23,7 +23,7 @@ as reference.
 
 using Mdict = System.Collections.Generic.Dictionary<string, string>;
 
-public class ZmqDepthModel : SelfDisposingDepthModel {
+public class ZmqDepthModel : DepthModel {
 	public string ModelType {get; private set;}
 	public bool IsDisposed {get; private set;} = false;
 
@@ -268,7 +268,7 @@ public class ZmqDepthModel : SelfDisposingDepthModel {
 
 	public Depth Run(Texture inputTexture) {
 		if (IsDisposed) {
-			Debug.LogError("ZmqDepthModel: This was already disposed. (This should not be seen)");
+			Debug.LogError("ZmqDepthModel: This was already disposed.");
 			return null;
 		}
 
@@ -321,7 +321,7 @@ public class ZmqDepthModel : SelfDisposingDepthModel {
 		}
 
 		//Cleanup
-		Debug.Log("ZmqDepthModel(): failed.");
+		Debug.LogWarning("ZmqDepthModel(): failed.");
 		_consecutiveFails++;
 		if (_consecutiveFails > _failTolerance) {
 			Debug.Log($"ZmqDepthModel: Disposing after {_consecutiveFails} failures.");

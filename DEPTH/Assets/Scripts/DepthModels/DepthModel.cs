@@ -84,15 +84,16 @@ public interface BaseDepthModel : IDisposable {
 }
 
 public interface DepthModel : BaseDepthModel {
+	bool IsDisposed {get => false;} //For self-disposing ones - i.e. those who call Dispose() by itself.
+
 	Depth Run(Texture inputTexture);
 
 	void PrintMetadata() {Debug.LogError("PrintMetadata(): Not implemented.");}
 }
 
-public interface SelfDisposingDepthModel : DepthModel {
-	bool IsDisposed {get;}
-}
-
+//////////////////////
+// DEPRECATED
+//////////////////////
 public interface AsyncDepthModel {
 	bool IsAvailable {get;}
 	bool IsWaiting {get;}

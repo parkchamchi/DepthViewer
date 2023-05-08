@@ -592,7 +592,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public void SetScene(Depth depth, Texture texture=null, float ratio=0) {
 		if (depth == null) {
-			Debug.LogError("SetScene(): depth == null");
+			Debug.LogWarning("SetScene(): depth == null");
 			return;
 		}
 		
