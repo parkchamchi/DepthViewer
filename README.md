@@ -156,6 +156,14 @@ They are in the nuget package files (.nupkg), get them from <br>
     number  = "3"
 }
 ```
+```
+@article{Ranftl2021,
+	author    = {Ren\'{e} Ranftl and Alexey Bochkovskiy and Vladlen Koltun},
+	title     = {Vision Transformers for Dense Prediction},
+	journal   = {ICCV},
+	year      = {2021},
+}
+```
 
 - [monocular-depth-unity](https://github.com/GeorgeAdamon/monocular-depth-unity) (MIT License)
 - [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) (MIT License)
@@ -170,6 +178,27 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [NetMQ](https://github.com/zeromq/netmq) (LGPL)
 - [AsyncIO](https://github.com/somdoron/AsyncIO) (MPL 2.0)
 - [NaCl.net](https://github.com/somdoron/NaCl.net) (MPL 2.0)
+
+- [ZoeDepth](https://github.com/isl-org/ZoeDepth) (MIT License) *For Python scripts only*
+```
+@misc{https://doi.org/10.48550/arxiv.2302.12288,
+  doi = {10.48550/ARXIV.2302.12288},
+  
+  url = {https://arxiv.org/abs/2302.12288},
+  
+  author = {Bhat, Shariq Farooq and Birkl, Reiner and Wofk, Diana and Wonka, Peter and Müller, Matthias},
+  
+  keywords = {Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {ZoeDepth: Zero-shot Transfer by Combining Relative and Metric Depth},
+  
+  publisher = {arXiv},
+  
+  year = {2023},
+  
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+```
 
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)
