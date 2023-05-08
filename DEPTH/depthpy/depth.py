@@ -47,10 +47,10 @@ class Runner():
 		raise NotImplementedError()
 
 	def load_model(self, model_type, **kwargs):
-		#This should set self.model_type (and optionally self.model_params)
+		#This should set self.model_type (and optionally self.model_params and self.depth_map_type (defaults to "Inverse"))
 		raise NotImplementedError()
 
-	def run_frame(self, img):
+	def run_frame(self, img) -> np.ndarray:
 		raise NotImplementedError()
 	
 	def __init__(self):
@@ -62,6 +62,7 @@ class Runner():
 		self.framerate = 0
 
 		self.model_params = self.model_type = None
+		self.depth_map_type = "Inverse" #Or "Linear" or "Metric". Set in the subclasses.
 
 	def model_exists(self, model_type) -> Union[str, None]:
 		orig_cwd = os.getcwd()

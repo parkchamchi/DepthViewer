@@ -88,7 +88,7 @@ May be unstable.
 2. In the DepthViewer program, open the console and type `zmq 5555`.
 
 Use `python depthmq.py -h` for more options such as port (default: `5555`), model (default: `dpt_hybrid_384`)
-To use OnnxRuntime instead of PyTorch, add `--ort` and `--ort_ep cuda` or `--ort_ep dml`. For this `onnxruntime-gpu` or `onnxruntime-directml` is needed, respectively.
+To use OnnxRuntime instead of PyTorch, add `--runner ort` and `--ort_ep cuda` or `--ort_ep dml`. For this `onnxruntime-gpu` or `onnxruntime-directml` is needed, respectively.
 
 ## Tested formats:
 ### Images

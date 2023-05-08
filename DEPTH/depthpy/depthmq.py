@@ -144,7 +144,7 @@ def on_req_handshake_depth(mdict, data=None):
 		"model_type": model_type,
 		"accepted_input_formats": accepted_input_formats,
 		"output_format": output_format,
-		"depth_map_type": "Inverse",
+		"depth_map_type": runner.depth_map_type,
 
 		"server_program": "depthmq",
 		"server_program_version": depth.VERSION,
@@ -201,9 +201,11 @@ if __name__ == "__main__":
 		'images is tried to be preserved if supported by the model.'
 	)
 
-	parser.add_argument("--ort",
-		action="store_true",
-		help="Use OnnxRuntime instead of PyTorch. May be unstable. Options like `--optimize`, `--optimize`, `--square` will be ignored if this is set.",
+	parser.add_argument("-r", "--runner",
+		default="pt",
+		help="`pt`: PyTorch (default)\n"
+			"`ort`: Use OnnxRuntime. Options like `--optimize`, `--height`, `--square` will be ignored.\n"
+			"`zoe`: Use ZoeDepth (w/ PyTorch)"
 	)
 	parser.add_argument("--ort_ep",
 		default="cpu",
@@ -216,13 +218,19 @@ if __name__ == "__main__":
 	print("depthmq: Init.")
 	model_type = args.model_type
 
-	if not args.ort:
+	if args.runner == "pt":
 		runner = depth.PyTorchRunner()
 		runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
-	else:
+	elif args.runner == "ort":
 		from ortrunner import OrtRunner
 		runner = OrtRunner()
 		runner.load_model(model_type=model_type, provider=args.ort_ep)
+	elif args.runner == "zoe":
+		from zoerunner import ZoeRunner
+		runner = ZoeRunner()
+		runner.load_model(model_type=model_type, height=args.height)
+	else:
+		raise ValueError(f"Unknwon runner {args.runner}")
 
 	print("depthmq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)
