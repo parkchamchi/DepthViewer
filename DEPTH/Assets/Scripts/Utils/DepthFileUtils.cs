@@ -68,7 +68,7 @@ public static class DepthFileUtils {
 		_archive = ZipFile.Open(_archive_path, _archiveMode);
 	}
 
-	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, string model_type) {
+	public static void CreateDepthFile(long framecount, long startframe, string hashval, string orig_basename, int orig_width, int orig_height, float orig_fps, int x, int y, string model_type, DepthMapType depth_map_type) {
 		/*
 		Args:
 			hashval: hash value (see Utils)
@@ -97,6 +97,7 @@ public static class DepthFileUtils {
 			height: y.ToString(),
 			model_type: model_type,
 			model_type_val: "0",
+			depth_map_type: depth_map_type.ToString(),
 			original_name: orig_basename,
 			original_width: orig_width.ToString(),
 			original_height: orig_height.ToString(),
@@ -193,7 +194,7 @@ public static class DepthFileUtils {
 		return null;
 	}
 
-	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val,
+	public static string WriteMetadata(string hashval, string framecount, string startframe, string width, string height, string model_type, string model_type_val, string depth_map_type,
 		string original_name, string original_width, string original_height, string original_framerate, string timestamp, string program, string version) {
 		/*
 		A line per a field, delimited by the initial '='
@@ -207,6 +208,7 @@ public static class DepthFileUtils {
 			+ $"height={height}\n"
 			+ $"model_type={model_type}\n"
 			+ $"model_type_val={model_type_val}\n"
+			+ $"depth_map_type={depth_map_type}\n"
 			+ $"original_name={original_name}\n"
 			+ $"original_width={original_width}\n"
 			+ $"original_height={original_height}\n"
