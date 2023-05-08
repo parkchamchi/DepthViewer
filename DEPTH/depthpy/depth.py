@@ -166,8 +166,9 @@ class Runner():
 
 				model_type = self.model_type
 				model_params = self.model_params
+				depth_map_type = self.depth_map_type
 
-				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_params=model_params, 
+				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_params=model_params, depth_map_type=depth_map_type, 
 					original_name=original_name, original_width=original_width, original_height=original_height, original_framerate=original_framerate, timestamp=timestamp, program=program, version=version)
 				zout.writestr("METADATA.txt", metadata, compresslevel=0)
 
@@ -227,7 +228,7 @@ class Runner():
 
 		return b"P5\n" + "{} {} {}\n".format(width, height, 255).encode("ascii") + image.tobytes()
 
-	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_params, original_name, original_width, original_height, original_framerate, timestamp, program, version) -> str:
+	def get_metadata(self, hashval, framecount, startframe, width, height, model_type, model_params, depth_map_type, original_name, original_width, original_height, original_framerate, timestamp, program, version) -> str:
 
 		metadata = '\n'.join([
 			f"DEPTHVIEWER",
@@ -239,6 +240,7 @@ class Runner():
 			f"model_type={model_type}",
 			f"model_type_val=0", #model_type_val is not used anymore
 			f"model_params={model_params}",
+			f"depth_map_type={depth_map_type}",
 			f"original_name={original_name}",
 			f"original_width={original_width}",
 			f"original_height={original_height}",
