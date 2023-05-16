@@ -1,6 +1,6 @@
 import depth
+import mqpy
 
-import zmq
 import numpy as np
 
 import argparse
@@ -13,7 +13,7 @@ The rest is the data bytestring.
 ptype=REQ
 pname=HANDSHAKE_DEPTH
 
-pversion=1
+pversion=2
 client_program=DepthViewer
 client_program_version=v0.8.11
 !HEADEREND
@@ -53,92 +53,12 @@ model_type = "NotSetYet"
 accepted_input_formats = "jpg, ppm"
 output_format = "pfm"
 
-def process():
-	print('*'*64)
-
-	message = socket.recv()
-	mdict = {}
-	data = b""
-
-	#Decode. Assumes that the message is in the correct format
-	while message != b"": #while the message is exhausted
-		if b'\n' not in message:
-			#Exhausted
-			line = message
-			message = b""
-		else:
-			line, message = message.split(b'\n', maxsplit=1)
-
-		line = line.strip()
-		if not line: #skip the blank line
-			continue
-		line = line.decode("ascii")
-
-		#Does the line start with '!'?
-		if line.startswith('!'):
-			if line == "!HEADEREND":
-				#The rest is the data
-				data = message
-				break
-			else:
-				print(f"Unknown line: {line}")
-				continue
-
-		#If it doesn't it's a `key=value` line
-		if '=' not in line:
-			print(f"Illegal key-value line: {line}")
-			continue
-		key, value = [token.strip() for token in line.split('=', maxsplit=1)] #strip the key and the token
-		mdict[key] = value
-
-	#Check the decoded message
-	print(mdict)
-	if len(data) > 0:
-		print(f"len(data): {len(data)}")
-	
-	#Handle
-	handler = on_unknown_ptype_pname
-	t = (mdict["ptype"], mdict["pname"])
-	if t == ("REQ", "HANDSHAKE_DEPTH"):
-		handler = on_req_handshake_depth
-	elif t == ("REQ", "DEPTH"):
-		handler = on_req_depth
-
-	print(f"Using handler {handler}")
-	res = handler(mdict, data)
-
-	socket.send(res)
-
-def create_message(mdict, data=None) -> bytes:
-	message = ""
-	for key, value in mdict.items():
-		message += key + '=' + value + '\n'
-	message += "!HEADEREND\n"
-	message = message.encode("ascii")
-
-	if data is not None:
-		message += data
-
-	return message
-
-def create_error_message(msg: str):
-	return create_message({
-		"ptype": "RES",
-		"pname": "ERROR",
-	}, data=msg.encode("ascii"))
-
-def on_unknown_ptype_pname(mdict, data=None):
-	msg = f"Unknown (ptype, pname): ({mdict['ptype']}, {mdict['pname']})"
-	print(msg)
-
-	return create_error_message(msg)
-
 def on_req_handshake_depth(mdict, data=None):
 	pversion = mdict["pversion"]
-	if pversion != "1":
-		return create_error_message(f"Unsupported pversion: {pversion}")
+	if int(pversion) > mqpy.PVERSION:
+		return mqpy.create_error_message(f"Unsupported pversion: {pversion}")
 
-	return create_message({
+	return mqpy.create_message({
 		"ptype": "RES",
 		"pname": mdict["pname"],
 		"model_type": model_type,
@@ -162,9 +82,9 @@ def on_req_depth(mdict, data):
 	else:
 		error_msg = f"Error: unknown input_format: {input_format}"
 		print(error_msg)
-		return create_error_message(error_msg)
+		return mqpy.create_error_message(error_msg)
 	
-	return create_message({
+	return mqpy.create_message({
 		"ptype": "RES",
 		"pname": mdict["pname"],
 	}, data=res)
@@ -238,11 +158,11 @@ if __name__ == "__main__":
 	print("depthmq: Done.")
 
 	port = args.port if args.port is not None else default_port
-	addr = f"tcp://*:{port}"
-	print(f"depthmq: Binding to {addr}")
-	context = zmq.Context()
-	socket = context.socket(zmq.REP)
-	socket.bind(addr)
+	mq = mqpy.MQ({
+		("REQ", "HANDSHAKE_DEPTH"): on_req_handshake_depth,
+		("REQ", "DEPTH"): on_req_depth,
+	})
+	mq.bind(port)
 
 	while True:
-		process()
+		mq.receive()

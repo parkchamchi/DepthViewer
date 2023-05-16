@@ -4,6 +4,60 @@ It has an advantage of being able to decode VP9 codecs and other formats (gif, .
 ffpyplayer is of LGPL.
 """
 
+"""
+***************************
+ptype=REQ
+pname=HANDSHAKE_IMAGE_AND_DEPTH
+
+pversion=2
+client_program=DepthViewer
+client_program_version=v0.8.11
+!HEADEREND
+***************************
+ptype=RES
+pname=HANDSHAKE_IMAGE_AND_DEPTH
+
+image_format=jpg
+output_format=pfm
+depth_map_type=Inverse
+
+server_program=ffpymq
+server_program_version=v0.8.11
+!HEADEREND
+***************************
+
+***************************
+ptype=REQ
+pname=IMAGE_AND_DEPTH
+!HEADEREND
+***************************
+ptype=RES
+pname=INPUT_AND_DEPTH
+
+status=new
+
+len_input=1234
+len_depth=4567
+!HEADEREND
+(input)(depth)
+***************************
+ptype=RES
+pname=INPUT_AND_DEPTH
+
+status=not_modified
+!HEADEREND
+***************************
+ptype=RES
+pname=INPUT_AND_DEPTH
+
+status=not_available
+!HEADEREND
+***************************
+"""
+
+import depth
+import mqpy
+
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.pic import SWScale
 import numpy as np
@@ -11,6 +65,10 @@ import cv2
 
 import time
 from typing import Union
+import argparse
+
+runner = None
+player = None
 
 class Player:
 	def __init__(self):
@@ -59,14 +117,79 @@ class Player:
 
 			self.sleepuntil = time.time() + val
 			return bgr
+		
+def on_req_handshake_image_and_depth(mdict, data=None):
+	pversion = mdict["pversion"]
+	if int(pversion) > mqpy.PVERSION:
+		return mqpy.create_error_message(f"Unsupported pversion: {pversion}")
 
-target = ("tmp/test.webm")
-player = Player()
-player.play(target)
+	return mqpy.create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
 
-while True:
-	res = player.get_frame()
-	if res is None:
-		continue
+		"image_format": "jpg",
+		"output_format": "pfm",
+		"depth_map_type": runner.depth_map_type,
 
-	print(res)
+		"server_program": "ffpymq",
+		"server_program_version": depth.VERSION,
+	})
+
+def on_req_image_and_depth(mdict, data=None):
+	bgr = player.get_frame()
+
+	#if not modified
+	if bgr is None:
+		return mqpy.create_message({
+			"ptype": "RES",
+			"pname": mdict["pname"],
+
+			"status": "not_modified"
+		})
+	
+	output = runner.as_input(output)
+	output = runner.run_frame(output)
+	output = runner.get_pfm(output)
+
+	jpg = cv2.imencode(".jpg", bgr)[1]
+	#jpg = np.array(jpg)
+	jpg = jpg.to_bytes()
+
+	return mqpy.create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
+
+		"status": "new",
+
+		"len_image": len(jpg),
+		"len_depth": len(output),
+	}, data=jpg+output)
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+
+	default_port = 5556
+	parser.add_argument("-p", "--port",
+		help=f"port number. defaults to {default_port}.",
+		default=None
+	)
+	
+	args = parser.parse_args()
+
+	target = ("tmp/test.webm")
+	player = Player()
+	player.play(target)
+
+	#TODO: Seperate the factory code of `Runner` to `runners.py` w/ parser manipulation
+	runner = depth.PyTorchRunner()
+	runner.load_model(model_type="dpt_hybrid_384", optimize=True) #tmp.
+
+	port = args.port if args.port is not None else default_port
+	mq = mqpy.MQ({
+		("REQ", "HANDSHAKE_IMAGE_AND_DEPTH"): on_req_handshake_image_and_depth,
+		("REQ", "IMAGE_AND_DEPTH"): on_req_image_and_depth,
+	})
+	mq.bind(port)
+
+	while True:
+		mq.receive()
