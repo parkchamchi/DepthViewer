@@ -47,7 +47,10 @@ public class PtypePname {
 }
 */
 
+
 public class MQ : IDisposable {
+	public const int Pversion = 2;
+
 	private Handlers _handlers;
 	private RequestSocket _socket;
 
@@ -104,7 +107,7 @@ public class MQ : IDisposable {
 	}
 
 	public bool Send(string tosend) =>
-		Send(Encoding.ASCII.GetBytes(tosend));
+		Send(Utils.EncodeAscii(tosend));
 
 	public bool Send(byte[] tosend) {
 		try {
@@ -137,7 +140,7 @@ public class MQ : IDisposable {
 			//parse lineList
 			byte[] lineArray = lineList.ToArray();
 			lineList.Clear();
-			string line = Encoding.ASCII.GetString(lineArray);
+			string line = Utils.DecodeAscii(lineArray);
 			line = line.Trim();
 
 			//Skip empty lines

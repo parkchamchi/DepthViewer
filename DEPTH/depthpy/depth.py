@@ -327,6 +327,8 @@ class Runner():
 		#This was originally from zoeserver.py
 
 		assert len(image.shape) == 2
+
+		image = image.astype(np.float32) #Convert the half-precision maps
 		image = np.flipud(image)
 
 		pfm = b""

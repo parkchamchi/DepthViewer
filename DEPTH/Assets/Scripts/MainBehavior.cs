@@ -23,6 +23,7 @@ public enum FileTypes {
 	Online,
 	Gif,
 	Pgm,
+	Zmq,
 };
 
 public class MainBehavior : MonoBehaviour {
@@ -157,6 +158,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
+		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "ZmqTexInputsStart", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -396,6 +398,14 @@ public class MainBehavior : MonoBehaviour {
 
 		_currentFileType = FileTypes.Online;
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
+	}
+
+	private void ZmqTexInputsStart(int port=5556) {
+		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
+		ClearBrowseDir();
+
+		_currentFileType = FileTypes.Zmq;
+		_texInputs = new ZmqTexInputs(_meshBehav, port);
 	}
 
 	public void LoadBuiltIn() {

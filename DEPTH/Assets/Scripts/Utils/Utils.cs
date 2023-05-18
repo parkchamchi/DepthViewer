@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 
 using UnityEngine;
 
@@ -143,4 +144,10 @@ public static class Utils {
 
 	public static MainBehavior GetMainBehav() =>
 		GameObject.Find("MainManager").GetComponent<MainBehavior>();
+
+	public static string DecodeAscii(byte[] bytes) =>
+		Encoding.ASCII.GetString(bytes);
+
+	public static byte[] EncodeAscii(string str) =>
+		Encoding.ASCII.GetBytes(str);
 }

@@ -84,7 +84,6 @@ class MQ:
 	def send(self, message):
 		self.socket.send(message)
 
-
 def create_message(mdict, data=None) -> bytes:
 	message = ""
 	for key, value in mdict.items():

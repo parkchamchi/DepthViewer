@@ -38,7 +38,7 @@ public class ZmqDepthModel : DepthModel {
 	private DepthMapType _dtype;
 	private System.Action _onDisposedCallback;
 
-	private bool _is_handshaking = false;
+	private bool _isHandshaking = false;
 	private Depth _depth;
 	private int _consecutiveFails = 0;
 
@@ -58,11 +58,11 @@ public class ZmqDepthModel : DepthModel {
 	}
 
 	private void OnResError(Mdict mdict, byte[] data) {
-		string errorMsg = Encoding.ASCII.GetString(data);
+		string errorMsg = Utils.DecodeAscii(data);
 		Debug.LogWarning($"The server responded with the error message: {errorMsg}");
 		_consecutiveFails++;
 
-		if (_is_handshaking) {
+		if (_isHandshaking) {
 			Debug.LogWarning("Handshake failure.");
 			Dispose();
 		}
@@ -85,7 +85,7 @@ public class ZmqDepthModel : DepthModel {
 
 	private void Handshake() {
 		Debug.Log("Handshaking...");
-		_is_handshaking = true;
+		_isHandshaking = true;
 
 		bool success;
 
@@ -94,7 +94,7 @@ public class ZmqDepthModel : DepthModel {
 			ptype=REQ
 			pname=HANDSHAKE_DEPTH
 			
-			pversion=1
+			pversion={MQ.Pversion}
 			client_program=DepthViewer
 			client_program_version={DepthFileUtils.Version}
 			!HEADEREND"
@@ -114,7 +114,7 @@ public class ZmqDepthModel : DepthModel {
 			Dispose();
 		}
 
-		_is_handshaking = false;
+		_isHandshaking = false;
 	}
 
 	private void OnResDepth(Mdict mdict, byte[] data) {
@@ -129,7 +129,7 @@ public class ZmqDepthModel : DepthModel {
 		}
 
 		string inputFormat = "jpg";
-		byte[] headerbytes = Encoding.ASCII.GetBytes(
+		byte[] headerbytes = Utils.EncodeAscii(
 			$@"
 			ptype=REQ
 			pname=DEPTH

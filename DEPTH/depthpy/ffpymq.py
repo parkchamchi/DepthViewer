@@ -147,22 +147,25 @@ def on_req_image_and_depth(mdict, data=None):
 			"status": "not_modified"
 		})
 	
-	output = runner.as_input(output)
+	output = runner.as_input(bgr)
 	output = runner.run_frame(output)
 	output = runner.get_pfm(output)
 
 	jpg = cv2.imencode(".jpg", bgr)[1]
 	#jpg = np.array(jpg)
-	jpg = jpg.to_bytes()
+	jpg = jpg.tobytes()
 
+	len_image = str(len(jpg))
+	len_depth = str(len(output))
+	print(f"Sending ({len_image}, {len_depth})")
 	return mqpy.create_message({
 		"ptype": "RES",
 		"pname": mdict["pname"],
 
 		"status": "new",
 
-		"len_image": len(jpg),
-		"len_depth": len(output),
+		"len_image": len_image,
+		"len_depth": len_depth,
 	}, data=jpg+output)
 
 if __name__ == "__main__":
@@ -183,6 +186,11 @@ if __name__ == "__main__":
 	#TODO: Seperate the factory code of `Runner` to `runners.py` w/ parser manipulation
 	runner = depth.PyTorchRunner()
 	runner.load_model(model_type="dpt_hybrid_384", optimize=True) #tmp.
+
+	print("ffpymq: Preparing the model. This may take some time.")
+	dummy = np.zeros((512, 512, 3), dtype=np.float32)
+	runner.run_frame(dummy)
+	print("ffpymq: Done.")
 
 	port = args.port if args.port is not None else default_port
 	mq = mqpy.MQ({
