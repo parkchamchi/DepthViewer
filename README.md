@@ -84,11 +84,22 @@ This saves the current parameters (`Scale`, ...) into the depthfile so that it c
 
 ## Using ZeroMQ + Python + PyTorch/OnnxRuntime
 May be unstable.
+Implemented after `v0.8.11-beta.1`.
 1. Run [`DEPTH/depthpy/depthmq.py`](DEPTH/depthpy/depthmq.py). (Also see [here](./DEPTH/depthpy/README.md) for its dependencies, plus `pyzmq` is required)
 2. In the DepthViewer program, open the console and type `zmq 5555`.
 
 Use `python depthmq.py -h` for more options such as port (default: `5555`), model (default: `dpt_hybrid_384`)
 To use OnnxRuntime instead of PyTorch, add `--runner ort` and `--ort_ep cuda` or `--ort_ep dml`. For this `onnxruntime-gpu` or `onnxruntime-directml` is needed, respectively.
+
+## Using ZeroMQ + Python + FFmpeg + PyTorch/OnnxRuntime
+Gone are the days of VP9 errors and slow GIF decoding.
+Implemented after `v0.8.11-beta.2`.
+1. Run [`DEPTH/depthpy/ffpymq.py`](DEPTH/depthpy/ffpymq.py). Also add `--optimize` for the float16 optimazation.
+2. In the DepthViewer program, open the console and type `zmq_id 5556`. Now all video/GIF inputs are passed to the server and fetches the image and the depth. Use `zmq_id -1` to disconnect.
+
+### TODO for ffpymq.py
+- Stablize
+- FPS drops on large image (>1080p). Test if using `.ppm` format is faster then `.jpg` format. Also make an option to limit the max size of the image output.
 
 ## Tested formats:
 ### Images
