@@ -43,7 +43,16 @@ depthpydir = os.path.join(builddir, "depthpy")
 os.mkdir(depthpydir)
 
 #move depth.py & depthserver.py
-for filename in ["depth.py", "depthmq.py", "ortrunner.py", "zoerunner.py"]:
+
+depthpy_files = [
+	"depth.py",
+	"depthmq.py",
+	"ffpymq.py",
+	"mqpy.py"
+	"ortrunner.py",
+	"zoerunner.py"
+]
+for filename in depthpy_files:
 	print(f"Copying {filename}")
 	shutil.copyfile(os.path.join("..", filename), os.path.join(depthpydir, filename))
 
