@@ -14,6 +14,8 @@ using Handler = System.Action<System.Collections.Generic.Dictionary<string, stri
 using Handlers = System.Collections.Generic.Dictionary<System.Tuple<string, string>, System.Action<System.Collections.Generic.Dictionary<string, string>, byte[]>>;
 
 public class ZmqTexInputs : TexInputs {
+	public bool IsConnected => _isConnected;
+
 	private IDepthMesh _dmesh;
 
 	private const float _timeout = 2;
@@ -37,6 +39,10 @@ public class ZmqTexInputs : TexInputs {
 			{new PtypePname("RES", "ERROR"), OnResError},
 			{new PtypePname("RES", "HANDSHAKE_IMAGE_AND_DEPTH"), OnResHandshakeImageAndDepth},
 			{new PtypePname("RES", "IMAGE_AND_DEPTH"), OnResImageAndDepth},
+
+			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_PLAY"), OnResImageAndDepthRequestPlay},
+			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_PAUSE"), OnResImageAndDepthRequestPause},
+			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_STOP"), OnResImageAndDepthRequestStop},
 		});
 		_mq.Connect(port);
 		Handshake();
@@ -114,8 +120,13 @@ public class ZmqTexInputs : TexInputs {
 			_depth = null;
 		}
 
-		if (_depth != null)
+		if (_depth != null) {
 			_dmesh.SetScene(_depth, _tex);
+			UITextSet.StatusText.text = "Received!";
+		}
+		else {
+			UITextSet.StatusText.text = "Skipping.";
+		}
 		_depth = null; //Indicates that there is now new depth to update
 	}
 
@@ -192,7 +203,9 @@ public class ZmqTexInputs : TexInputs {
 		}
 	}
 
-	private void RequestPlay(string path) {
+	public void RequestPlay(string path) {
+		Debug.Log($"ZmqTexInputs: Requesting {path}");
+
 		_mq.Send(
 			@$"
 			ptype=REQ
@@ -203,7 +216,7 @@ public class ZmqTexInputs : TexInputs {
 		_mq.Receive();
 	}
 
-	private void RequestPause() {
+	public void RequestPause() {
 		_mq.Send(
 			@$"
 			ptype=REQ
@@ -213,7 +226,7 @@ public class ZmqTexInputs : TexInputs {
 		_mq.Receive();
 	}
 
-	private void RequestStop() {
+	public void RequestStop() {
 		_mq.Send(
 			@$"
 			ptype=REQ
@@ -223,8 +236,13 @@ public class ZmqTexInputs : TexInputs {
 		_mq.Receive();
 	}
 
+	private void OnResImageAndDepthRequestPlay(Mdict mdict, byte[] data) {}
+	private void OnResImageAndDepthRequestPause(Mdict mdict, byte[] data) {}
+	private void OnResImageAndDepthRequestStop(Mdict mdict, byte[] data) {}
+
 	public void Dispose() {
-		RequestStop();
+		if (_isConnected)
+			RequestStop();
 		_mq.Dispose();
 	}
 }

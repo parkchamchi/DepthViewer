@@ -71,7 +71,7 @@ public class MainBehavior : MonoBehaviour {
 	private int _dirGifCount; //number of gif files of the dir.
 	private bool _dirRandom = false;
 
-	private int _zmqTexInputsPort = -1; //`> 0` indicates that this is set
+	private ZmqTexInputs _zmqTexInputs = null; //If this is set, pass some inputs (vid/gif) to this.
 
 	public bool DirRandom {
 		get => _dirRandom;
@@ -160,7 +160,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
-		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputsPort", this);
+		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputs", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -254,8 +254,14 @@ public class MainBehavior : MonoBehaviour {
 	private void Cleanup() {
 		/* Called by SelectFile(), DesktopRenderingStart() */
 
-		_texInputs?.Dispose();
-		_texInputs = null;
+		if (_texInputs != _zmqTexInputs) { //_zmqTexInputs is handled elsewhere
+			_texInputs?.Dispose();
+			_texInputs = null;
+		}
+		else if (_zmqTexInputs != null && _zmqTexInputs.IsConnected) {
+			_zmqTexInputs.RequestStop();
+		}
+
 		DepthFileUtils.Dispose(); //not needed, should be handled at _texInputs.Dispose()
 
 		_currentFileType = FileTypes.Unsupported;
@@ -344,8 +350,8 @@ public class MainBehavior : MonoBehaviour {
 
 		Cleanup();
 
-		//Pass to ZmqTexInputs if the port is set
-		if (_zmqTexInputsPort > 0)
+		//Pass to ZmqTexInputs if it is connected
+		if (_zmqTexInputs != null && _zmqTexInputs.IsConnected)
 			if (ftype == FileTypes.Vid || ftype == FileTypes.Gif)
 				ftype = FileTypes.Zmq;
 
@@ -365,7 +371,7 @@ public class MainBehavior : MonoBehaviour {
 			_texInputs = new PgmTexInputs(filepath, _meshBehav);
 			break;
 		case FileTypes.Zmq:
-			_texInputs = new ZmqTexInputs(_meshBehav, _zmqTexInputsPort, filepath);
+			_zmqTexInputs.RequestPlay(filepath);
 			break;
 		default:
 			UITextSet.StatusText.text = "DEBUG: SelectFile(): something messed up :(";
@@ -410,9 +416,30 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
 	}
 
-	private void SetZmqTexInputsPort(int port=5556) {
+	private void SetZmqTexInputs(int port=5556) {
+		if (port < 0) {
+			Debug.Log($"Disconnecting from port {port}...");
+			_zmqTexInputs?.Dispose();
+			_zmqTexInputs = null;
+
+			return;
+		}
+
 		Debug.Log($"Setting the ZmqTexInputs port to {port}...");
-		_zmqTexInputsPort = port;
+
+		_zmqTexInputs?.Dispose();
+		_zmqTexInputs = new ZmqTexInputs(_meshBehav, port);
+
+		if (!_zmqTexInputs.IsConnected) {
+			Debug.LogWarning($"Counldn't connect to the port {port}.");
+			_zmqTexInputs.Dispose();
+			_zmqTexInputs = null;
+		}
+		else {
+			Debug.Log($"Connected to the port {port}! Passing Video/Gif inputs to this.");
+			Cleanup();
+			_texInputs = _zmqTexInputs;
+		}
 	}
 
 	public void LoadBuiltIn() {
