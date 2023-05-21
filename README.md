@@ -99,7 +99,7 @@ Implemented after `v0.8.11-beta.2`.
 
 ### TODO for ffpymq.py
 - Stablize
-- FPS drops on large image (>1080p). Test if using `.ppm` format is faster then `.jpg` format. Also make an option to limit the max size of the image output.
+- FPS drops on large image (>1080p). Test if using `.ppm` format is faster than `.jpg` format. Also make an option to limit the max size of the image output.
 
 ## Tested formats:
 ### Images
