@@ -401,6 +401,61 @@ class PyTorchRunner(Runner):
 		# output
 		out = self.normalize(prediction)
 		return out
+	
+def add_runner_argparser(parser):
+	parser.add_argument('-t', '--model_type',
+		default="dpt_hybrid_384",
+		help="model type",
+	)
+
+	parser.add_argument("--optimize",
+			help="Use the half-precision float. (Use with caution, because models like Swin require float precision to work properly and may yield non-finite depth values to some extent for half-floats.)",
+			action="store_true"
+		)
+	parser.add_argument('--height',
+		type=int, default=None,
+		help='Preferred height of images feed into the encoder during inference. Note that the '
+		'preferred height may differ from the actual height, because an alignment to multiples of '
+		'32 takes place. Many models support only the height chosen during training, which is '
+		'used automatically if this parameter is not set.'
+	)
+	parser.add_argument('--square',
+		action='store_true',
+		help='Option to resize images to a square resolution by changing their widths when images are '
+		'fed into the encoder during inference. If this parameter is not set, the aspect ratio of '
+		'images is tried to be preserved if supported by the model.'
+	)
+
+	parser.add_argument("-r", "--runner",
+		default="pt",
+		help="`pt`: PyTorch (default)\n"
+			"`ort`: Use OnnxRuntime. Options like `--optimize`, `--height`, `--square` will be ignored.\n"
+			"`zoe`: Use ZoeDepth (w/ PyTorch)"
+	)
+	parser.add_argument("--ort_ep",
+		default="cpu",
+		help="Execution provider to use with ORT.",
+		choices=["cpu", "cuda", "dml"],
+	)
+
+def get_loaded_runner(args):
+	model_type = args.model_type
+
+	if args.runner == "pt":
+		runner = PyTorchRunner()
+		runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
+	elif args.runner == "ort":
+		from ortrunner import OrtRunner
+		runner = OrtRunner()
+		runner.load_model(model_type=model_type, provider=args.ort_ep)
+	elif args.runner == "zoe":
+		from zoerunner import ZoeRunner
+		runner = ZoeRunner()
+		runner.load_model(model_type=model_type, height=args.height)
+	else:
+		raise ValueError(f"Unknwon runner {args.runner}")
+	
+	return runner
 
 #######################
 
@@ -421,12 +476,6 @@ if __name__ == "__main__":
 			action="store_true"
 		)
 
-		parser.add_argument('-t', '--model_type',
-			default="dpt_beit_large_512",
-			help="model type",
-			choices=default_models.keys()
-		)
-
 		parser.add_argument("--zip_in_memory",
 			help="Whether zip the file in RAM and dump on the disk only after it finishes.",
 			action="store_true"
@@ -437,24 +486,7 @@ if __name__ == "__main__":
 			action="store_true"
 		)
 
-		parser.add_argument("--optimize",
-			help="Use the half-precision float. (Use with caution, because models like Swin require float precision to work properly and may yield non-finite depth values to some extent for half-floats.)",
-			action="store_true"
-		)
-
-		parser.add_argument('--height',
-			type=int, default=None,
-			help='Preferred height of images feed into the encoder during inference. Note that the '
-			'preferred height may differ from the actual height, because an alignment to multiples of '
-			'32 takes place. Many models support only the height chosen during training, which is '
-			'used automatically if this parameter is not set.'
-		)
-		parser.add_argument('--square',
-			action='store_true',
-			help='Option to resize images to a square resolution by changing their widths when images are '
-			'fed into the encoder during inference. If this parameter is not set, the aspect ratio of '
-			'images is tried to be preserved if supported by the model.'
-		)
+		add_runner_argparser(parser)
 
 		args = parser.parse_args()
 
@@ -469,9 +501,7 @@ if __name__ == "__main__":
 			print(f"Image: already exists: {args.output}. Use --noupdate to replace it.")
 			exit(0)
 
-		runner = PyTorchRunner()
-		runner.load_model(model_type=args.model_type, optimize=args.optimize, height=args.height, square=args.square)
-
+		runner = get_loaded_runner(args)
 		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
 
 		print("Done.")

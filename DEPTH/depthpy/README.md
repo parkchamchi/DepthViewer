@@ -1,6 +1,4 @@
-### Using depth.py and depthserver.py (OPTIONAL)
-#### This is not needed anymore, just use the onnx files...
-#### Note that this uses PyTorch not OnnxRuntime
+### Using depth.py (OPTIONAL)
 
 `depth.py` is for generating `.depthviewer` files so that it can be opened with the DepthViewer.<br>
 
@@ -19,7 +17,7 @@ Also check the [MiDaS github page](https://github.com/isl-org/MiDaS).
 6. Go to the directory `depthpy` and run <br>
 `python depth.py --help` <br>
 and see if it prints the manual without any error.
-7. Get `dpt_beit_large_512` model (and others) from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
+7. Get `dpt_hybrid_384` model (and others) from [here](https://github.com/isl-org/MiDaS#setup) and locate them in `depthpy/weights`. Do not change the filenames.
 (Other models can be loaded by adding the `-t` argument, see `--help` for more.)
 8. Place any image in the `depthpy` directory, rename it to `test.jpg` (or `test.png`) and run <br>
 `python depth.py test.jpg out.depthviewer -i` <br>
@@ -29,6 +27,9 @@ See if it generates an output. Also check if `depth.py` is using CUDA by checkin
 - Check the installed CUDA version and if the installed Pytorch version supports that.
 - Uninstall Pytorch `pip uninstall torch torchvision` and reinstall it.
 
-#### For depthserver.py
+#### For depthserver.py (Deprecated)
 - Install Flask `pip install Flask`
 - Run `python depthserver.py` to open the server and connect to it via the option menu. If it's connected all image inputs will be processed by calling the server.
+
+#### Using depthmq.py
+See [../../README.md](../../README.md)

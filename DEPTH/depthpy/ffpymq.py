@@ -176,6 +176,8 @@ if __name__ == "__main__":
 		help=f"port number. defaults to {default_port}.",
 		default=None
 	)
+
+	depth.add_runner_argparser(parser)
 	
 	args = parser.parse_args()
 
@@ -183,9 +185,7 @@ if __name__ == "__main__":
 	player = Player()
 	player.play(target)
 
-	#TODO: Seperate the factory code of `Runner` to `runners.py` w/ parser manipulation
-	runner = depth.PyTorchRunner()
-	runner.load_model(model_type="dpt_hybrid_384", optimize=True) #tmp.
+	runner = runner = depth.get_loaded_runner(args)
 
 	print("ffpymq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)
