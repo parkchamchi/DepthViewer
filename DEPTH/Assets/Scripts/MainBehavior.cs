@@ -71,6 +71,8 @@ public class MainBehavior : MonoBehaviour {
 	private int _dirGifCount; //number of gif files of the dir.
 	private bool _dirRandom = false;
 
+	private int _zmqTexInputsPort = -1; //`> 0` indicates that this is set
+
 	public bool DirRandom {
 		get => _dirRandom;
 
@@ -158,7 +160,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
-		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "ZmqTexInputsStart", this);
+		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputsPort", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -342,6 +344,11 @@ public class MainBehavior : MonoBehaviour {
 
 		Cleanup();
 
+		//Pass to ZmqTexInputs if the port is set
+		if (_zmqTexInputsPort > 0)
+			if (ftype == FileTypes.Vid || ftype == FileTypes.Gif)
+				ftype = FileTypes.Zmq;
+
 		_currentFileType = ftype;
 		UITextSet.FilepathResultText.text = $"Current Type: {ftype}";
 
@@ -356,6 +363,9 @@ public class MainBehavior : MonoBehaviour {
 			break;
 		case FileTypes.Pgm:
 			_texInputs = new PgmTexInputs(filepath, _meshBehav);
+			break;
+		case FileTypes.Zmq:
+			_texInputs = new ZmqTexInputs(_meshBehav, _zmqTexInputsPort, filepath);
 			break;
 		default:
 			UITextSet.StatusText.text = "DEBUG: SelectFile(): something messed up :(";
@@ -400,12 +410,9 @@ public class MainBehavior : MonoBehaviour {
 		_texInputs = new OnlineTexInputs(_donnx, _meshBehav, otex);
 	}
 
-	private void ZmqTexInputsStart(int port=5556) {
-		Cleanup(); //This sets _currentFileType. All tasks needed for stopping is handled here.
-		ClearBrowseDir();
-
-		_currentFileType = FileTypes.Zmq;
-		_texInputs = new ZmqTexInputs(_meshBehav, port);
+	private void SetZmqTexInputsPort(int port=5556) {
+		Debug.Log($"Setting the ZmqTexInputs port to {port}...");
+		_zmqTexInputsPort = port;
 	}
 
 	public void LoadBuiltIn() {

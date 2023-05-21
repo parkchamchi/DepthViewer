@@ -41,7 +41,7 @@ public class ZmqTexInputs : TexInputs {
 		_mq.Connect(port);
 		Handshake();
 
-		if (multimediaPath != null)
+		if (multimediaPath != null && _isConnected)
 			RequestPlay(multimediaPath); //Play the multimedia
 	}
 
@@ -192,30 +192,36 @@ public class ZmqTexInputs : TexInputs {
 		}
 	}
 
-	private void RequestPlay(string path) =>
+	private void RequestPlay(string path) {
 		_mq.Send(
 			@$"
 			ptype=REQ
 			pname=IMAGE_AND_DEPTH_REQUEST_PLAY
-			!HEADEREND",
+			!HEADEREND" + '\n',
 			path
 		);
+		_mq.Receive();
+	}
 
-	private void RequestPause() =>
+	private void RequestPause() {
 		_mq.Send(
 			@$"
 			ptype=REQ
 			pname=IMAGE_AND_DEPTH_REQUEST_PAUSE
 			!HEADEREND"
 		);
+		_mq.Receive();
+	}
 
-	private void RequestStop() =>
+	private void RequestStop() {
 		_mq.Send(
 			@$"
 			ptype=REQ
 			pname=IMAGE_AND_DEPTH_REQUEST_STOP
 			!HEADEREND"
 		);
+		_mq.Receive();
+	}
 
 	public void Dispose() {
 		RequestStop();

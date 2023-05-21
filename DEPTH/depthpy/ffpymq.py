@@ -220,6 +220,7 @@ def on_req_image_and_depth(mdict, data=None):
 
 def on_req_image_and_depth_request_play(mdict, data):
 	path = data.decode("utf-8")
+	print(f"Playing `{path}`")
 	player.play(path)
 
 	return mqpy.create_message({
@@ -231,6 +232,7 @@ def on_req_image_and_depth_request_play(mdict, data):
 
 def on_req_image_and_depth_request_pause(mdict, data=None):
 	player.pause()
+	print("Pausing.")
 
 	return mqpy.create_message({
 		"ptype": "RES",
@@ -241,6 +243,7 @@ def on_req_image_and_depth_request_pause(mdict, data=None):
 
 def on_req_image_and_depth_request_stop(mdict, data=None):
 	player.stop()
+	print("Stopping.")
 
 	return mqpy.create_message({
 		"ptype": "RES",
