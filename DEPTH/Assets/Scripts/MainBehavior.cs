@@ -159,7 +159,6 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_fileselecter", "Select the file selecter (standalone, simple)", "SetFileSelecter", this);
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
-		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
 		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputs", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
@@ -177,6 +176,10 @@ public class MainBehavior : MonoBehaviour {
 
 		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
 		addcmd("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
+
+#if UNITY_EDITOR
+		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
+#endif
 
 		//Load the built-in model: Not using the LoadBuiltIn() since that needs other components to be loaded
 		_donnx = _depthModelBehav.GetBuiltIn();
@@ -279,6 +282,10 @@ public class MainBehavior : MonoBehaviour {
 #endif
 
 		Cleanup();
+		if (_zmqTexInputs != null) {
+			_zmqTexInputs.Dispose();
+			_zmqTexInputs = null;
+		}
 
 		if (_vp != null)
 			Destroy(_vp);

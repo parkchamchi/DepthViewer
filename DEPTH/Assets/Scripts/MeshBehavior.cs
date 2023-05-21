@@ -759,6 +759,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 	}
 
 	public void SaveAsAsset() {
+#if UNITY_EDITOR
 		Texture tex = _material.mainTexture;
 		if (tex is RenderTexture) {
 			Debug.LogWarning("SavePrefab(): texture is RenderTexture. Not saving. (Will implement this on request)");
@@ -789,5 +790,9 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		Debug.Log("OK, Exiting.");
 		Application.Quit();
 		UnityEditor.EditorApplication.isPlaying = false;
+#else
+		Debug.LogError("This should not be called in the build!");
+		return;
+#endif
 	}
 }

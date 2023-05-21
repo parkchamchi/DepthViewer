@@ -48,9 +48,9 @@ depthpy_files = [
 	"depth.py",
 	"depthmq.py",
 	"ffpymq.py",
-	"mqpy.py"
+	"mqpy.py",
 	"ortrunner.py",
-	"zoerunner.py"
+	"zoerunner.py",
 ]
 for filename in depthpy_files:
 	print(f"Copying {filename}")
