@@ -109,6 +109,12 @@ public class MQ : IDisposable {
 	public bool Send(string tosend) =>
 		Send(Utils.EncodeAscii(tosend));
 
+	public bool Send(string headerStr, string dataStr) =>
+		Send(headerStr, Utils.EncodeUtf8(dataStr));
+
+	public bool Send(string headerStr, byte[] data) =>
+		Send(Utils.ConcatByteArray(Utils.EncodeAscii(headerStr), data));
+
 	public bool Send(byte[] tosend) {
 		try {
 			_socket.SendFrame(tosend);

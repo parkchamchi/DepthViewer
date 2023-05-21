@@ -28,6 +28,50 @@ server_program_version=v0.8.11
 
 ***************************
 ptype=REQ
+pname=IMAGE_AND_DEPTH_REQUEST_PLAY
+!HEADEREND
+(path, UTF-8)
+***************************
+ptype=RES
+pname=IMAGE_AND_DEPTH_REQUEST_PLAY
+
+success=true
+!HEADEREND
+***************************
+ptype=RES
+pname=IMAGE_AND_DEPTH_REQUEST_PLAY
+
+success=false
+!HEADEREND
+(cause of failure, UTF-8)
+***************************
+
+***************************
+ptype=REQ
+pname=IMAGE_AND_DEPTH_REQUEST_PAUSE
+!HEADEREND
+***************************
+ptype=RES
+pname=IMAGE_AND_DEPTH_REQUEST_PAUSE
+
+success=true
+!HEADEREND
+***************************
+
+***************************
+ptype=REQ
+pname=IMAGE_AND_DEPTH_REQUEST_STOP
+!HEADEREND
+***************************
+ptype=RES
+pname=IMAGE_AND_DEPTH_REQUEST_STOP
+
+success=true
+!HEADEREND
+***************************
+
+***************************
+ptype=REQ
 pname=IMAGE_AND_DEPTH
 !HEADEREND
 ***************************
@@ -86,6 +130,12 @@ class Player:
 				"loop": 0, #loop the video
 			}
 		)
+
+	def pause(self):
+		self.player.toggle_pause()
+
+	def stop(self):
+		self.player = None
 
 	def get_frame(self) -> Union[np.ndarray, None]:
 		if self.player is None:
@@ -168,6 +218,37 @@ def on_req_image_and_depth(mdict, data=None):
 		"len_depth": len_depth,
 	}, data=jpg+output)
 
+def on_req_image_and_depth_request_play(mdict, data):
+	path = data.decode("utf-8")
+	player.play(path)
+
+	return mqpy.create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
+
+		"success": "true"
+	})
+
+def on_req_image_and_depth_request_pause(mdict, data=None):
+	player.pause()
+
+	return mqpy.create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
+
+		"success": "true"
+	})
+
+def on_req_image_and_depth_request_stop(mdict, data=None):
+	player.stop()
+
+	return mqpy.create_message({
+		"ptype": "RES",
+		"pname": mdict["pname"],
+
+		"success": "true"
+	})
+
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 
@@ -181,9 +262,7 @@ if __name__ == "__main__":
 	
 	args = parser.parse_args()
 
-	target = ("tmp/test.webm")
 	player = Player()
-	player.play(target)
 
 	runner = runner = depth.get_loaded_runner(args)
 
@@ -196,6 +275,11 @@ if __name__ == "__main__":
 	mq = mqpy.MQ({
 		("REQ", "HANDSHAKE_IMAGE_AND_DEPTH"): on_req_handshake_image_and_depth,
 		("REQ", "IMAGE_AND_DEPTH"): on_req_image_and_depth,
+
+		("REQ", "IMAGE_AND_DEPTH_REQUEST_PLAY"): on_req_image_and_depth_request_play,
+		("REQ", "IMAGE_AND_DEPTH_REQUEST_PAUSE"): on_req_image_and_depth_request_pause,
+		("REQ", "IMAGE_AND_DEPTH_REQUEST_STOP"): on_req_image_and_depth_request_stop,
+		
 	})
 	mq.bind(port)
 

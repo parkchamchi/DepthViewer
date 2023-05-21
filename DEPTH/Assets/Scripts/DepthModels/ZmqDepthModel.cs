@@ -138,9 +138,7 @@ public class ZmqDepthModel : DepthModel {
 		);
 		byte[] imgbytes = TexToBytes(inputTexture, inputFormat);
 
-		byte[] message = new byte[headerbytes.Length + imgbytes.Length];
-		headerbytes.CopyTo(message, 0);
-		imgbytes.CopyTo(message, headerbytes.Length);
+		byte[] message = Utils.ConcatByteArray(headerbytes, imgbytes);
 
 		bool success;
 		success = _mq.Send(message);

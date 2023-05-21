@@ -150,4 +150,18 @@ public static class Utils {
 
 	public static byte[] EncodeAscii(string str) =>
 		Encoding.ASCII.GetBytes(str);
+
+	public static string DecodeUtf8(byte[] bytes) =>
+		Encoding.UTF8.GetString(bytes);
+
+	public static byte[] EncodeUtf8(string str) =>
+		Encoding.UTF8.GetBytes(str);
+
+	public static byte[] ConcatByteArray(byte[] arr1, byte[] arr2) {
+		byte[] concated = new byte[arr1.Length + arr2.Length];
+		arr1.CopyTo(concated, 0);
+		arr2.CopyTo(concated, arr1.Length);
+
+		return concated;
+	}
 }

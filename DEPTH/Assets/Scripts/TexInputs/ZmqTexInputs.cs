@@ -29,7 +29,7 @@ public class ZmqTexInputs : TexInputs {
 	private Texture _tex;
 	private Depth _depth;
 
-	public ZmqTexInputs(IDepthMesh dmesh, int port) {
+	public ZmqTexInputs(IDepthMesh dmesh, int port, string multimediaPath=null) {
 		_dmesh = dmesh;
 
 		Debug.Log($"ZmqTexInputs(): port: {port}");
@@ -40,6 +40,9 @@ public class ZmqTexInputs : TexInputs {
 		});
 		_mq.Connect(port);
 		Handshake();
+
+		if (multimediaPath != null)
+			RequestPlay(multimediaPath); //Play the multimedia
 	}
 
 	private void Handshake() {
@@ -92,7 +95,7 @@ public class ZmqTexInputs : TexInputs {
 
 		bool success;
 		success = _mq.Send(tosend);
-		if (success) _mq.Receive();
+		if (success) _mq.Receive(); //This may set `_depth`
 
 		if (!success) {
 			Debug.LogWarning("The server did not respond.");
@@ -113,7 +116,7 @@ public class ZmqTexInputs : TexInputs {
 
 		if (_depth != null)
 			_dmesh.SetScene(_depth, _tex);
-		_depth = null; //Indicates 
+		_depth = null; //Indicates that there is now new depth to update
 	}
 
 	private void OnResHandshakeImageAndDepth(Mdict mdict, byte[] _) {
@@ -189,7 +192,33 @@ public class ZmqTexInputs : TexInputs {
 		}
 	}
 
+	private void RequestPlay(string path) =>
+		_mq.Send(
+			@$"
+			ptype=REQ
+			pname=IMAGE_AND_DEPTH_REQUEST_PLAY
+			!HEADEREND",
+			path
+		);
+
+	private void RequestPause() =>
+		_mq.Send(
+			@$"
+			ptype=REQ
+			pname=IMAGE_AND_DEPTH_REQUEST_PAUSE
+			!HEADEREND"
+		);
+
+	private void RequestStop() =>
+		_mq.Send(
+			@$"
+			ptype=REQ
+			pname=IMAGE_AND_DEPTH_REQUEST_STOP
+			!HEADEREND"
+		);
+
 	public void Dispose() {
+		RequestStop();
 		_mq.Dispose();
 	}
 }
