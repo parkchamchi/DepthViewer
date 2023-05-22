@@ -379,6 +379,7 @@ public class MainBehavior : MonoBehaviour {
 			break;
 		case FileTypes.Zmq:
 			_zmqTexInputs.RequestPlay(filepath);
+			_texInputs = _zmqTexInputs;
 			break;
 		default:
 			UITextSet.StatusText.text = "DEBUG: SelectFile(): something messed up :(";
