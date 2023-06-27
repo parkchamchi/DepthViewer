@@ -119,7 +119,7 @@ public class MQ : IDisposable {
 		try {
 			_socket.SendFrame(tosend);
 		}
-		catch (NetMQ.FiniteStateMachineException exc) {
+		catch (Exception exc) when (exc is NetMQ.FiniteStateMachineException || exc is NetMQ.TerminatingException) {
 			Debug.LogWarning($"Send(): Failed to send the request. Is the server down?: {exc}");
 			return false;
 		}

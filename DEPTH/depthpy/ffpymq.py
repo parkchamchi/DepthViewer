@@ -110,9 +110,12 @@ import cv2
 import time
 from typing import Union
 import argparse
+import signal
 
 runner = None
 player = None
+image_format = None
+max_size = None
 
 class Player:
 	def __init__(self):
@@ -177,7 +180,7 @@ def on_req_handshake_image_and_depth(mdict, data=None):
 		"ptype": "RES",
 		"pname": mdict["pname"],
 
-		"image_format": "jpg",
+		"image_format": image_format,
 		"output_format": "pfm",
 		"depth_map_type": runner.depth_map_type,
 
@@ -197,11 +200,18 @@ def on_req_image_and_depth(mdict, data=None):
 			"status": "not_modified"
 		})
 	
+	#Check size
+	h, w = bgr.shape[:2]
+	if max_size > 0 and h*w > max_size:
+		scale = max_size / (h*w)
+		dsize = int(w*scale), int(h*scale)
+		bgr = cv2.resize(bgr, dsize=dsize, interpolation=cv2.INTER_AREA)
+	
 	output = runner.as_input(bgr)
 	output = runner.run_frame(output)
 	output = runner.get_pfm(output)
 
-	jpg = cv2.imencode(".jpg", bgr)[1]
+	jpg = cv2.imencode('.'+image_format, bgr)[1] #".jpg"
 	#jpg = np.array(jpg)
 	jpg = jpg.tobytes()
 
@@ -253,17 +263,38 @@ def on_req_image_and_depth_request_stop(mdict, data=None):
 	})
 
 if __name__ == "__main__":
+	
+	signal.signal(signal.SIGINT, signal.SIG_DFL) #For KeyboardInterrupt
+
 	parser = argparse.ArgumentParser()
 
 	default_port = 5556
 	parser.add_argument("-p", "--port",
 		help=f"port number. defaults to {default_port}.",
-		default=None
+		default=default_port
 	)
 
-	depth.add_runner_argparser(parser)
+	default_max_size = 1920*1080 #1080p
+	parser.add_argument("-m", "--max_size",
+		help=f"max size (pixel count) of the image. defaults to {default_max_size}. enter a negative integer to disable this.",
+		default=default_max_size,
+		type=int,
+	)
+
+	default_image_format = "jpg"
+	parser.add_argument("--image_format",
+		help=f"the format of the image. defaults to {default_image_format}",
+		default=default_image_format,
+		choices=["jpg", "ppm"],
+	)
 	
+	depth.add_runner_argparser(parser)
 	args = parser.parse_args()
+
+	image_format = args.image_format
+	print(f"image_format: {image_format}")
+	max_size = args.max_size
+	print(f"max_size: {max_size}")
 
 	player = Player()
 
@@ -274,7 +305,8 @@ if __name__ == "__main__":
 	runner.run_frame(dummy)
 	print("ffpymq: Done.")
 
-	port = args.port if args.port is not None else default_port
+	#port = args.port if args.port is not None else default_port
+	port = args.port
 	mq = mqpy.MQ({
 		("REQ", "HANDSHAKE_IMAGE_AND_DEPTH"): on_req_handshake_image_and_depth,
 		("REQ", "IMAGE_AND_DEPTH"): on_req_image_and_depth,
@@ -282,9 +314,9 @@ if __name__ == "__main__":
 		("REQ", "IMAGE_AND_DEPTH_REQUEST_PLAY"): on_req_image_and_depth_request_play,
 		("REQ", "IMAGE_AND_DEPTH_REQUEST_PAUSE"): on_req_image_and_depth_request_pause,
 		("REQ", "IMAGE_AND_DEPTH_REQUEST_STOP"): on_req_image_and_depth_request_stop,
-		
 	})
 	mq.bind(port)
 
+	print('*'*64)
 	while True:
 		mq.receive()
