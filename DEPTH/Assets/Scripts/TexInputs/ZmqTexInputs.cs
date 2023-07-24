@@ -225,7 +225,7 @@ public class ZmqTexInputs : TexInputs {
 		_mq.Receive();
 
 		_noUpdate = isImage;
-		_noUpdateBuffer = 4; //Not in effect when _noUpdate == false
+		_noUpdateBuffer = 2; //Not in effect when _noUpdate == false
 	}
 
 	public void RequestPause() {
