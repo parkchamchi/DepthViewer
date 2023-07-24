@@ -241,8 +241,11 @@ public class ZmqTexInputs : TexInputs {
 	private void OnResImageAndDepthRequestStop(Mdict mdict, byte[] data) {}
 
 	public void Dispose() {
-		if (_isConnected)
+		if (_isConnected) {
 			RequestStop();
-		_mq.Dispose();
+			_isConnected = false;
+		}
+		_mq?.Dispose();
+		_mq = null;
 	}
 }
