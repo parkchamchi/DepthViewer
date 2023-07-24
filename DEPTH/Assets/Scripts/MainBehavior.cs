@@ -359,7 +359,7 @@ public class MainBehavior : MonoBehaviour {
 
 		//Pass to ZmqTexInputs if it is connected
 		if (_zmqTexInputs != null && _zmqTexInputs.IsConnected)
-			if (ftype == FileTypes.Vid || ftype == FileTypes.Gif)
+			if (ftype == FileTypes.Vid || ftype == FileTypes.Gif || ftype == FileTypes.Img)
 				ftype = FileTypes.Zmq;
 
 		_currentFileType = ftype;
@@ -378,7 +378,7 @@ public class MainBehavior : MonoBehaviour {
 			_texInputs = new PgmTexInputs(filepath, _meshBehav);
 			break;
 		case FileTypes.Zmq:
-			_zmqTexInputs.RequestPlay(filepath);
+			_zmqTexInputs.RequestPlay(filepath, isImage: (Exts.FileTypeCheck(filepath) == FileTypes.Img));
 			_texInputs = _zmqTexInputs;
 			break;
 		default:
@@ -444,7 +444,7 @@ public class MainBehavior : MonoBehaviour {
 			_zmqTexInputs = null;
 		}
 		else {
-			Debug.Log($"Connected to the port {port}! Passing Video/Gif inputs to this.");
+			Debug.Log($"Connected to the port {port}! Passing Video/Gif/Img inputs to this.");
 			Cleanup();
 			_texInputs = _zmqTexInputs;
 		}

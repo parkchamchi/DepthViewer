@@ -28,6 +28,9 @@ public class ZmqTexInputs : TexInputs {
 	private bool _isConnected = false;
 	private int _consecutiveFails = 0;
 
+	private bool _noUpdate = false;
+	private int _noUpdateBuffer = 0; //When _noUpdate is True, decrease this until it reaches 0, and when it is 0 the tex will not update.
+
 	private Texture _tex;
 	private Depth _depth;
 
@@ -86,6 +89,9 @@ public class ZmqTexInputs : TexInputs {
 	}
 
 	public void UpdateTex() {
+		if (_noUpdate && _noUpdateBuffer <= 0)
+			return;
+
 		if (!_isConnected) {
 			UITextSet.StatusText.text = "Not connected...";
 			return;
@@ -123,6 +129,9 @@ public class ZmqTexInputs : TexInputs {
 		if (_depth != null) {
 			_dmesh.SetScene(_depth, _tex);
 			UITextSet.StatusText.text = "Received!";
+
+			if (_noUpdate && _noUpdateBuffer > 0) //See the definition for these fields
+				_noUpdateBuffer--;
 		}
 		else {
 			UITextSet.StatusText.text = "Skipping.";
@@ -203,7 +212,7 @@ public class ZmqTexInputs : TexInputs {
 		}
 	}
 
-	public void RequestPlay(string path) {
+	public void RequestPlay(string path, bool isImage=false) {
 		Debug.Log($"ZmqTexInputs: Requesting {path}");
 
 		_mq.Send(
@@ -214,6 +223,9 @@ public class ZmqTexInputs : TexInputs {
 			path
 		);
 		_mq.Receive();
+
+		_noUpdate = isImage;
+		_noUpdateBuffer = 4; //Not in effect when _noUpdate == false
 	}
 
 	public void RequestPause() {
