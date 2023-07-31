@@ -24,6 +24,8 @@ public enum FileTypes {
 	Gif,
 	Pgm,
 	Zmq,
+
+	ImgZmq, VidZmq, //Image/Video files that `zmq_id` (ffmpeg) can handle - but UnityPlayer can't
 };
 
 public class MainBehavior : MonoBehaviour {
@@ -346,21 +348,31 @@ public class MainBehavior : MonoBehaviour {
 		}
 
 		bool isSupportedType = false;
-		var supportedFileTypes = new FileTypes[] {FileTypes.Img, FileTypes.Vid, FileTypes.Depth, FileTypes.Gif, FileTypes.Pgm};
+		var supportedFileTypes = new List<FileTypes>(new FileTypes[] {FileTypes.Img, FileTypes.Vid, FileTypes.Depth, FileTypes.Gif, FileTypes.Pgm});
+		//Add `zmq_id`-supported exts
+		if (_zmqTexInputs != null && _zmqTexInputs.IsConnected) {
+			supportedFileTypes.Add(FileTypes.ImgZmq);
+			supportedFileTypes.Add(FileTypes.VidZmq);
+		}
+
+		//Check if the `ftype` is in `supportedFileTypes`
 		foreach (var t in supportedFileTypes)
 			if (ftype == t) {
 				isSupportedType = true;
 				break;
 			}
-		if (!isSupportedType)
+		if (!isSupportedType) {
+			UITextSet.FilepathResultText.text = $"Unsupported type: {ftype}";
 			return;
+		}
 
 		Cleanup();
 
 		//Pass to ZmqTexInputs if it is connected
 		if (_zmqTexInputs != null && _zmqTexInputs.IsConnected)
-			if (ftype == FileTypes.Vid || ftype == FileTypes.Gif || ftype == FileTypes.Img)
-				ftype = FileTypes.Zmq;
+			foreach (var forzmq in new FileTypes[] {FileTypes.Vid, FileTypes.Img, FileTypes.Gif, FileTypes.ImgZmq, FileTypes.VidZmq})
+				if (ftype == forzmq)
+					ftype = FileTypes.Zmq;
 
 		_currentFileType = ftype;
 		UITextSet.FilepathResultText.text = $"Current Type: {ftype}";
@@ -378,7 +390,9 @@ public class MainBehavior : MonoBehaviour {
 			_texInputs = new PgmTexInputs(filepath, _meshBehav);
 			break;
 		case FileTypes.Zmq:
-			_zmqTexInputs.RequestPlay(filepath, isImage: (Exts.FileTypeCheck(filepath) == FileTypes.Img));
+			FileTypes ext = Exts.FileTypeCheck(filepath);
+			bool isImage = (ext == FileTypes.Img || ext == FileTypes.ImgZmq);
+			_zmqTexInputs.RequestPlay(filepath, isImage: isImage);
 			_texInputs = _zmqTexInputs;
 			break;
 		default:
@@ -883,6 +897,10 @@ public static class Exts {
 		ExtsDict.Add(FileTypes.Depth, new string[] {DepthFileUtils.DepthExt});
 		ExtsDict.Add(FileTypes.Gif, new string[] {".gif"});
 		ExtsDict.Add(FileTypes.Pgm, new string[] {".pgm"});
+
+		//See the definition for FileTypes
+		ExtsDict.Add(FileTypes.ImgZmq, new string[] {});
+		ExtsDict.Add(FileTypes.VidZmq, new string[] {".mkv"});
 
 		List<string> allExtsWithDotList = new List<string>();
 		List<string> allExtsWithoutDotList = new List<string>();
