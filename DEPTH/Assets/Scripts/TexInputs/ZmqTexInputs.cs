@@ -226,6 +226,7 @@ public class ZmqTexInputs : TexInputs {
 
 		_noUpdate = isImage;
 		_noUpdateBuffer = 2; //Not in effect when _noUpdate == false
+		_dmesh.ShouldUpdateDepth = isImage;
 	}
 
 	public void RequestPause() {
