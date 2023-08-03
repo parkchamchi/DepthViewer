@@ -113,6 +113,8 @@ public class ZmqTexInputs : TexInputs {
 			Debug.LogWarning("The server did not respond.");
 			_consecutiveFails++;
 
+			if (_tex != null)
+				UnityEngine.Object.Destroy(_tex);
 			_tex = null;
 			_depth = null;
 		}
@@ -122,6 +124,8 @@ public class ZmqTexInputs : TexInputs {
 			Debug.Log($"ZmqTexInputs.UpdateTex(): Disconnecting after {_consecutiveFails} failures.");
 			_isConnected = false;
 
+			if (_tex != null)
+				UnityEngine.Object.Destroy(_tex);
 			_tex = null;
 			_depth = null;
 		}
@@ -197,6 +201,8 @@ public class ZmqTexInputs : TexInputs {
 		Array.Copy(data, 0, imageBytes, 0, imageBytes.Length);
 		Array.Copy(data, lenImage, depthBytes, 0, depthBytes.Length);
 
+		if (_tex != null)
+			UnityEngine.Object.Destroy(_tex);
 		_tex = Utils.LoadImage(imageBytes);
 		_depth = DepthFileUtils.ReadPgmOrPfm(depthBytes, _dtype);
 	}
