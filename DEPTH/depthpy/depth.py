@@ -53,6 +53,9 @@ class Runner():
 	def run_frame(self, img) -> np.ndarray:
 		raise NotImplementedError()
 	
+	def run_frames(self, imgs: list) -> np.ndarray:
+		raise NotImplementedError()
+	
 	def __init__(self):
 		print("Initialize")
 
@@ -381,6 +384,8 @@ class PyTorchRunner(Runner):
 		self.model_params = new_model_params
 
 	def run_frame(self, img):
+		#Should be identical to `return run_frames([img])[0]`. Left for compability
+
 		# input
 		img_input = self.transform({"image": img})["image"]
 
@@ -401,6 +406,32 @@ class PyTorchRunner(Runner):
 		# output
 		out = self.normalize(prediction)
 		return out
+	
+	def run_frames(self, imgs: list) -> np.ndarray:
+		#Stack
+		frames = []
+		for img in imgs:
+			frame = self.transform({"image": img})["image"]
+			frames.append(frame)
+		frames = np.stack(frames)
+
+		#Compute
+		with torch.no_grad():
+			if "openvino" in self.model_type:
+				#not tested
+				#sample = [np.reshape(frames, (-1, 3, self.net_w, self.net_h))]
+				#print(f"sample.shape: {sample[0].shape}")
+				#prediction = self.model(sample)[self.model.output(0)]
+				raise NotImplementedError("Batch inference on OpenVINO models is not implemented yet (please make a GitHub issue)")
+			else:
+				sample = torch.from_numpy(frames).to(self.device)
+				if self.model_params.optimize == True and self.device == torch.device("cuda"):
+					sample = sample.to(memory_format=torch.channels_last)
+					sample = sample.half()
+				prediction = self.model.forward(sample)
+				prediction = prediction.cpu().numpy()
+
+		return prediction
 	
 def add_runner_argparser(parser):
 	parser.add_argument('-t', '--model_type',
