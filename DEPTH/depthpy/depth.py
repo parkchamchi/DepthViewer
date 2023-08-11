@@ -13,7 +13,7 @@ import time
 import hashlib
 import traceback
 import sys
-from typing import Union
+from typing import Union, Iterable, Tuple
 
 import numpy as np
 import cv2
@@ -53,7 +53,9 @@ class Runner():
 	def run_frame(self, img) -> np.ndarray:
 		raise NotImplementedError()
 	
-	def run_frames(self, imgs: list) -> np.ndarray:
+	def run_frames(self, imgs: Iterable) -> Tuple[int, np.ndarray]:
+		#Returns:
+		# 	# of valid frames, the frames
 		raise NotImplementedError()
 	
 	def __init__(self):
@@ -384,7 +386,7 @@ class PyTorchRunner(Runner):
 		self.model_params = new_model_params
 
 	def run_frame(self, img):
-		#Should be identical to `return run_frames([img])[0]`. Left for compability
+		#Should be identical to `return run_frames([img])[1][0]`. Left for compability
 
 		# input
 		img_input = self.transform({"image": img})["image"]
@@ -407,12 +409,27 @@ class PyTorchRunner(Runner):
 		out = self.normalize(prediction)
 		return out
 	
-	def run_frames(self, imgs: list) -> np.ndarray:
+	def run_frames(self, imgs: Iterable, batch_size=4) -> Tuple[int, np.ndarray]:
+		#Returns the number of valid frames and an ndarray of shape (batch_size, ...)
+
 		#Stack
 		frames = []
-		for img in imgs:
+		for i, img in enumerate(imgs):
+			if i >= batch_size:
+				break
+
 			frame = self.transform({"image": img})["image"]
 			frames.append(frame)
+
+		#Empty frames
+		if frames == []:
+			return 0, None
+		
+		#Add dummy frames
+		empty = batch_size - len(frames)
+		for _ in range(empty):
+			frames.append(np.zeros_like(frames[0]))
+
 		frames = np.stack(frames)
 
 		#Compute
@@ -431,7 +448,7 @@ class PyTorchRunner(Runner):
 				prediction = self.model.forward(sample)
 				prediction = prediction.cpu().numpy()
 
-		return prediction
+		return (batch_size - empty), prediction
 	
 def add_runner_argparser(parser):
 	parser.add_argument('-t', '--model_type',
