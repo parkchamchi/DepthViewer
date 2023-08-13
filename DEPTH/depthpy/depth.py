@@ -51,9 +51,10 @@ class Runner():
 		raise NotImplementedError()
 
 	def run_frame(self, img) -> np.ndarray:
+		#Should be identical to `run_frames([img])[1][0]`
 		raise NotImplementedError()
 	
-	def run_frames(self, imgs: Iterable) -> Tuple[int, np.ndarray]:
+	def run_frames(self, imgs: Iterable, batch_size) -> Tuple[int, np.ndarray]:
 		#Returns:
 		# 	# of valid frames, the frames
 		raise NotImplementedError()
@@ -87,7 +88,7 @@ class Runner():
 		os.chdir(orig_cwd)
 		return model_path
 
-	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True) -> None:
+	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True, batch_size=None) -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
 		Args:
@@ -95,6 +96,7 @@ class Runner():
 			outpath (str): output directory.
 			isvideo (bool): whether the input is a video.
 			zip_in_memory (bool): If True, ZIP file will be created in the RAM until it finishes writing.
+			batch_size (int | None): If valid integer, it will use `self.run_frames()`. Else, it will use `self.run_frame()`.
 		"""
 
 		print(f"Source: {inpath}")
@@ -128,56 +130,76 @@ class Runner():
 		else:
 			has_metadata = False
 		
-		width = height = 0 #for metadata
-		i = 0
-		for img in inputs:
-			print("! Processing #{}".format(i)) #starts with 0
+		has_written_metadata = False
+		frames_dict = {} #{pgmname: frame}, for batch inference
+		prev = time.time()
+		starttime = prev
+		
+		for i, img in enumerate(inputs):
+			#Save width, height & the original size
+			#Write the metadata
+			if not has_written_metadata and not has_metadata:
+				original_shape = img.shape[:2]
+
+				#Pass dummy data for the metadata. The first input may takes some time.
+				print("Passing a dummy data. This may take a second.")
+				dummy = np.zeros_like(img)
+				if batch_size is None:
+					dummy = self.run_frame(img)
+				else:
+					_, dummy = self.run_frames([dummy], batch_size=batch_size)
+					dummy = dummy[0] #Get the first one
+				shape = dummy.shape
+				
+				self.save_metadata(zout=zout, inpath=inpath, shape=shape, original_shape=original_shape)
+				has_written_metadata = True
+
+			print("! On #{}".format(i)) #starts with 0
 
 			pgmname = "{}.pgm".format(i)
 			if update and pgmname in existing_filelist:
 				print("Already exists.")
-				i += 1
 				continue
 			
-			out_ndarray = self.run_frame(img)
-			height, width = out_ndarray.shape[:2]
-			pgm = self.get_pgm(out_ndarray)
-			zout.writestr(pgmname, pgm)
+			#Using `run_frame()`
+			if batch_size is None: 
+				out_ndarray = self.run_frame(img)
+				pgm = self.get_pgm(out_ndarray)
+				zout.writestr(pgmname, pgm)
 
-			#save width, height & the original size
-			#Write the metadata
-			if i == 0 and not has_metadata:
-				print("Saving the metadata.")
+				now = time.time()
+				fps_per_inf = 1 / (now - prev)
+				print(f"Processed, fps: {1 / (now - prev) :.2f}")
+				prev = now
 
-				original_height, original_width = img.shape[:2]
-				
-				sha256 = hashlib.sha256()
-				with open(inpath, "rb") as fin:
-					while True:
-						datablock = fin.read(128*1024) #buffer it
-						if not datablock:
-							break
-						sha256.update(datablock)
-				hashval = sha256.hexdigest()
+			#Using `run_frames()` (Batch inference)
+			else:
+				##
+				def process_frames_dict(frames_dict):
+					#Process
+					print(f"Processing: {list(frames_dict.keys())}")
 
-				startframe = -1 #since we can't check this is opencv, set it a negative value
+					_, out_ndarrays = self.run_frames(frames_dict.values(), batch_size=batch_size)
+					for pgmname, out_ndarray in zip(frames_dict.keys(), out_ndarrays):
+						pgm = self.get_pgm(out_ndarray)
+						zout.writestr(pgmname, pgm)
+				##
 
-				original_name = os.path.basename(inpath)
-				framecount = self.framecount
-				original_framerate = self.framerate
-				timestamp = int(time.time())
-				version = VERSION
-				program = "depthpy"
+				frames_dict[pgmname] = img
+				if len(frames_dict) >= batch_size:
+					shape = process_frames_dict(frames_dict)
+					frames_dict = {} #Reset.
 
-				model_type = self.model_type
-				model_params = self.model_params
-				depth_map_type = self.depth_map_type
+					now = time.time()
+					fps_per_inf = 1 / (now - prev)
+					print(f"Processed, fps: {fps_per_inf :.2f} * {batch_size} == {fps_per_inf * batch_size :.2f}")
+					prev = now
 
-				metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_params=model_params, depth_map_type=depth_map_type, 
-					original_name=original_name, original_width=original_width, original_height=original_height, original_framerate=original_framerate, timestamp=timestamp, program=program, version=version)
-				zout.writestr("METADATA.txt", metadata, compresslevel=0)
+		#(Batch inference): Process the remaining ones
+		if batch_size is not None and frames_dict != {}: 
+			shape = process_frames_dict(frames_dict)
 
-			i += 1
+		print(f"Took {time.time() - starttime :.2f}s")
 
 		#ZipFile Close
 		zout.close()
@@ -199,6 +221,44 @@ class Runner():
 					break
 		
 			mem_buffer.close()
+
+	def save_metadata(self, zout, inpath, shape, original_shape):
+		"""
+		Args:
+			zout (zipfile.ZipFile): obj to `.writestr()`
+			inpath (str): the path of the input
+		"""
+
+		print("Saving the metadata.")
+
+		sha256 = hashlib.sha256()
+		with open(inpath, "rb") as fin:
+			while True:
+				datablock = fin.read(128*1024) #buffer it
+				if not datablock:
+					break
+				sha256.update(datablock)
+		hashval = sha256.hexdigest()
+
+		startframe = -1 #since we can't check this is opencv, set it a negative value
+
+		original_name = os.path.basename(inpath)
+		framecount = self.framecount
+		original_framerate = self.framerate
+		timestamp = int(time.time())
+		version = VERSION
+		program = "depthpy"
+
+		model_type = self.model_type
+		model_params = self.model_params
+		depth_map_type = self.depth_map_type
+
+		height, width = shape
+		original_height, original_width = original_shape
+
+		metadata = self.get_metadata(hashval=hashval, framecount=framecount, startframe=startframe, width=width, height=height, model_type=model_type, model_params=model_params, depth_map_type=depth_map_type, 
+			original_name=original_name, original_width=original_width, original_height=original_height, original_framerate=original_framerate, timestamp=timestamp, program=program, version=version)
+		zout.writestr("METADATA.txt", metadata, compresslevel=0)
 
 	def normalize(self, image):
 		#dtype = np.float32
@@ -409,7 +469,7 @@ class PyTorchRunner(Runner):
 		out = self.normalize(prediction)
 		return out
 	
-	def run_frames(self, imgs: Iterable, batch_size=4) -> Tuple[int, np.ndarray]:
+	def run_frames(self, imgs: Iterable, batch_size) -> Tuple[int, np.ndarray]:
 		#Returns the number of valid frames and an ndarray of shape (batch_size, ...)
 
 		#Stack
@@ -447,6 +507,10 @@ class PyTorchRunner(Runner):
 					sample = sample.half()
 				prediction = self.model.forward(sample)
 				prediction = prediction.cpu().numpy()
+
+		#Normalize, per frame
+		for i in range(batch_size):
+			prediction[i] = self.normalize(prediction[i])
 
 		return (batch_size - empty), prediction
 	
@@ -534,12 +598,20 @@ if __name__ == "__main__":
 			action="store_true"
 		)
 
+		parser.add_argument("--batch_size",
+			help="Batch size (experimental)",
+			type=int,
+			default=None,
+		)
+
 		add_runner_argparser(parser)
 
 		args = parser.parse_args()
 
 		print(f"input: {args.input}")
 		print(f"output: {args.output}")
+
+		print(f"batch_size: {args.batch_size}")
 
 		#Check if the input is of image ext but (not args.image)
 		if any(map(args.input.endswith, [".jpg", ".png"])) and not args.image:
@@ -550,7 +622,8 @@ if __name__ == "__main__":
 			exit(0)
 
 		runner = get_loaded_runner(args)
-		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate)
+		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate,
+			batch_size=args.batch_size)
 
 		print("Done.")
 	except Exception as exc:
