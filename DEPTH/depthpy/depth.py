@@ -358,6 +358,17 @@ class Runner():
 				print("Can't receive frame (stream end?). Exiting ...")
 				break
 
+			#Before `as_input()`, resize it
+			maxsize = max(self.net_w, self.net_h)
+			h, w = frame.shape[:2]
+			if max(h, w) > maxsize:
+				#...so that the shorter side's length equal `maxsize`
+				if h < w: #horizontally long (most case)
+					new_h, new_w = (maxsize, int(maxsize * (w / h)))
+				else: #vertically long
+					new_h, new_w = (int(maxsize * (h / w)), maxsize)
+				frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
 			yield self.as_input(frame)
 
 		cap.release()
