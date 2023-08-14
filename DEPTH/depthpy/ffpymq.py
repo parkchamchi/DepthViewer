@@ -117,6 +117,8 @@ player = None
 image_format = None
 max_size = None
 
+prev_time = None
+
 class Player:
 	def __init__(self):
 		self.player = None
@@ -214,6 +216,13 @@ def on_req_image_and_depth(mdict, data=None):
 	jpg = cv2.imencode('.'+image_format, bgr)[1] #".jpg"
 	#jpg = np.array(jpg)
 	jpg = jpg.tobytes()
+
+	#Indicate the FPS
+	global prev_time
+	now_time = time.time()
+	if prev_time is not None:
+		print(f"--------fps: {1 / (now_time - prev_time) :.2f}")
+	prev_time = now_time
 
 	len_image = str(len(jpg))
 	len_depth = str(len(output))
