@@ -108,14 +108,16 @@ import numpy as np
 import cv2
 
 import time
-from typing import Union
+from typing import Union, Callable
 import argparse
 import signal
+import threading
 
 runner = None
 player = None
 image_format = None
 max_size = None
+aynch = None
 
 prev_time = None
 
@@ -173,6 +175,35 @@ class Player:
 			self.sleepuntil = time.time() + val
 			return bgr
 		
+def resize_frame(bgr):
+	h, w = bgr.shape[:2]
+	if max_size > 0 and h*w > max_size:
+		scale = max_size / (h*w)
+		dsize = int(w*scale), int(h*scale)
+		bgr = cv2.resize(bgr, dsize=dsize, interpolation=cv2.INTER_AREA)
+
+	return bgr		
+		
+class AsynchProcessor:
+	def __init__(self, get_frame: Callable[[], np.ndarray], run_frame: Callable[[np.ndarray], np.ndarray]):
+		self.get_frame = get_frame
+		self.run_frame = run_frame
+
+		self.cur = (None, None)
+
+	def loop(self):
+		while True:
+			self.process()
+		
+	def process(self):
+		frame = self.get_frame()
+		if frame is None:
+			return
+
+		frame = resize_frame(frame)
+		out = self.run_frame(frame)
+		self.cur = (frame, out)
+
 def on_req_handshake_image_and_depth(mdict, data=None):
 	pversion = mdict["pversion"]
 	if int(pversion) > mqpy.PVERSION:
@@ -191,7 +222,10 @@ def on_req_handshake_image_and_depth(mdict, data=None):
 	})
 
 def on_req_image_and_depth(mdict, data=None):
-	bgr = player.get_frame()
+	if asynch:
+		bgr, output = asynch.cur
+	else:
+		bgr = player.get_frame()
 
 	#if not modified
 	if bgr is None:
@@ -201,16 +235,14 @@ def on_req_image_and_depth(mdict, data=None):
 
 			"status": "not_modified"
 		})
-	
-	#Check size
-	h, w = bgr.shape[:2]
-	if max_size > 0 and h*w > max_size:
-		scale = max_size / (h*w)
-		dsize = int(w*scale), int(h*scale)
-		bgr = cv2.resize(bgr, dsize=dsize, interpolation=cv2.INTER_AREA)
-	
-	output = runner.as_input(bgr)
-	output = runner.run_frame(output)
+		
+	#Infer
+	if not asynch:
+		#Check size
+		bgr = resize_frame(bgr)
+		output = runner.as_input(bgr)
+		output = runner.run_frame(output)
+
 	output = runner.get_pfm(output)
 
 	jpg = cv2.imencode('.'+image_format, bgr)[1] #".jpg"
@@ -296,6 +328,11 @@ if __name__ == "__main__":
 		default=default_image_format,
 		choices=["jpg", "ppm"],
 	)
+
+	parser.add_argument("--asynch",
+		help="process asynchronously. EXPERIMENTAL",
+		action="store_true",
+	)
 	
 	depth.add_runner_argparser(parser)
 	args = parser.parse_args()
@@ -304,10 +341,12 @@ if __name__ == "__main__":
 	print(f"image_format: {image_format}")
 	max_size = args.max_size
 	print(f"max_size: {max_size}")
+	asynch = args.asynch
+	print(f"asynch: {asynch}")
 
 	player = Player()
 
-	runner = runner = depth.get_loaded_runner(args)
+	runner = depth.get_loaded_runner(args)
 
 	print("ffpymq: Preparing the model. This may take some time.")
 	dummy = np.zeros((512, 512, 3), dtype=np.float32)
@@ -326,6 +365,19 @@ if __name__ == "__main__":
 	})
 	mq.bind(port)
 
+
 	print('*'*64)
-	while True:
-		mq.receive()
+
+	#Have ZMQ as a seperate thread (since ffpyplayer is not thread-safe) when asynch
+	def loop():
+		while True:
+			mq.receive()
+
+	if asynch:
+		asynch = AsynchProcessor(player.get_frame, runner.run_frame)
+		t = threading.Thread(target=loop)
+		t.start()
+		asynch.loop()
+		exit(0)
+	else:
+		loop()
