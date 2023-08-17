@@ -191,9 +191,14 @@ class AsynchProcessor:
 
 		self.cur = (None, None)
 
+		self.paused = True
+
 	def loop(self):
 		while True:
-			self.process()
+			if not self.paused:
+				self.process()
+			else:
+				self.clean()
 		
 	def process(self):
 		frame = self.get_frame()
@@ -203,6 +208,13 @@ class AsynchProcessor:
 		frame = resize_frame(frame)
 		out = self.run_frame(frame)
 		self.cur = (frame, out)
+
+		#Changed in the other thread
+		if self.paused:
+			self.clean()
+
+	def clean(self):
+		self.cur = (None, None)
 
 def on_req_handshake_image_and_depth(mdict, data=None):
 	pversion = mdict["pversion"]
@@ -270,9 +282,19 @@ def on_req_image_and_depth(mdict, data=None):
 	}, data=jpg+output)
 
 def on_req_image_and_depth_request_play(mdict, data):
+	if asynch:
+		asynch.paused = True
+
+	player.stop()
 	path = data.decode("utf-8")
 	print(f"Playing `{path}`")
 	player.play(path)
+
+	if asynch:
+		#Infer the first one
+		asynch.clean()
+		asynch.paused = False
+		asynch.process()
 
 	return mqpy.create_message({
 		"ptype": "RES",
@@ -378,6 +400,10 @@ if __name__ == "__main__":
 		t = threading.Thread(target=loop)
 		t.start()
 		asynch.loop()
-		exit(0)
+
+		#Exit
+		print("Exiting...")
+		asynch.paused = True
+		exit(0) #Can't reach here?
 	else:
 		loop()
