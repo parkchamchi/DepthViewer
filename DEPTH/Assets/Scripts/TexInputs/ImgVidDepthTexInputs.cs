@@ -454,7 +454,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		}
 	}
 
-	public void StartRecording(int size=2048) {
+	public void StartRecording(int size=2048, bool flat=false) {
+		_vrrecord.OutputType = (flat) ? VRRecordOutputType.Flat : VRRecordOutputType.Eq360;
 		_vrrecord.Size = size;
 
 		Utils.CreateDirectory(_recordPath);
@@ -463,6 +464,10 @@ public class ImgVidDepthTexInputs : TexInputs {
 			//Image --> capture and exit (scene is already set)
 			Capture();
 			UITextSet.StatusText.text = "Captured!";
+
+			//Wait for it
+			Task.WaitAll(_processedFrames.ToArray());
+			_processedFrames.Clear();
 
 			return; //code below will not execused.
 		}
@@ -658,6 +663,16 @@ public class ImgVidDepthTexInputs : TexInputs {
 			Debug.Log("Will generate a sequence of images. (4096px)");
 			StartRecording(4096);
 			break;
+
+		case "record2048f":
+			Debug.Log("Will generate a sequence of images. (2048px, flat)");
+			StartRecording(2048, true);
+			break;
+		case "record4096f":
+			Debug.Log("Will generate a sequence of images. (4096px, flat)");
+			StartRecording(4096, true);
+			break;
+
 
 		case "e": //save on the first frame
 			ExportParams(overwrite: true, init: true);

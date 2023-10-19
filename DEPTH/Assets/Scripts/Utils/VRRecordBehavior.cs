@@ -2,8 +2,14 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 
+public enum VRRecordOutputType {
+	Eq360,
+	Flat,
+};
+
 public interface IVRRecord {
 	public int Size {set;}
+	public VRRecordOutputType OutputType {set;}
 	public Task Capture(string outputpath, string format);
 }
 
@@ -22,7 +28,10 @@ public class VRRecordBehavior : MonoBehaviour, IVRRecord {
 	private RenderTexture _cmRTR;
 	private RenderTexture _equiRT;
 
-	private int _size;
+	//private VRRecordOutputType _outputType = VRRecordOutputType.Flat;
+	public VRRecordOutputType OutputType {private get; set;} = VRRecordOutputType.Eq360;
+
+	//private int _size;
 	public int Size {
 		set {
 			switch (value) {
@@ -62,16 +71,42 @@ public class VRRecordBehavior : MonoBehaviour, IVRRecord {
 
 		mainCamera.stereoSeparation = 0.065f;
 
-		mainCamera.RenderToCubemap(_cmRTL, 63, Camera.MonoOrStereoscopicEye.Left);
-		mainCamera.RenderToCubemap(_cmRTR, 63, Camera.MonoOrStereoscopicEye.Right);
+		//`faskmask` be: (+x, -x, +y, -y, +z, -z)
+		//To use the Left/Right parameters, the first arguement has to be a (cubemap) RenderTexture, not a `Cubemap` object.
+		mainCamera.RenderToCubemap(_cmRTL, 0b111111, Camera.MonoOrStereoscopicEye.Left); //left eye to a cubemap RenderTexture
+		mainCamera.RenderToCubemap(_cmRTR, 0b111111, Camera.MonoOrStereoscopicEye.Right); //right eye
 		
-		_cmRTL.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Left);
-		_cmRTR.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Right);
+		Texture2D tex = null; //output
 
-		Texture2D tex = new Texture2D(_equiRT.width, _equiRT.height);
-		RenderTexture.active = _equiRT;
-		tex.ReadPixels(new Rect(0, 0, _equiRT.width, _equiRT.height), 0, 0);
-		RenderTexture.active = null;
+		switch (OutputType) {
+		case VRRecordOutputType.Eq360:
+			_cmRTL.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Left);
+			_cmRTR.ConvertToEquirect(_equiRT, Camera.MonoOrStereoscopicEye.Right);
+
+			tex = new Texture2D(_equiRT.width, _equiRT.height);
+			RenderTexture.active = _equiRT;
+			tex.ReadPixels(new Rect(0, 0, _equiRT.width, _equiRT.height), 0, 0); //tex <- equirect
+			RenderTexture.active = null;
+
+			break;
+
+		case VRRecordOutputType.Flat:
+			//How can the front texture of the _cmRTL fetched to a Texture2D?
+			//Is there a Cubemap equivalent of Texture2D.ReadPixels(), so it can read data from the RenderTexture?
+
+			//Cubemap cm = new Cubemap(2048, TextureFormat.RGBA32, false);
+
+			//RenderTexture.active = _cmRTL;
+			//cm.ReadPixels(new Rect(0, 0, _cmRTL.width, _cmRTL.height), 0, 0);
+			//RenderTexture.active = null;
+
+			break;
+
+		default:
+			Debug.LogError($"VRRecordBehavior.Capture: Got unknown VRRecordOutputType {OutputType}");
+			break;
+		}
+		
 		
 		//UnityException: EncodeToPNG can only be called from the main thread. :(
 		byte[] bytes = null;

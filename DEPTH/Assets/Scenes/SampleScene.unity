@@ -17799,6 +17799,7 @@ MonoBehaviour:
   VideoRewind: 260
   VideoPause: 261
   VideoForward: 262
+  UseMouseWheel: 1
   DirRandomAccessKeys: 
 --- !u!4 &1140753409
 Transform:
@@ -34109,6 +34110,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4034451153369790121, guid: f612ef9d0b33d0d4caa8c40b473ae7ff, type: 3}
+      propertyPath: flatRT
+      value: 
+      objectReference: {fileID: 8400000, guid: db99e99e5b208224ca08f64a2d5cea16, type: 2}
     - target: {fileID: 4034451153369790121, guid: f612ef9d0b33d0d4caa8c40b473ae7ff, type: 3}
       propertyPath: mainCamera
       value: 
