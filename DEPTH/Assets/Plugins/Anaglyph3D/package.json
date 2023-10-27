@@ -1,0 +1,16 @@
+{
+  "name": "com.developedwithlove.anaglyph",
+  "displayName": "Anaglyph",
+  "version": "2.1.1",
+  "unity": "2021.3",
+  "description": "Anaglyph 3D (red/cyan) render feature for Unity's URP",
+  "documentationUrl": "https://github.com/ryanslikesocool/URP-Anaglyph3D",
+  "dependencies": {
+    "com.unity.render-pipelines.universal": "12.1.8"
+  },
+  "author": {
+    "name": "Ryan Boyer",
+    "email": "ryanjboyer@gmail.com",
+    "url": "http://ryanjboyer.com/"
+  }
+}

@@ -185,6 +185,7 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [NetMQ](https://github.com/zeromq/netmq) (LGPL)
 - [AsyncIO](https://github.com/somdoron/AsyncIO) (MPL 2.0)
 - [NaCl.net](https://github.com/somdoron/NaCl.net) (MPL 2.0)
+- [Anaglyph3D](https://github.com/ryanslikesocool/Anaglyph3D) (MIT License)
 
 - [ZoeDepth](https://github.com/isl-org/ZoeDepth) (MIT License) *For Python scripts only*
 ```
