@@ -198,7 +198,35 @@ public class MainBehavior : MonoBehaviour {
 		catch (Exception exc) {
 			Debug.LogError($"Failed to load the options: {exc}");
 		}
+
+///////////////////////////////////////////
+// START anaglyph_modification
+///////////////////////////////////////////
+
+		//React to the change of CamDist
+		_meshBehav.ParamChanged += (paramname, value) => {
+			if (paramname != "CamDist") return;
+
+			Anaglyph3D.Settings settings = Anaglyph3D.Settings.GlobalSettings;
+			if (settings == null) return;
+
+			settings.lookTarget = value;
+		};
+		
+		addcmd("asp", "Set `spacing` for anaglyph 3d. Defaults to `0.2`.", "SetAnaglyphSpacing", this);
+		SetAnaglyphSpacing(0.2f);
 	}
+	
+	public void SetAnaglyphSpacing(float val) {
+		Anaglyph3D.Settings settings = Anaglyph3D.Settings.GlobalSettings;
+		if (settings == null) return;
+
+		settings.spacing = val;
+	}
+
+///////////////////////////////////////////
+// END anaglyph_modification
+///////////////////////////////////////////
 
 	void Update() {
 		/* Hide the UI */

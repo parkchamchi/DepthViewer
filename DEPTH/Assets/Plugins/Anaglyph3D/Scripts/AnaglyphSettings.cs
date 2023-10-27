@@ -36,5 +36,18 @@ namespace Anaglyph3D {
                 return _material;
             }
         }
+
+		///////////////////////////////////////////
+		// START anaglyph_modification
+		///////////////////////////////////////////
+
+		public static Settings GlobalSettings = null; //Should the first char capitalized? I can't quite remember the C# convention...
+		public Settings() {
+			GlobalSettings = this; //Export itself
+		}
+
+		///////////////////////////////////////////
+		// END anaglyph_modification
+		///////////////////////////////////////////
     }
 }
