@@ -75,6 +75,8 @@ public class MainBehavior : MonoBehaviour {
 
 	private ZmqTexInputs _zmqTexInputs = null; //If this is set, pass some inputs (vid/gif) to this.
 
+	private bool _hasExecutedInitCmds = false;
+
 	public bool DirRandom {
 		get => _dirRandom;
 
@@ -174,10 +176,13 @@ public class MainBehavior : MonoBehaviour {
 
 		addcmd("print_model_metadata", "Print the metadata of the current model (only supports ORT)", "PrintCurrentModelMetadata", this);
 		addcmd("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
+		addcmd("set_ort_gpu_provider", "Set the provider of the GPU accel. for ORT (try: `cuda`)", "SetOrtGpuProvider", this);
 		addcmd("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
 
 		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
 		addcmd("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
+
+		addcmd("echo", "Echo", "Echo", this);
 
 #if UNITY_EDITOR
 		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
@@ -254,6 +259,13 @@ public class MainBehavior : MonoBehaviour {
 
 		if (statusText != null)
 			UITextSet.StatusText.text = statusText;
+
+		//This can't be a async'd since some needs to be on the main thread
+		//Also can't be on Start() since some needs to be loaded initially
+		if (!_hasExecutedInitCmds) {
+			_hasExecutedInitCmds = true; //Don't care if the code below crashes
+			ExecuteInitCmds();
+		}
 	}
 
 	private void Cleanup() {
@@ -868,6 +880,26 @@ public void SetBrowseDirName(string dirname) {
 
 	public void SaveMeshAsAsset() =>
 		_meshBehav.SaveAsAsset();
+
+	public void ExecuteCmd(string cmd) {
+		Debug.Log($"Executing: {cmd}");
+		IngameDebugConsole.DebugLogConsole.ExecuteCommand(cmd);
+	}
+
+	public void ExecuteInitCmds() {
+		try {
+			string[] initcmds = Utils.GetInitCmds();
+			if (initcmds != null)
+				foreach (string cmd in initcmds)
+					ExecuteCmd(cmd);
+		}
+		catch (Exception exc) {
+			Debug.LogError($"Exception while parsing the initcmds: {exc}");
+		}
+	}
+
+	public void Echo(string str) =>
+		Debug.Log($"Echo: {str}");
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

@@ -13,6 +13,7 @@ public delegate void AddCommandDelegate(string command, string description, stri
 
 public static class Utils {
 	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
+	public static string InitCmdsPath {get {return $"{DepthFileUtils.SaveDir}/initcmds.txt";}}
 
 	public static Texture2D LoadImage(string path) {
 		if (!File.Exists(path)) {
@@ -163,5 +164,16 @@ public static class Utils {
 		arr2.CopyTo(concated, arr1.Length);
 
 		return concated;
+	}
+
+	public static string[] GetInitCmds() {
+		if (!File.Exists(InitCmdsPath)) {
+			File.WriteAllText(InitCmdsPath, "echo Enter_the_commands_here_(may_cause_inconsistencies_on_the_UI)");
+			return null;
+		}
+
+		string str = File.ReadAllText(InitCmdsPath);
+
+		return str.Split('\n');
 	}
 }
