@@ -1,3 +1,5 @@
+using IngameDebugConsole;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,8 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 
 using UnityEngine;
-
-using IngameDebugConsole;
 
 public delegate void AddCommandDelegate(string command, string description, string methodName, object instance, params string[] parameterNames);
 
@@ -175,5 +175,31 @@ public static class Utils {
 		string str = File.ReadAllText(InitCmdsPath);
 
 		return str.Split('\n');
+	}
+
+	[ConsoleMethod("echo", "Echo")]
+	public static void Echo(string str) =>
+		Debug.Log($"Echo: {str}");
+
+	[ConsoleMethod("start_process", "Start a process. Delimit with `*` (e.g. `python*ffpymq.py*--optimize)")]
+	public static void StartProcess(string str) {
+		string delimiter = "*";
+		
+		string[] split = str.Split(delimiter, 2);
+		string path = split[0];
+		string args = (split.Length > 1) ? split[1].Replace(delimiter, " ") : null;
+
+		StartProcess(path, args);
+	}
+
+	public static void StartProcess(string path, string args) {
+		Debug.Log($"Starting the process: `{path}` `{args}`");
+		System.Diagnostics.Process.Start(path, args);
+	}
+
+	[ConsoleMethod("sleep", "Sleep for msec")]
+	public static void Sleep(int msec) {
+		Debug.Log($"Sleeping. ({msec} msec)");
+		System.Threading.Thread.Sleep(msec);
 	}
 }

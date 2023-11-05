@@ -182,8 +182,6 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
 		addcmd("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
 
-		addcmd("echo", "Echo", "Echo", this);
-
 #if UNITY_EDITOR
 		addcmd("sa", "Save the mesh as an asset (Editor only)", "SaveMeshAsAsset", this);
 #endif
@@ -897,9 +895,6 @@ public void SetBrowseDirName(string dirname) {
 			Debug.LogError($"Exception while parsing the initcmds: {exc}");
 		}
 	}
-
-	public void Echo(string str) =>
-		Debug.Log($"Echo: {str}");
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
