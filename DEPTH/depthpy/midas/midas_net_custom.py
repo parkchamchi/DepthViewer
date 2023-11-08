@@ -14,7 +14,7 @@ class MidasNet_small(BaseModel):
     """
 
     def __init__(self, path=None, features=64, backbone="efficientnet_lite3", non_negative=True, exportable=True, channels_last=False, align_corners=True,
-        blocks={'expand': True}):
+        blocks={'expand': True}, strict=True):
         """Init.
 
         Args:
@@ -67,7 +67,7 @@ class MidasNet_small(BaseModel):
         )
         
         if path:
-            self.load(path)
+            self.load(path, strict=strict)
 
 
     def forward(self, x):

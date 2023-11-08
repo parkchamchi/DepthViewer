@@ -26,7 +26,7 @@ default_models = {
 }
 
 
-def load_model(device, model_path, model_type="dpt_large_384", optimize=True, height=None, square=False):
+def load_model(device, model_path, model_type="dpt_large_384", optimize=True, height=None, square=False, strict=True):
     """Load the specified network.
 
     Args:
@@ -51,6 +51,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="beitl16_512",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 512, 512
         resize_mode = "minimal"
@@ -61,6 +62,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="beitl16_384",
             non_negative=True,
+            strict=strict,            
         )
         net_w, net_h = 384, 384
         resize_mode = "minimal"
@@ -71,6 +73,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="beitb16_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         resize_mode = "minimal"
@@ -81,6 +84,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="swin2l24_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         keep_aspect_ratio = False
@@ -92,6 +96,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="swin2b24_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         keep_aspect_ratio = False
@@ -103,6 +108,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="swin2t16_256",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 256, 256
         keep_aspect_ratio = False
@@ -114,6 +120,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="swinl12_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         keep_aspect_ratio = False
@@ -125,6 +132,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="next_vit_large_6m",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         resize_mode = "minimal"
@@ -141,6 +149,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             non_negative=True,
             head_features_1=64,
             head_features_2=8,
+            strict=strict,
         )
         net_w, net_h = 224, 224
         keep_aspect_ratio = False
@@ -152,6 +161,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="vitl16_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         resize_mode = "minimal"
@@ -162,13 +172,14 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
             path=model_path,
             backbone="vitb_rn50_384",
             non_negative=True,
+            strict=strict,
         )
         net_w, net_h = 384, 384
         resize_mode = "minimal"
         normalization = NormalizeImage(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 
     elif model_type == "midas_v21_384":
-        model = MidasNet(model_path, non_negative=True)
+        model = MidasNet(model_path, non_negative=True, strict=strict)
         net_w, net_h = 384, 384
         resize_mode = "upper_bound"
         normalization = NormalizeImage(
@@ -177,7 +188,7 @@ def load_model(device, model_path, model_type="dpt_large_384", optimize=True, he
 
     elif model_type == "midas_v21_small_256":
         model = MidasNet_small(model_path, features=64, backbone="efficientnet_lite3", exportable=True,
-                               non_negative=True, blocks={'expand': True})
+                               non_negative=True, blocks={'expand': True}, strict=strict)
         net_w, net_h = 256, 256
         resize_mode = "upper_bound"
         normalization = NormalizeImage(

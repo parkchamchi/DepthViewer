@@ -2,7 +2,7 @@ import torch
 
 
 class BaseModel(torch.nn.Module):
-    def load(self, path):
+    def load(self, path, strict=True):
         """Load model from file.
 
         Args:
@@ -13,4 +13,6 @@ class BaseModel(torch.nn.Module):
         if "optimizer" in parameters:
             parameters = parameters["model"]
 
-        self.load_state_dict(parameters)
+        if not strict:
+            print("BaseModel: strict=False")
+        self.load_state_dict(parameters, strict=strict)

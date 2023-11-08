@@ -140,7 +140,7 @@ class DPT(BaseModel):
 
 
 class DPTDepthModel(DPT):
-    def __init__(self, path=None, non_negative=True, **kwargs):
+    def __init__(self, path=None, non_negative=True, strict=True, **kwargs):
         features = kwargs["features"] if "features" in kwargs else 256
         head_features_1 = kwargs["head_features_1"] if "head_features_1" in kwargs else features
         head_features_2 = kwargs["head_features_2"] if "head_features_2" in kwargs else 32
@@ -160,7 +160,7 @@ class DPTDepthModel(DPT):
         super().__init__(head, **kwargs)
 
         if path is not None:
-           self.load(path)
+           self.load(path, strict=strict)
 
     def forward(self, x):
         return super().forward(x).squeeze(dim=1)

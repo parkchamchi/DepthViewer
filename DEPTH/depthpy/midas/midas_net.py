@@ -13,7 +13,7 @@ class MidasNet(BaseModel):
     """Network for monocular depth estimation.
     """
 
-    def __init__(self, path=None, features=256, non_negative=True):
+    def __init__(self, path=None, features=256, non_negative=True, strict=True):
         """Init.
 
         Args:
@@ -44,7 +44,7 @@ class MidasNet(BaseModel):
         )
 
         if path:
-            self.load(path)
+            self.load(path, strict=strict)
 
     def forward(self, x):
         """Forward pass.

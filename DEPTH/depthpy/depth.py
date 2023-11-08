@@ -26,20 +26,22 @@ VERSION = "v0.9.1-beta.1"
 class ModelParams():
 	#this might as well just be a dictionary rather than a class
 
-	def __init__(self, optimize=False, height=None, square=None):
+	def __init__(self, optimize=False, height=None, square=None, strict=True):
 		self.optimize = optimize #to half floats
 		self.height = height #inference encoder image height
 		self.square = square #resize to a square resolution?
+		self.strict = strict #self.load_state_dict(parameters, strict=strict)
 
 	def __eq__(self, other):
 		return (
 			self.optimize == other.optimize 
 			and self.height == other.height
 			and self.square == other.square
+			and self.strict == other.strict
 		)
 
 	def __str__(self):
-		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}}}" #pseudo-dictionary
+		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}, 'strict'={self.strict}}}" #pseudo-dictionary
 
 class Runner():
 	def framework_init(self, **kwargs):
@@ -431,8 +433,8 @@ class PyTorchRunner(Runner):
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		print("device: %s" % self.device)
 
-	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None):
-		new_model_params = ModelParams(optimize=optimize, height=height, square=square)
+	def load_model(self, model_type="dpt_beit_large_512", optimize=False, height=None, square=None, strict=True):
+		new_model_params = ModelParams(optimize=optimize, height=height, square=square, strict=strict)
 
 		#check if the model exists
 		model_path = self.model_exists(model_type)
@@ -448,7 +450,7 @@ class PyTorchRunner(Runner):
 
 		orig_cwd = os.getcwd()
 		os.chdir(os.path.dirname(os.path.abspath(__file__)))
-		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, model_path, model_type, optimize, height, square)
+		self.model, self.transform, self.net_w, self.net_h = load_model(self.device, model_path, model_type, optimize, height, square, strict)
 		os.chdir(orig_cwd)
 
 		print("Loaded the model.")
@@ -532,9 +534,9 @@ def add_runner_argparser(parser):
 	)
 
 	parser.add_argument("--optimize",
-			help="Use the half-precision float. (Use with caution, because models like Swin require float precision to work properly and may yield non-finite depth values to some extent for half-floats.)",
-			action="store_true"
-		)
+		help="Use the half-precision float. (Use with caution, because models like Swin require float precision to work properly and may yield non-finite depth values to some extent for half-floats.)",
+		action="store_true"
+	)
 	parser.add_argument('--height',
 		type=int, default=None,
 		help='Preferred height of images feed into the encoder during inference. Note that the '
@@ -560,13 +562,17 @@ def add_runner_argparser(parser):
 		help="Execution provider to use with ORT.",
 		choices=["cpu", "cuda", "dml"],
 	)
+	parser.add_argument("--nostrict",
+		help="Set strict=False on load_state_dict",
+		action="store_true",
+	)
 
 def get_loaded_runner(args):
 	model_type = args.model_type
 
 	if args.runner == "pt":
 		runner = PyTorchRunner()
-		runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square)
+		runner.load_model(model_type=model_type, optimize=args.optimize, height=args.height, square=args.square, strict=not args.nostrict)
 	elif args.runner == "ort":
 		from ortrunner import OrtRunner
 		runner = OrtRunner()
