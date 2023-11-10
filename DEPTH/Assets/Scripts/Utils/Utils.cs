@@ -202,4 +202,13 @@ public static class Utils {
 		Debug.Log($"Sleeping. ({msec} msec)");
 		System.Threading.Thread.Sleep(msec);
 	}
+
+	[ConsoleMethod("set_camera_bg", "Set the background color for the camera.")]
+	public static void SetCameraBg(int r, int g, int b, int a) {
+		Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+
+		Color c = new Color(r, g, b, a);
+		Debug.Log($"Setting the background color to {c}");
+		camera.backgroundColor = c;
+	}
 }
