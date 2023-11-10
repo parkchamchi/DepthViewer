@@ -11,6 +11,7 @@ using IngameDebugConsole;
 public static class Utils {
 	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
 	public static string PythonPath {get; set;} = "python"; //virtually not used anymore
+	public static string InitCmdsPath {get {return $"{DepthFileUtils.SaveDir}/initcmds.txt";}}
 
 	[ConsoleMethod("set_python_path", "Set the path for python, which were used for the Call Python buttons (replaced by `send_msg CallPythonHybrid` and `...Large`)")]
 	public static void SetPythonPath(string path) =>
@@ -98,5 +99,51 @@ public static class Utils {
 		if (saveOutput) output += "saveOutput\n";
 
 		File.WriteAllText(OptionsPath, output);
+	}
+
+	public static string[] GetInitCmds() {
+		if (!File.Exists(InitCmdsPath)) {
+			File.WriteAllText(InitCmdsPath, "echo Enter_the_commands_here_(may_cause_inconsistencies_on_the_UI)");
+			return null;
+		}
+
+		string str = File.ReadAllText(InitCmdsPath);
+
+		return str.Split('\n');
+	}
+
+	[ConsoleMethod("echo", "Echo")]
+	public static void Echo(string str) =>
+		Debug.Log($"Echo: {str}");
+
+	[ConsoleMethod("start_process", "Start a process. Delimit with `*` (e.g. `python*ffpymq.py*--optimize)")]
+	public static void StartProcess(string str) {
+		string delimiter = "*";
+
+		string[] split = str.Split(delimiter, 2);
+		string path = split[0];
+		string args = (split.Length > 1) ? split[1].Replace(delimiter, " ") : null;
+
+		StartProcess(path, args);
+	}
+
+	public static void StartProcess(string path, string args) {
+		Debug.Log($"Starting the process: `{path}` `{args}`");
+		System.Diagnostics.Process.Start(path, args);
+	}
+
+	[ConsoleMethod("sleep", "Sleep for msec")]
+	public static void Sleep(int msec) {
+		Debug.Log($"Sleeping. ({msec} msec)");
+		System.Threading.Thread.Sleep(msec);
+	}
+
+	[ConsoleMethod("set_camera_bg", "Set the background color for the camera.")]
+	public static void SetCameraBg(int r, int g, int b, int a) {
+		Camera camera = GameObject.Find("MainCamera").GetComponent<Camera>();
+
+		Color c = new Color(r, g, b, a);
+		Debug.Log($"Setting the background color to {c}");
+		camera.backgroundColor = c;
 	}
 }

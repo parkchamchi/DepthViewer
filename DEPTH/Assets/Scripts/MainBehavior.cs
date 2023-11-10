@@ -72,6 +72,8 @@ public class MainBehavior : MonoBehaviour {
 	private List<int> _dirRandomIdxList;
 	private int _dirGifCount; //number of gif files of the dir.
 
+	private bool _hasExecutedInitCmds = false;
+
 #if UNITY_WEBGL
 	private bool _isVideo;
 #endif
@@ -164,6 +166,13 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_texInputs != null)
 			_texInputs.UpdateTex();
+
+		//This can't be a async'd since some needs to be on the main thread
+		//Also can't be on Start() since some needs to be loaded initially
+		if (!_hasExecutedInitCmds) {
+			_hasExecutedInitCmds = true; //Don't care if the code below crashes
+			ExecuteInitCmds();
+		}
 	}
 
 	private void Cleanup() {
@@ -673,6 +682,23 @@ public class MainBehavior : MonoBehaviour {
 		Debug.Log("DebugTmp() called.");
 
 		Debug.Log("DebugTmp() exiting.");
+	}
+
+	public void ExecuteCmd(string cmd) {
+		Debug.Log($"Executing: {cmd}");
+		IngameDebugConsole.DebugLogConsole.ExecuteCommand(cmd);
+	}
+
+	public void ExecuteInitCmds() {
+		try {
+			string[] initcmds = Utils.GetInitCmds();
+			if (initcmds != null)
+				foreach (string cmd in initcmds)
+					ExecuteCmd(cmd);
+		}
+		catch (Exception exc) {
+			Debug.LogError($"Exception while parsing the initcmds: {exc}");
+		}
 	}
 } 
 
