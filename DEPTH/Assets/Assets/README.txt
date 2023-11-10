@@ -1,4 +1,4 @@
-DepthViewer v0.7.10-skybox.2
+DepthViewer v0.7.10-skybox.3
 
 Right mouse key: hides the UI.
 WASD: rotate the mesh.

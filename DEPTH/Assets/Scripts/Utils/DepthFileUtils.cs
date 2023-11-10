@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 public static class DepthFileUtils {
-	public const string Version = "v0.7.10-skybox.2";
+	public const string Version = "v0.7.10-skybox.3";
 	
 	public const string DepthExt = ".depthviewer";
 

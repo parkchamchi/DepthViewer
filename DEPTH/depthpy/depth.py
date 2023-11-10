@@ -19,7 +19,7 @@ import torch
 
 from midas.model_loader import default_models, load_model
 
-VERSION = "v0.7.10-skybox.2"
+VERSION = "v0.7.10-skybox.3"
 
 class ModelParams():
 	#this might as well just be a dictionary rather than a class
