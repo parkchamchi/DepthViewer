@@ -185,8 +185,9 @@ def resize_frame(bgr):
 	return bgr		
 		
 class AsynchProcessor:
-	def __init__(self, get_frame: Callable[[], np.ndarray], run_frame: Callable[[np.ndarray], np.ndarray]):
+	def __init__(self, get_frame: Callable[[], np.ndarray], as_input: Callable[[np.ndarray], np.ndarray], run_frame: Callable[[np.ndarray], np.ndarray]):
 		self.get_frame = get_frame
+		self.as_input = as_input
 		self.run_frame = run_frame
 
 		self.cur = (None, None)
@@ -206,7 +207,8 @@ class AsynchProcessor:
 			return
 
 		frame = resize_frame(frame)
-		out = self.run_frame(frame)
+		out = self.as_input(frame)
+		out = self.run_frame(out)
 		self.cur = (frame, out)
 
 		#Changed in the other thread
@@ -396,7 +398,7 @@ if __name__ == "__main__":
 			mq.receive()
 
 	if asynch:
-		asynch = AsynchProcessor(player.get_frame, runner.run_frame)
+		asynch = AsynchProcessor(player.get_frame, runner.as_input, runner.run_frame)
 		t = threading.Thread(target=loop)
 		t.start()
 		asynch.loop()
