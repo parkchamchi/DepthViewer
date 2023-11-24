@@ -90,7 +90,7 @@ class Runner():
 		os.chdir(orig_cwd)
 		return model_path
 
-	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True, batch_size=None) -> None:
+	def run(self, inpath, outpath, isimage, zip_in_memory=True, update=True, batch_size=None, frameformat="pgm") -> None:
 		"""Run MonoDepthNN to compute depth maps.
 
 		Args:
@@ -158,7 +158,7 @@ class Runner():
 
 			print("! On #{}".format(i)) #starts with 0
 
-			pgmname = "{}.pgm".format(i)
+			pgmname = f"{i}.{frameformat}"
 			if update and pgmname in existing_filelist:
 				print("Already exists.")
 				continue
@@ -166,7 +166,7 @@ class Runner():
 			#Using `run_frame()`
 			if batch_size is None: 
 				out_ndarray = self.run_frame(img)
-				pgm = self.get_pgm(out_ndarray)
+				pgm = self.get_framefile(out_ndarray, frameformat)
 				zout.writestr(pgmname, pgm)
 
 				now = time.time()
@@ -183,7 +183,7 @@ class Runner():
 
 					_, out_ndarrays = self.run_frames(frames_dict.values(), batch_size=batch_size)
 					for pgmname, out_ndarray in zip(frames_dict.keys(), out_ndarrays):
-						pgm = self.get_pgm(out_ndarray)
+						pgm = self.get_framefile(out_ndarray, frameformat)
 						zout.writestr(pgmname, pgm)
 				##
 
@@ -423,6 +423,14 @@ class Runner():
 
 		return pfm
 	
+	def get_framefile(self, image, frameformat):
+		if frameformat == "pgm":
+			return self.get_pgm(image)
+		elif frameformat == "pfm":
+			return self.get_pfm(image)
+		else:
+			assert False, f"Unknown frameformat: {frameformat}"
+	
 class PyTorchRunner(Runner):
 	def framework_init(self):
 		# set torch options
@@ -621,6 +629,12 @@ if __name__ == "__main__":
 			default=None,
 		)
 
+		default_frameformat = "pgm"
+		parser.add_argument("--frameformat",
+			help=f"The format of the frame file. Defaults to {default_frameformat}.",
+			default=default_frameformat,
+		)
+
 		add_runner_argparser(parser)
 
 		args = parser.parse_args()
@@ -640,7 +654,7 @@ if __name__ == "__main__":
 
 		runner = get_loaded_runner(args)
 		outs = runner.run(inpath=args.input, outpath=args.output, isimage=args.image, zip_in_memory=args.zip_in_memory, update=not args.noupdate,
-			batch_size=args.batch_size)
+			batch_size=args.batch_size, frameformat=args.frameformat)
 
 		print("Done.")
 	except Exception as exc:
