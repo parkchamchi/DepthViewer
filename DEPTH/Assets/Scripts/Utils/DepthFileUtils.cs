@@ -321,8 +321,12 @@ public static class DepthFileUtils {
 				count++;
 		*/
 
+		//Search both .pfm and .pgm files
 		for (int i = 0; i < _framecount; i++) {
-			ZipArchiveEntry entry = _archive.GetEntry($"{i}.pgm");
+			ZipArchiveEntry entry = _archive.GetEntry($"{i}.pfm");
+			if (entry == null)
+				entry = _archive.GetEntry($"{i}.pgm");
+
 			if (entry != null)
 				count++;
 		}
@@ -340,8 +344,14 @@ public static class DepthFileUtils {
 		}
 
 		//Read the frames
-		ZipArchiveEntry entry = _archive.GetEntry($"{frame}.pgm");
-		if (entry == null)
+		bool isPgm = false;
+
+		ZipArchiveEntry entry = _archive.GetEntry($"{frame}.pfm"); //PFM
+		if (entry == null) {//if not exists: PGM
+			entry = _archive.GetEntry($"{frame}.pgm");
+			isPgm = true;
+		}
+		if (entry == null) //else: return
 			return null;
 
 		byte[] pgm = new byte[entry.Length];
@@ -349,7 +359,7 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		Depth depth = ReadPgm(pgm);
+		Depth depth = ReadPgmOrPfm(pgm, dtype: (isPgm) ? DepthMapType.Inverse : DepthMapType.Metric);
 		return depth;
 	}
 

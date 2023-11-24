@@ -72,6 +72,10 @@ class Runner():
 		self.model_params = self.model_type = None
 		self.depth_map_type = "Inverse" #Or "Linear" or "Metric". Set in the subclasses.
 
+		#For read_video() optimization. Need not be set.
+		self.net_w = None
+		self.net_h = None
+
 	def model_exists(self, model_type) -> Union[str, None]:
 		orig_cwd = os.getcwd()
 		os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -360,16 +364,17 @@ class Runner():
 				print("Can't receive frame (stream end?). Exiting ...")
 				break
 
-			#Before `as_input()`, resize it
-			maxsize = max(self.net_w, self.net_h)
-			h, w = frame.shape[:2]
-			if max(h, w) > maxsize:
-				#...so that the shorter side's length equal `maxsize`
-				if h < w: #horizontally long (most case)
-					new_h, new_w = (maxsize, int(maxsize * (w / h)))
-				else: #vertically long
-					new_h, new_w = (int(maxsize * (h / w)), maxsize)
-				frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+			#Before `as_input()`, resize it (if net_w is set)
+			if self.net_w is not None and self.net_h is not None:
+				maxsize = max(self.net_w, self.net_h)
+				h, w = frame.shape[:2]
+				if max(h, w) > maxsize:
+					#...so that the shorter side's length equal `maxsize`
+					if h < w: #horizontally long (most case)
+						new_h, new_w = (maxsize, int(maxsize * (w / h)))
+					else: #vertically long
+						new_h, new_w = (int(maxsize * (h / w)), maxsize)
+					frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
 			yield self.as_input(frame)
 
