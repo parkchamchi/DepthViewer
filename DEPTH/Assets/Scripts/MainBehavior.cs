@@ -76,6 +76,7 @@ public class MainBehavior : MonoBehaviour {
 	private ZmqTexInputs _zmqTexInputs = null; //If this is set, pass some inputs (vid/gif) to this.
 
 	private bool _hasExecutedInitCmds = false;
+	private Queue<string> _cmdQ; //executed by one by each Update()
 
 	public bool DirRandom {
 		get => _dirRandom;
@@ -118,7 +119,13 @@ public class MainBehavior : MonoBehaviour {
 		ToggleSearchCache(); //init. _searchCache
 
 		/* Check the first arguement */
+		_cmdQ = new Queue<string>();
 		string[] args = System.Environment.GetCommandLineArgs();
+		for (int i = 1; i < args.Length; i++) {
+			string arg = args[i];
+			EnqueueCmd($"select_file \"{arg}\"");
+		}
+
 		if (args.Length > 1) {
 			string arg = args[1];
 			FileTypes argFileType = GetFileType(arg);
@@ -133,7 +140,7 @@ public class MainBehavior : MonoBehaviour {
 		_sendMsgKeyCodes = new KeyCode[] {
 			
 		};
-
+		
 		_fileSelecter = new StandaloneFileSelecter();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -164,6 +171,8 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputs", this);
+		addcmd("enqcmd", "Queue a command to be popped by each Update.", "EnqueueCmd", this);
+		addcmd("select_file", "Load the target file.", "SelectFile", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -263,6 +272,11 @@ public class MainBehavior : MonoBehaviour {
 		if (!_hasExecutedInitCmds) {
 			_hasExecutedInitCmds = true; //Don't care if the code below crashes
 			ExecuteInitCmds();
+		}
+
+		if (_cmdQ.Count > 0) {
+			string cmdFromQ = _cmdQ.Dequeue();
+			ExecuteCmd(cmdFromQ);
 		}
 	}
 
@@ -895,6 +909,9 @@ public void SetBrowseDirName(string dirname) {
 			Debug.LogError($"Exception while parsing the initcmds: {exc}");
 		}
 	}
+
+	public void EnqueueCmd(string cmd) =>
+		_cmdQ.Enqueue(cmd);
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {

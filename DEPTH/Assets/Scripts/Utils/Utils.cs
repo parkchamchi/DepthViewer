@@ -181,7 +181,7 @@ public static class Utils {
 	public static void Echo(string str) =>
 		Debug.Log($"Echo: {str}");
 
-	[ConsoleMethod("start_process", "Start a process. Delimit with `*` (e.g. `python*ffpymq.py*--optimize)")]
+	[ConsoleMethod("start_process", "(Deprecated, use `start_proc`) Start a process. Delimit with `*` (e.g. `python*ffpymq.py*--optimize)")]
 	public static void StartProcess(string str) {
 		string delimiter = "*";
 		
@@ -192,6 +192,7 @@ public static class Utils {
 		StartProcess(path, args);
 	}
 
+	[ConsoleMethod("start_proc", "Start a process. (e.g. `python \"ffpymq.py --optimize\")")]
 	public static void StartProcess(string path, string args) {
 		Debug.Log($"Starting the process: `{path}` `{args}`");
 		System.Diagnostics.Process.Start(path, args);
