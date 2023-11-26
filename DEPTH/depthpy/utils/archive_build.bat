@@ -1,0 +1,1 @@
+7z a -t7z ../../../DepthViewer-LATESTV-win64.7z ../../../Build
