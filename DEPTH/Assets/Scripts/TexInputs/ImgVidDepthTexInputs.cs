@@ -61,6 +61,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 	private Dictionary<long, string> _paramsDict;
 	private bool _paramsDictChanged;
 
+	private bool _forceStopNotPauseOnLoopPoints; //This verbose variable decides if OnLoopPointReached() should use Pause() or Stop().
+
 	public ImgVidDepthTexInputs(
 		FileTypes ftype,
 		IDepthMesh dmesh,
@@ -71,7 +73,8 @@ public class ImgVidDepthTexInputs : TexInputs {
 		VideoPlayer vp,
 		IVRRecord vrrecord,
 
-		AsyncDepthModel asyncDmodel=null
+		AsyncDepthModel asyncDmodel=null,
+		bool forceStopNotPauseOnLoopPoints=false
 		)
 	{
 		if (ftype != FileTypes.Img && ftype != FileTypes.Vid && ftype != FileTypes.Depth) {
@@ -86,7 +89,9 @@ public class ImgVidDepthTexInputs : TexInputs {
 		_searchCache = searchCache;
 		_shouldUpdateArchive = _canUpdateArchive = canUpdateArchive;
 		_vrrecord = vrrecord;
+		
 		_asyncDmodel = asyncDmodel;
+		_forceStopNotPauseOnLoopPoints = forceStopNotPauseOnLoopPoints;
 
 		_recording = false;
 		_recordPath = $"{DepthFileUtils.SaveDir}/recordings/{Utils.GetTimestamp()}";
@@ -326,7 +331,15 @@ public class ImgVidDepthTexInputs : TexInputs {
 	}
 
 	private void OnLoopPointReached(VideoPlayer vp) {
-		vp.Stop();
+		/*
+			Until v0.9.1-beta.2, which subroutine was using was using vp.Stop(), which caused a milisecond of flickering.
+			While I believe that substituting it with .Pause() has no side effects since the tailing function calls have nothing to do with the `vp`,
+			I'll make a field member _forceStopNotPauseOnLoopPoints to decide which one to call.
+		*/
+		if (_forceStopNotPauseOnLoopPoints)
+			vp.Stop();
+		else
+			vp.Pause();
 
 		/* Does not work (why?)
 		if (_currentFileType == FileTypes.Vid && _recording) {

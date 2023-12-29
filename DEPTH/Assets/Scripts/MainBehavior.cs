@@ -78,6 +78,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _hasExecutedInitCmds = false;
 	private Queue<string> _cmdQ; //executed by one by each Update()
 
+	private bool _forceStopOnLoop = false; //See ImgVid...
+
 	public bool DirRandom {
 		get => _dirRandom;
 
@@ -189,6 +191,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
 
 		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
+		addcmd("force_stop_on_loop", "On native video inputs, force reload the video instead of pause on the loop points. Defaults to false.", "SetForceStopOnLoop", this); //See ImgVid...
 		addcmd("vrmode", "Enter VR mode (incomplete, controls won't work)", "EnterVrMode", this);
 
 #if UNITY_EDITOR
@@ -405,7 +408,7 @@ public class MainBehavior : MonoBehaviour {
 		case FileTypes.Img:
 		case FileTypes.Vid:
 		case FileTypes.Depth:
-			_texInputs = new ImgVidDepthTexInputs(_currentFileType, _meshBehav, _donnx, filepath, _searchCache, _canUpdateArchive, _vp, _vrRecordBehav, _serverBehav);
+			_texInputs = new ImgVidDepthTexInputs(_currentFileType, _meshBehav, _donnx, filepath, _searchCache, _canUpdateArchive, _vp, _vrRecordBehav, _serverBehav, forceStopNotPauseOnLoopPoints: _forceStopOnLoop);
 			break;
 		case FileTypes.Gif:
 			_texInputs = new GifTexInputs(filepath, _donnx, _meshBehav);
@@ -892,6 +895,11 @@ public void SetBrowseDirName(string dirname) {
 
 	public void SaveMeshAsAsset() =>
 		_meshBehav.SaveAsAsset();
+
+	public void SetForceStopOnLoop(bool val) {
+		Debug.Log($"Setting _forceStopOnLoop as: {val}");
+		_forceStopOnLoop = val;
+	}
 
 	public void ExecuteCmd(string cmd) {
 		Debug.Log($"Executing: {cmd}");
