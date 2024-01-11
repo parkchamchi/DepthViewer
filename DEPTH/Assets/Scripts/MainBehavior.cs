@@ -178,6 +178,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_zmq_timeout", "Set the timeout value for ZMQ", "SetZmqTimeout", this);
 		addcmd("set_zmq_fail_tol", "Set the fail tolerance value for ZMQ", "SetZmqFailTolerance", this);
 		addcmd("enqcmd", "Queue a command to be popped by each Update.", "EnqueueCmd", this);
+		addcmd("enqcmd_after", "Queue a command after the set seconds", "EnqueueCmdAfter", this);
 		addcmd("select_file", "Load the target file.", "SelectFile", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
@@ -934,6 +935,15 @@ public void SetBrowseDirName(string dirname) {
 
 	public void EnqueueCmd(string cmd) =>
 		_cmdQ.Enqueue(cmd);
+
+	public void EnqueueCmdAfter(string cmd, int msec) {
+		Debug.Log($"Inserting \"{cmd}\" after {msec} msecs.");
+		Task.Run(() => {
+			System.Threading.Thread.Sleep(msec);
+			Debug.Log($"OK, Inserting \"{cmd}\"");
+			EnqueueCmd(cmd);
+		});
+	}
 
 	/* A method for debugging, called by the console method `dbg` */
 	public void DebugTmp() {
