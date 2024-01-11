@@ -187,6 +187,7 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [NaCl.net](https://github.com/somdoron/NaCl.net) (MPL 2.0)
 
 - [ZoeDepth](https://github.com/isl-org/ZoeDepth) (MIT License) *For Python scripts only*
+- [Marigold](https://github.com/prs-eth/Marigold) (Apache License 2.0) *For Python scripts only*
 ```
 @misc{https://doi.org/10.48550/arxiv.2302.12288,
   doi = {10.48550/ARXIV.2302.12288},

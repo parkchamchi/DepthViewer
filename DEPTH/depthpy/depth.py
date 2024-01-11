@@ -568,7 +568,8 @@ def add_runner_argparser(parser):
 		default="pt",
 		help="`pt`: PyTorch (default)\n"
 			"`ort`: Use OnnxRuntime. Options like `--optimize`, `--height`, `--square` will be ignored.\n"
-			"`zoe`: Use ZoeDepth (w/ PyTorch)"
+			"`zoe`: Use ZoeDepth (w/ PyTorch)\n"
+			"`mari`: Use Marigold (w/ PyTorch and other dep.s)"
 	)
 	parser.add_argument("--ort_ep",
 		default="cpu",
@@ -594,6 +595,10 @@ def get_loaded_runner(args):
 		from zoerunner import ZoeRunner
 		runner = ZoeRunner()
 		runner.load_model(model_type=model_type, height=args.height)
+	elif args.runner == "mari":
+		from marirunner import MariRunner
+		runner = MariRunner()
+		runner.load_model(model_type=model_type, optimize=args.optimize)
 	else:
 		raise ValueError(f"Unknwon runner {args.runner}")
 	
