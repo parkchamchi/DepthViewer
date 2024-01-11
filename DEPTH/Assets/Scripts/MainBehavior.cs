@@ -74,6 +74,8 @@ public class MainBehavior : MonoBehaviour {
 	private bool _dirRandom = false;
 
 	private ZmqTexInputs _zmqTexInputs = null; //If this is set, pass some inputs (vid/gif) to this.
+	private float _zmqTimeout = 2;
+	private int _zmqFailTolerance = 3;
 
 	private bool _hasExecutedInitCmds = false;
 	private Queue<string> _cmdQ; //executed by one by each Update()
@@ -173,6 +175,8 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_dof", "Set the DoF [3, 6]", "SetDof", this);
 		addcmd("zmq", "Load the ZeroMQ model", "LoadZmqModel", this);
 		addcmd("zmq_id", "Connect to the ZeroMQ for image & depth (ffpymq.py)", "SetZmqTexInputs", this);
+		addcmd("set_zmq_timeout", "Set the timeout value for ZMQ", "SetZmqTimeout", this);
+		addcmd("set_zmq_fail_tol", "Set the fail tolerance value for ZMQ", "SetZmqFailTolerance", this);
 		addcmd("enqcmd", "Queue a command to be popped by each Update.", "EnqueueCmd", this);
 		addcmd("select_file", "Load the target file.", "SelectFile", this);
 
@@ -477,7 +481,7 @@ public class MainBehavior : MonoBehaviour {
 		Debug.Log($"Setting the ZmqTexInputs port to {port}...");
 
 		_zmqTexInputs?.Dispose();
-		_zmqTexInputs = new ZmqTexInputs(_meshBehav, port);
+		_zmqTexInputs = new ZmqTexInputs(_meshBehav, port, timeout: _zmqTimeout, failTolerance: _zmqFailTolerance);
 
 		if (!_zmqTexInputs.IsConnected) {
 			Debug.LogWarning($"Counldn't connect to the port {port}.");
@@ -538,8 +542,18 @@ public class MainBehavior : MonoBehaviour {
 
 		UITextSet.StatusText.text = "RELOAD";
 
-		_donnx = _depthModelBehav.GetZmqDepthModel(port);
-	}	
+		_donnx = _depthModelBehav.GetZmqDepthModel(port, timeout: _zmqTimeout, failTolerance: _zmqFailTolerance);
+	}
+
+	public void SetZmqTimeout(float sec) {
+		_zmqTimeout = sec;
+		Debug.Log($"Zmq Timeout set to {sec}.");
+	}
+
+	public void SetZmqFailTolerance(int tries) {
+		_zmqFailTolerance = tries;
+		Debug.Log($"Zmq Fail Tolerance set to {tries}");
+	}
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);

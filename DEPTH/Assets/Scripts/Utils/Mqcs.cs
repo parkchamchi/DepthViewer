@@ -54,10 +54,12 @@ public class MQ : IDisposable {
 	private Handlers _handlers;
 	private RequestSocket _socket;
 
-	private const float _timeout = 2;
+	private float _timeout = 2;
 
-	public MQ(Handlers handlers) {
+	public MQ(Handlers handlers, float timeout=2) {
 		_handlers = handlers;
+		_timeout = timeout;
+		Debug.Log($"MQ: Timeout: {timeout}s");
 
 		//"this line is needed to prevent unity freeze after one use, not sure why yet" It's of `AsyncIO`.
 		ForceDotNet.Force();

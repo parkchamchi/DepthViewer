@@ -82,11 +82,11 @@ public class DepthModelBehavior : MonoBehaviour {
 	}
 
 	//Wrapper
-	public DepthModel GetZmqDepthModel(int port=5555, System.Action onDisposedCallback=null) {
+	public DepthModel GetZmqDepthModel(int port=5555, System.Action onDisposedCallback=null, float timeout=2, int failTolerance=3) {
 		_donnx?.Dispose();
 		_donnx = null;
 
-		_donnx = new ZmqDepthModel(port, onDisposedCallback);
+		_donnx = new ZmqDepthModel(port, onDisposedCallback, timeout: timeout, failTolerance: failTolerance);
 
 		return _donnx;
 	}

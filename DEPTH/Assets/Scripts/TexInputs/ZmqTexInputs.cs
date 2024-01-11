@@ -18,8 +18,8 @@ public class ZmqTexInputs : TexInputs {
 
 	private IDepthMesh _dmesh;
 
-	private const float _timeout = 2;
-	private const int _failTolerance = 3;
+	//private const float _timeout = 2;
+	private int _failTolerance = 3;
 
 	private MQ _mq;
 	private DepthMapType _dtype;
@@ -34,10 +34,11 @@ public class ZmqTexInputs : TexInputs {
 	private Texture _tex;
 	private Depth _depth;
 
-	public ZmqTexInputs(IDepthMesh dmesh, int port, string multimediaPath=null) {
+	public ZmqTexInputs(IDepthMesh dmesh, int port, string multimediaPath=null, float timeout=2, int failTolerance=3) {
 		_dmesh = dmesh;
+		_failTolerance = failTolerance;
 
-		Debug.Log($"ZmqTexInputs(): port: {port}");
+		Debug.Log($"ZmqTexInputs(): port: {port}, failTolerance: {failTolerance}");
 		_mq = new MQ(new Handlers {
 			{new PtypePname("RES", "ERROR"), OnResError},
 			{new PtypePname("RES", "HANDSHAKE_IMAGE_AND_DEPTH"), OnResHandshakeImageAndDepth},
@@ -46,7 +47,7 @@ public class ZmqTexInputs : TexInputs {
 			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_PLAY"), OnResImageAndDepthRequestPlay},
 			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_PAUSE"), OnResImageAndDepthRequestPause},
 			{new PtypePname("RES", "IMAGE_AND_DEPTH_REQUEST_STOP"), OnResImageAndDepthRequestStop},
-		});
+		}, timeout: timeout);
 		_mq.Connect(port);
 		Handshake();
 

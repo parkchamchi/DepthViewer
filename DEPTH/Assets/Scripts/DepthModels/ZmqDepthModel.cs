@@ -29,8 +29,8 @@ public class ZmqDepthModel : DepthModel {
 	public string ModelType {get; private set;}
 	public bool IsDisposed {get; private set;} = false;
 
-	private const float _timeout = 2;
-	private const int _failTolerance = 3; //Disconnects after n consecutive failures.
+	//private const float _timeout = 2;
+	private int _failTolerance = 3; //Disconnects after n consecutive failures.
 
 	//private RequestSocket _socket;
 	//private Mdict _handshakeMdict;
@@ -44,15 +44,16 @@ public class ZmqDepthModel : DepthModel {
 
 	private RenderTexture _rt;
 
-	public ZmqDepthModel(int port=5555, System.Action onDisposedCallback=null) {
-		Debug.Log($"ZmqDepthModel(): port: {port}");
+	public ZmqDepthModel(int port=5555, System.Action onDisposedCallback=null, float timeout=2, int failTolerance=3) {
 		_onDisposedCallback = onDisposedCallback;
+		_failTolerance = failTolerance;
+		Debug.Log($"ZmqDepthModel(): port: {port}, failTolerance: {failTolerance}");
 
 		_mq = new MQ(new Handlers {
 			{new PtypePname("RES", "ERROR"), OnResError},
 			{new PtypePname("RES", "HANDSHAKE_DEPTH"), OnResHandshakeDepth},
 			{new PtypePname("RES", "DEPTH"), OnResDepth},
-		});
+		}, timeout: timeout);
 		_mq.Connect(port);
 		Handshake();
 	}
