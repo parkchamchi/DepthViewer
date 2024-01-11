@@ -51,6 +51,7 @@ depthpy_files = [
 	"mqpy.py",
 	"ortrunner.py",
 	"zoerunner.py",
+	"marirunner.py",
 ]
 for filename in depthpy_files:
 	print(f"Copying {filename}")
