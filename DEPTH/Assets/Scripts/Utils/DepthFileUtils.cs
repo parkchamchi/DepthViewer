@@ -50,6 +50,8 @@ public static class DepthFileUtils {
 	private static long _count;
 	private static bool _isFull;
 
+	private static DepthMapType _dmaptype = DepthMapType.Inverse;
+
 	static DepthFileUtils() {
 		_savedir = Application.persistentDataPath;
 	}
@@ -57,6 +59,7 @@ public static class DepthFileUtils {
 	public static void Dispose() {
 		if (_archive != null)
 			_archive.Dispose();
+		_dmaptype = DepthMapType.Inverse;
 	}
 
 	public static void Reopen() {
@@ -272,6 +275,31 @@ public static class DepthFileUtils {
 		framecount = _framecount = int.Parse(metadata["framecount"]);
 		modelType = metadata["model_type"];
 
+		//Read the Depth Map Type
+		string dmaptypeStr;
+		_dmaptype = DepthMapType.Inverse;
+		bool dmaptypeKeyExists = metadata.TryGetValue("depth_map_type", out dmaptypeStr);	
+		if (dmaptypeKeyExists) {
+			switch (dmaptypeStr) {
+			case "Inverse":
+				_dmaptype = DepthMapType.Inverse; //redundant
+				break;
+			case "Linear":
+				_dmaptype = DepthMapType.Linear;
+				break;
+			case "Metric":
+				_dmaptype = DepthMapType.Metric;
+				break;
+			default:
+				Debug.LogWarning($"ReadDepthFile(): Unknown depth map type: {dmaptypeStr}. Falling back to Inverse.");
+				_dmaptype = DepthMapType.Inverse; //redundant
+				break;
+			}
+		}
+		else {
+			Debug.LogWarning("ReadDepthFile(): `depth_map_type` not found in the metadata. Falling back to Inverse.");
+		}
+
 		//Read the params, if it exists
 		string paramsStr;
 		ZipArchiveEntry paramsEntry = _archive.GetEntry(_paramsFilename);
@@ -344,12 +372,12 @@ public static class DepthFileUtils {
 		}
 
 		//Read the frames
-		bool isPgm = false;
+		//bool isPgm = false;
 
 		ZipArchiveEntry entry = _archive.GetEntry($"{frame}.pfm"); //PFM
 		if (entry == null) {//if not exists: PGM
 			entry = _archive.GetEntry($"{frame}.pgm");
-			isPgm = true;
+			//isPgm = true;
 		}
 		if (entry == null) //else: return
 			return null;
@@ -359,7 +387,7 @@ public static class DepthFileUtils {
 		using (BinaryReader br = new BinaryReader(entry.Open()))
 			pgm = br.ReadBytes(pgm.Length);
 		
-		Depth depth = ReadPgmOrPfm(pgm, dtype: (isPgm) ? DepthMapType.Inverse : DepthMapType.Metric);
+		Depth depth = ReadPgmOrPfm(pgm, dtype: _dmaptype);
 		return depth;
 	}
 
