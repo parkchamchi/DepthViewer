@@ -645,6 +645,12 @@ if __name__ == "__main__":
 			default=default_frameformat,
 		)
 
+		parser.add_argument("--detect_img_exts",
+			help="Detect image exts and process accordingly, even when `--image` is not given.\n"
+				+"This options is mostly not needed since cv2.VideoCapture() can replace cv.imread() in most cases.",
+			action="store_true",
+		)
+
 		add_runner_argparser(parser)
 
 		args = parser.parse_args()
@@ -655,8 +661,12 @@ if __name__ == "__main__":
 		print(f"batch_size: {args.batch_size}")
 
 		#Check if the input is of image ext but (not args.image)
-		if any(map(args.input.endswith, [".jpg", ".png"])) and not args.image:
-			print("Warning: input has an image ext but `-i` was not given.")
+		if any(map(args.input.endswith, [".jpg", ".jpeg", ".png"])) and not args.image:
+			if args.detect_img_exts:
+				print("Image ext detected, using cv2.imread().")
+				args.image = True
+			else:
+				print("Warning: input has an image ext but `-i` was not given.")
 
 		if not args.noupdate and args.image and os.path.exists(args.output):
 			print(f"Image: already exists: {args.output}. Use --noupdate to replace it.")
