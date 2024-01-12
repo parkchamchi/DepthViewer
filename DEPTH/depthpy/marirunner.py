@@ -24,7 +24,7 @@
 		# --------------------------------------------------------------------------
 """
 
-from depth import Runner
+from depth import Runner, ModelParams
 
 from Marigold.marigold import MarigoldPipeline
 from Marigold.marigold.util.seed_all import seed_all
@@ -54,16 +54,40 @@ class MariRunner(Runner):
 		self.depth_map_type = "Linear"
 
 		self.model_type = model_type
-		self.denoise_steps = denoise_steps
-		self.ensemble_size = ensemble_size
+		
 		self.height = height
 		self.batch_size = batch_size
 
+		aux_args = None
+		if "aux_args" in kwargs and kwargs["aux_args"] is not None:
+			aux_args = kwargs["aux_args"]
+			aux_args_list = aux_args.split(',')
+			for aux_arg in aux_args_list:
+				if "=" not in aux_arg:
+					print(f"Invalid aux_arg: {aux_arg}")
+					continue
+
+				k, v = aux_arg.split('=', maxsplit=1)
+				if k == "den_s":
+					print(f"Setting denoise_steps to {v}. This will ignore the original value {denoise_steps}.")
+					denoise_steps = int(v)
+				elif k == "ens_s":
+					print(f"Setting ensemble_size to {v}. This will ignore the original value {ensemble_size}.")
+					ensemble_size = int(v)
+				else:
+					print(f"Unknown aux_arg: {k}")
+
+		self.denoise_steps = denoise_steps
+		self.ensemble_size = ensemble_size
+
+		print(f"denoise_steps={denoise_steps}, ensemble_size={ensemble_size}")
 		if ensemble_size > 15:
 			print(f"Warning: Running with large ensemble size will be slow.")
 
 		if apple_silicon and 0 == batch_size:
 			batch_size = 1  # set default batchsize
+
+		self.model_params = ModelParams(optimize=optimize, height=height, aux_args=aux_args)
 
 		# -------------------- Preparation --------------------
 		# Random seed

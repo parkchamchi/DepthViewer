@@ -26,11 +26,12 @@ VERSION = "v0.9.1-beta.4"
 class ModelParams():
 	#this might as well just be a dictionary rather than a class
 
-	def __init__(self, optimize=False, height=None, square=None, strict=True):
+	def __init__(self, optimize=False, height=None, square=None, strict=True, aux_args=None):
 		self.optimize = optimize #to half floats
 		self.height = height #inference encoder image height
 		self.square = square #resize to a square resolution?
 		self.strict = strict #self.load_state_dict(parameters, strict=strict)
+		self.aux_args = aux_args #Aux. args to pass to load_model()
 
 	def __eq__(self, other):
 		return (
@@ -38,10 +39,14 @@ class ModelParams():
 			and self.height == other.height
 			and self.square == other.square
 			and self.strict == other.strict
+			and self.aux_args == other.aux_args
 		)
 
 	def __str__(self):
-		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}, 'strict'={self.strict}}}" #pseudo-dictionary
+		aux_args = self.aux_args
+		if isinstance(aux_args, str): #That is, not `None`
+			aux_args = f"'{aux_args}'"
+		return f"{{'optimize'={self.optimize}, 'height'={self.height}, 'square'={self.square}, 'strict'={self.strict}, 'aux_args'={aux_args}}}" #pseudo-dictionary
 
 class Runner():
 	def framework_init(self, **kwargs):
@@ -564,6 +569,11 @@ def add_runner_argparser(parser):
 		'images is tried to be preserved if supported by the model.'
 	)
 
+	parser.add_argument("--aux_args",
+		help="(experimental) Auxiliary args used in `load_model`. Does not support escape sequences.",
+		default=None,				 
+	)
+
 	parser.add_argument("-r", "--runner",
 		default="pt",
 		help="`pt`: PyTorch (default)\n"
@@ -598,7 +608,7 @@ def get_loaded_runner(args):
 	elif args.runner == "mari":
 		from marirunner import MariRunner
 		runner = MariRunner()
-		runner.load_model(model_type=model_type, optimize=args.optimize)
+		runner.load_model(model_type=model_type, optimize=args.optimize, aux_args=args.aux_args)
 	else:
 		raise ValueError(f"Unknwon runner {args.runner}")
 	
@@ -646,8 +656,7 @@ if __name__ == "__main__":
 		)
 
 		parser.add_argument("--detect_img_exts",
-			help="Detect image exts and process accordingly, even when `--image` is not given.\n"
-				+"This options is mostly not needed since cv2.VideoCapture() can replace cv.imread() in most cases.",
+			help="Detect image exts and process accordingly, even when `--image` is not given.",
 			action="store_true",
 		)
 
