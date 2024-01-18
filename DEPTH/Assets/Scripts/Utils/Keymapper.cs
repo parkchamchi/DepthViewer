@@ -20,6 +20,11 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode VideoPause = KeyCode.Keypad5;
 	public KeyCode VideoForward = KeyCode.Keypad6;
 
+	public KeyCode ParamPrev = KeyCode.KeypadDivide;
+	public KeyCode ParamNext = KeyCode.KeypadMultiply;
+	public KeyCode ParamLower = KeyCode.KeypadMinus;
+	public KeyCode ParamIncrease = KeyCode.KeypadPlus;
+	
 	//For files in dir
 	public bool UseMouseWheel = true;
 

@@ -13,6 +13,9 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 	private string _str;
 
 	private readonly string[] _paramnames = {"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL"};
+	private int _paramIdx = 0;
+
+	private const float _paramInterval = 0.01f;
 
 	void Start() {
 		_str = "......";
@@ -30,6 +33,37 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 	}
 
 	void Update() {
+		int origParamIdx = _paramIdx;
+		float delta = 0f;
+
+		if (Input.GetKeyDown(Keymapper.Inst.ParamPrev))
+			_paramIdx--;
+		else if (Input.GetKeyDown(Keymapper.Inst.ParamNext))
+			_paramIdx++;
+		else if (Input.GetKey(Keymapper.Inst.ParamLower))
+			delta = -_paramInterval;
+		else if (Input.GetKey(Keymapper.Inst.ParamIncrease))
+			delta = +_paramInterval;
+
+		//Keep the index in bound
+		int len = _paramnames.Length;
+		_paramIdx = ((_paramIdx % len) + len) % len; 
+
+		if (delta != 0f) {
+			string paramname = _paramnames[_paramIdx];
+			float val  = _paramd[paramname] + delta;
+
+			//Exceptional case: log
+			if (paramname == "DepthMultRL" && val == float.NegativeInfinity && delta > 0)
+				val = -1 + 0.00001f; //significantly small value
+
+			_dmesh.SetParam(paramname, val);
+		}
+
+		//Update the text
+		if (origParamIdx != _paramIdx || delta != 0f)
+			getText();
+
 		WorldText.text = _str;
 	}
 
@@ -43,8 +77,12 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 			newstr += statusTextObj.text + "\n\n";
 		*/
 
-		foreach (string k in _paramnames)
-			newstr += $"{k}: {_paramd[k]}\n";
+		string curParam = _paramnames[_paramIdx];
+		foreach (string k in _paramnames) {
+			if (k == curParam) //Show the current param
+				newstr += "> ";
+			newstr += $"{k}: {_paramd[k].ToString("0.##")}\n";
+		}
 
 		_str = newstr;
 	}
