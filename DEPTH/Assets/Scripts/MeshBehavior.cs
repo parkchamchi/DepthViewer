@@ -60,6 +60,7 @@ public interface IDepthMesh {
 	void SetMaterialFloat(string propertyname, float value); //wrapper for Material.SetFloat()
 
 	void SetParam(string paramname, float value);
+	float GetParam(string paramname);
 	void ToDefault();
 
 	event System.Action<string, float> ParamChanged; //paramname, value

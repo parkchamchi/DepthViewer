@@ -146,6 +146,9 @@ public static class Utils {
 	public static MainBehavior GetMainBehav() =>
 		GameObject.Find("MainManager").GetComponent<MainBehavior>();
 
+	public static IDepthMesh GetDepthMesh() =>
+		(IDepthMesh) GameObject.Find("DepthPlane").GetComponent<MeshBehavior>();
+
 	public static string DecodeAscii(byte[] bytes) =>
 		Encoding.ASCII.GetString(bytes);
 
