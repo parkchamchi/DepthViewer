@@ -16,9 +16,9 @@ public class TempCanvasBehavior : MonoBehaviour {
 
 	public void VrMode() {
 		_canvas.renderMode = RenderMode.WorldSpace;
-		transform.localPosition = new Vector3(-10, 0, 0);
+		transform.localPosition = new Vector3(10, 0, 0);
 		transform.localScale = Vector3.one * 0.01f;
-		transform.localRotation = Quaternion.Euler(0, -90, 0);
+		transform.localRotation = Quaternion.Euler(0, 90, 0);
 
 		LController.SetActive(true);
 		RController.SetActive(true);
