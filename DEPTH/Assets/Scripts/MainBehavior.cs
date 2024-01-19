@@ -39,6 +39,7 @@ public class MainBehavior : MonoBehaviour {
 	public Toggle SearchCacheToggle;
 
 	public GameObject UI;
+	public GameObject WorldTextPlane;
 
 	public GameObject BrowseDirPanel;
 	public TMP_Text BrowseDirText;
@@ -558,6 +559,7 @@ public class MainBehavior : MonoBehaviour {
 
 	public void HideUI() {
 		UI.SetActive(!UI.activeSelf);
+		WorldTextPlane.SetActive(!WorldTextPlane.activeSelf);
 	}
 
 	public void ToggleFullscreen() {

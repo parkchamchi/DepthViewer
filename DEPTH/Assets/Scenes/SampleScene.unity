@@ -17912,6 +17912,11 @@ MonoBehaviour:
   VideoRewind: 260
   VideoPause: 261
   VideoForward: 262
+  ParamPrev: 267
+  ParamNext: 268
+  ParamLower: 269
+  ParamIncrease: 270
+  MoveCanvas: 271
   UseMouseWheel: 1
   DirRandomAccessKeys: 
 --- !u!4 &1140753409
@@ -33786,6 +33791,7 @@ MonoBehaviour:
   OutputSaveToggle: {fileID: 915679458}
   SearchCacheToggle: {fileID: 2118448347}
   UI: {fileID: 1150659574}
+  WorldTextPlane: {fileID: 381383820}
   BrowseDirPanel: {fileID: 746753798}
   BrowseDirText: {fileID: 402104186}
   BrowseDirRandomToggle: {fileID: 2064043009}
