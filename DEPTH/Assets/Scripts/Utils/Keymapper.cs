@@ -24,7 +24,9 @@ public class Keymapper : MonoBehaviour {
 	public KeyCode ParamNext = KeyCode.KeypadMultiply;
 	public KeyCode ParamLower = KeyCode.KeypadMinus;
 	public KeyCode ParamIncrease = KeyCode.KeypadPlus;
-	
+
+	public KeyCode MoveCanvas = KeyCode.KeypadEnter;
+
 	//For files in dir
 	public bool UseMouseWheel = true;
 

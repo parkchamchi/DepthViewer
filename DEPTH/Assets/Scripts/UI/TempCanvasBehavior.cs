@@ -14,16 +14,34 @@ public class TempCanvasBehavior : MonoBehaviour {
 		_canvas = GetComponent<Canvas>();
 	}
 
-	public void VrMode() {
-		_canvas.renderMode = RenderMode.WorldSpace;
-		transform.localPosition = new Vector3(10, 0, 0);
-		transform.localScale = Vector3.one * 0.01f;
-		transform.localRotation = Quaternion.Euler(0, 90, 0);
+	void Update() {
+		if (Input.GetKeyDown(Keymapper.Inst.MoveCanvas))
+			MoveCanvas();
+	}
 
+	public void VrMode() {
 		LController.SetActive(true);
 		RController.SetActive(true);
 
 		PlayerInput pinput = gameObject.GetComponent<PlayerInput>();
 		pinput.neverAutoSwitchControlSchemes = false;
+	}
+
+	public void MoveCanvas() {
+		if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+			MoveCanvasToWorldSpace();
+		else
+			MoveCanvasToScreenSpaceOverlay();
+	}
+
+	private void MoveCanvasToWorldSpace() {
+		_canvas.renderMode = RenderMode.WorldSpace;
+		transform.localPosition = new Vector3(10, 0, 0);
+		transform.localScale = Vector3.one * 0.01f;
+		transform.localRotation = Quaternion.Euler(0, 90, 0);
+	}
+
+	private void MoveCanvasToScreenSpaceOverlay() {
+		_canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 	}
 }
