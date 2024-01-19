@@ -1,3 +1,5 @@
+using IngameDebugConsole;
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -12,6 +14,8 @@ public class TempCanvasBehavior : MonoBehaviour {
 
 	void Start() {
 		_canvas = GetComponent<Canvas>();
+
+		DebugLogConsole.AddCommandInstance("mesh2con", "Move the mesh to the controller", "MoveMeshToTheController", this);
 	}
 
 	void Update() {
@@ -20,8 +24,7 @@ public class TempCanvasBehavior : MonoBehaviour {
 	}
 
 	public void VrMode() {
-		LController.SetActive(true);
-		RController.SetActive(true);
+		//This was for the controller input, but it does not work.
 
 		PlayerInput pinput = gameObject.GetComponent<PlayerInput>();
 		pinput.neverAutoSwitchControlSchemes = false;
@@ -43,5 +46,20 @@ public class TempCanvasBehavior : MonoBehaviour {
 
 	private void MoveCanvasToScreenSpaceOverlay() {
 		_canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+	}
+
+	public void MoveMeshToTheController(bool toRight) {
+		//Don't ask me why this is in this file...
+
+		LController.SetActive(true);
+		RController.SetActive(true);
+
+		GameObject target = (toRight) ? RController : LController;
+		GameObject meshGO = GameObject.Find("DepthPlane");
+
+		meshGO.transform.SetParent(target.transform, false);
+
+		MainBehavior mainbehav = Utils.GetMainBehav();
+		mainbehav.SetDof(6);
 	}
 }
