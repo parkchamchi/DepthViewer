@@ -12,7 +12,7 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 	private Dictionary<string, float> _paramd;
 	private string _str;
 
-	private readonly string[] _paramnames = {"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL"};
+	private readonly string[] _paramnames = {"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL", "MeshOffZ"};
 	private int _paramIdx = 0;
 
 	private const float _paramInterval = 0.01f;

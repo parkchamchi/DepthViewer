@@ -200,7 +200,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	private float _localScaleZ {get {return transform.localScale.z;}} //should be same for all axis
 	private void LocalPositionUpdate() =>
-		transform.localPosition = new Vector3(_defaultX + _meshHor * _width * _localScaleZ, _defaultY - _meshVer * _height * _localScaleZ, _defaultZ + _camDist);
+		transform.localPosition = new Vector3(_defaultX + _meshHor * _width * _localScaleZ, _defaultY - _meshVer * _height * _localScaleZ, _defaultZ + _camDist + _meshOffZ);
 
 	private const float _scalePerCamDist = (0.96f/150); //Scale (legacy) (shrinked a little (96%)) was 1 when CamDist (MeshLoc=0) was 150
 
@@ -279,6 +279,19 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 		}
 
 		get {return _meshVer;}
+	}
+
+	public const float DefaultMeshOffZ = 0f;
+	private float _meshOffZ = DefaultMeshOffZ;
+	public float MeshOffZ {
+		set {
+			_meshOffZ = value;
+			LocalPositionUpdate();
+			if (_shouldUpdateDepth) UpdateDepth();
+			ParamChanged?.Invoke("MeshOffZ", value);
+		}
+
+		get {return _meshOffZ;}
 	}
 
 	public const float DefaultProjRatio = 0.5f;
@@ -673,7 +686,7 @@ public class MeshBehavior : MonoBehaviour, IDepthMesh {
 
 	public string ExportParams() {
 		string[] toexports = new string[] {
-			"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL", "MeshHor", "MeshVer"
+			"Alpha", "Beta", "ProjRatio", "CamDistL", "ScaleR", "DepthMultRL", "MeshHor", "MeshVer", "MeshOffZ"
 		};
 
 		StringBuilder output = new StringBuilder();
