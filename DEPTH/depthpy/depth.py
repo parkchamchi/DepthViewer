@@ -609,6 +609,10 @@ def get_loaded_runner(args):
 		from marirunner import MariRunner
 		runner = MariRunner()
 		runner.load_model(model_type=model_type, optimize=args.optimize, aux_args=args.aux_args)
+	elif args.runner == "dany":
+		from danyrunner import DanyRunner
+		runner = DanyRunner()
+		runner.load_model(model_type=model_type)
 	else:
 		raise ValueError(f"Unknwon runner {args.runner}")
 	

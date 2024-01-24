@@ -186,8 +186,9 @@ They are in the nuget package files (.nupkg), get them from <br>
 - [AsyncIO](https://github.com/somdoron/AsyncIO) (MPL 2.0)
 - [NaCl.net](https://github.com/somdoron/NaCl.net) (MPL 2.0)
 
-- [ZoeDepth](https://github.com/isl-org/ZoeDepth) (MIT License) *For Python scripts only*
-- [Marigold](https://github.com/prs-eth/Marigold) (Apache License 2.0) *For Python scripts only*
+#### For Python scripts only:
+- [ZoeDepth](https://github.com/isl-org/ZoeDepth) (MIT License)
+- [Marigold](https://github.com/prs-eth/Marigold) (Apache License 2.0)
 ```
 @misc{https://doi.org/10.48550/arxiv.2302.12288,
   doi = {10.48550/ARXIV.2302.12288},
@@ -207,7 +208,17 @@ They are in the nuget package files (.nupkg), get them from <br>
   copyright = {arXiv.org perpetual, non-exclusive license}
 }
 ```
+- [Depth-Anything](https://github.com/LiheYoung/Depth-Anything) (Apache License 2.0)
+```
+@article{depthanything,
+      title={Depth Anything: Unleashing the Power of Large-Scale Unlabeled Data}, 
+      author={Yang, Lihe and Kang, Bingyi and Huang, Zilong and Xu, Xiaogang and Feng, Jiashi and Zhao, Hengshuang},
+      journal={arXiv:2401.10891},
+      year={2024}
+}
+```
 
+#### Misc
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)
 - [Readme file](DEPTH/Assets/Assets/README.txt)
 
