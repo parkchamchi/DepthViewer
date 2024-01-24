@@ -228,15 +228,17 @@ public class OnnxRuntimeDepthModel : DepthModel {
 				var v = item.Value;
 				Debug.Log($"Dimensions:{v.Dimensions}"); //[1, 3, 384, 384]
 				Debug.Log($"Dimensions.Length:{v.Dimensions.Length}");
-				foreach (var e in v.Dimensions) Debug.Log(e);
+				//foreach (var e in v.Dimensions) Debug.Log(e);
+				Debug.Log(ArrToString<int>(v.Dimensions));
 
 				Debug.Log($"ElementType:{v.ElementType}");
 				Debug.Log($"IsTensor:{v.IsTensor}");
 				Debug.Log($"OnnxValueType:{v.OnnxValueType}");
 
-				Debug.Log($"SymbolicDimensions:{v.SymbolicDimensions }");
+				Debug.Log($"SymbolicDimensions:{v.SymbolicDimensions}");
 				Debug.Log($"SymbolicDimensions.Length:{v.SymbolicDimensions.Length}");
-				foreach (var e in v.SymbolicDimensions) Debug.Log(e);
+				//foreach (var e in v.SymbolicDimensions) Debug.Log(e);
+				Debug.Log(ArrToString<string>(v.SymbolicDimensions));
 			}
 		}
 
@@ -250,6 +252,19 @@ public class OnnxRuntimeDepthModel : DepthModel {
 		Debug.Log($"GraphName:{mm.GraphName}");
 		Debug.Log($"ProducerName:{mm.ProducerName}");
 		Debug.Log($"Version:{mm.Version}");
+	}
+
+	private string ArrToString<T>(ReadOnlySpan<T> arr) {
+		//Since `foreach ...` omits the null
+
+		string str = "[";
+		for (int i = 0; i < arr.Length; i++) {
+			str += arr[i].ToString();
+			str += ", ";
+		}
+		str += "]";
+
+		return str;
 	}
 }
 
