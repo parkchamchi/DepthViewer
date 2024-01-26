@@ -217,6 +217,7 @@ They are in the nuget package files (.nupkg), get them from <br>
       year={2024}
 }
 ```
+- [Depth Anything ONNX](https://github.com/fabio-sim/Depth-Anything-ONNX) (Apache-2.0 license)
 
 #### Misc
 - Font used: [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (SIL Open Font License)

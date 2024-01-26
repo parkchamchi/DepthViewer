@@ -613,6 +613,10 @@ def get_loaded_runner(args):
 		from danyrunner import DanyRunner
 		runner = DanyRunner()
 		runner.load_model(model_type=model_type)
+	elif args.runner == "danyort":
+		from danyortrunner import DanyOrtRunner
+		runner = DanyOrtRunner()
+		runner.load_model(model_type=model_type, provider=args.ort_ep)
 	else:
 		raise ValueError(f"Unknwon runner {args.runner}")
 	

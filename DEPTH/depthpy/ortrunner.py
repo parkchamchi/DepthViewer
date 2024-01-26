@@ -22,7 +22,7 @@ class OrtRunner(Runner):
 		elif provider == "dml":
 			providers = ["DmlExecutionProvider"]
 		else:
-			print(f"OrtRunner.__init__(): Unknown provider {provider}. Falling back to CPU.")
+			print(f"OrtRunner.load_model(): Unknown provider {provider}. Falling back to CPU.")
 			providers = ["CPUExecutionProvider"]
 
 		filename = os.path.join("../onnx", f"{model_type}.onnx")
