@@ -181,6 +181,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("enqcmd", "Queue a command to be popped by each Update.", "EnqueueCmd", this);
 		addcmd("enqcmd_after", "Queue a command after the set seconds", "EnqueueCmdAfter", this);
 		addcmd("select_file", "Load the target file.", "SelectFile", this);
+		addcmd("scroll_dir", "Scroll thru the open dir", "ScrollDir", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -285,7 +286,7 @@ public class MainBehavior : MonoBehaviour {
 
 		if (_cmdQ.Count > 0) {
 			string cmdFromQ = _cmdQ.Dequeue();
-			ExecuteCmd(cmdFromQ);
+			Utils.ExecuteCmd(cmdFromQ);
 		}
 	}
 
@@ -667,6 +668,11 @@ public class MainBehavior : MonoBehaviour {
 		BrowseDirText.text = "";
 	}
 
+	public void ScrollDir(bool next=true) {
+		if (_dirFilenames != null)
+			SetBrowseDir(next);
+	}
+
 	private void SetBrowseDir(bool next=true) {
 		if (_dirFilenames == null) {
 			Debug.LogError("SetBrowseDir() called when _dirFilenames == null");
@@ -918,17 +924,12 @@ public void SetBrowseDirName(string dirname) {
 		_forceStopOnLoop = val;
 	}
 
-	public void ExecuteCmd(string cmd) {
-		Debug.Log($"Executing: {cmd}");
-		IngameDebugConsole.DebugLogConsole.ExecuteCommand(cmd);
-	}
-
 	public void ExecuteInitCmds() {
 		try {
 			string[] initcmds = Utils.GetInitCmds();
 			if (initcmds != null)
 				foreach (string cmd in initcmds)
-					ExecuteCmd(cmd);
+					Utils.ExecuteCmd(cmd);
 		}
 		catch (Exception exc) {
 			Debug.LogError($"Exception while parsing the initcmds: {exc}");
