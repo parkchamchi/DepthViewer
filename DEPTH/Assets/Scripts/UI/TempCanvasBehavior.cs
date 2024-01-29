@@ -16,11 +16,14 @@ public class TempCanvasBehavior : MonoBehaviour {
 		_canvas = GetComponent<Canvas>();
 
 		DebugLogConsole.AddCommandInstance("mesh2con", "Move the mesh to the controller", "MoveMeshToTheController", this);
+		DebugLogConsole.AddCommandInstance("movecanvas", "Move the canvas to the world space", "MoveCanvas", this);
 	}
 
 	void Update() {
+		/*
 		if (Input.GetKeyDown(Keymapper.Inst.MoveCanvas))
 			MoveCanvas();
+		*/
 	}
 
 	public void VrMode() {
