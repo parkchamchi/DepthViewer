@@ -120,7 +120,7 @@ public class SentisDepthModel : DepthModel {
 		var onnx_conv = new ONNXModelConverter(true);
 		//_model = onnx_conv.Convert(onnxpath);
 		//Was this change necessary?
-		_model = onnx_conv.Convert(Path.GetFileName(onnxpath), Path.GetDirectoryName(onnxpath));
+		_model = onnx_conv.Convert(onnxpath, Path.GetDirectoryName(onnxpath));
 
 		ModelType = modelType;
 
@@ -172,6 +172,7 @@ public class SentisDepthModel : DepthModel {
 		*/
 		//AssertionException: IndexError: axis 5 is out of bounds shape of rank, 4
 		//[1, 3, 256, 256]
+		//Set these to (518, 518) for Depth-Anything models
 		_width  = _model.inputs[0].shape[2].value;
 		_height = _model.inputs[0].shape[3].value;
 
@@ -224,6 +225,7 @@ public class SentisDepthModel : DepthModel {
 		*/
 
 		var outTensor = _engine.PeekOutput() as TensorFloat;
+		outTensor.MakeReadable();
 		float[] output = outTensor.ToReadOnlyArray();
 
 		//to?.Dispose();
@@ -231,8 +233,9 @@ public class SentisDepthModel : DepthModel {
 		float min = output.Min();
 		float max = output.Max();
 
-		//Rotate 90 degrees & Normalize
+		//Normalize
 		for (int i = 0; i < output.Length; i++) 
-			_output[(i%_width)*_width + (i/_width)] = (output[i] - min) / (max - min); //col*_width + row
+			//_output[(i%_width)*_width + (i/_width)] = (output[i] - min) / (max - min); //col*_width + row
+			_output[i] = (output[i] - min) / (max - min);
 	}
 }
