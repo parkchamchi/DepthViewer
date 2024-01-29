@@ -927,8 +927,10 @@ public void SetBrowseDirName(string dirname) {
 		try {
 			string[] initcmds = Utils.GetInitCmds();
 			if (initcmds != null)
-				foreach (string cmd in initcmds)
+				foreach (string cmd in initcmds) {
+					if (cmd.StartsWith('#')) continue;
 					ExecuteCmd(cmd);
+				}
 		}
 		catch (Exception exc) {
 			Debug.LogError($"Exception while parsing the initcmds: {exc}");

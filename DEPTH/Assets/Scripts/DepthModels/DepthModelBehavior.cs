@@ -24,7 +24,7 @@
 		SOFTWARE.
 */
 
-#define _CHANNEL_SWAP //baracular 1.0.5 <=
+//#define _CHANNEL_SWAP //baracular 1.0.5 <=
 
 using System;
 using System.Collections;
@@ -35,15 +35,15 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.Barracuda;
-using Unity.Barracuda.ONNX;
+using Unity.Sentis;
+using Unity.Sentis.ONNX;
 
 public class DepthModelBehavior : MonoBehaviour {
 	/*
 	Built-in: midas v2.1 small model
 	*/
 
-	public NNModel BuiltIn;
+	public ModelAsset BuiltIn;
 
 	public string OnnxRuntimeGpuProvider {get; set;} = null;
 	public int OnnxRuntimeGpuId {get; set;} = 0;
@@ -56,7 +56,7 @@ public class DepthModelBehavior : MonoBehaviour {
 
 		string modelType = "MidasV21Small";
 
-		_donnx = new BarracudaDepthModel(BuiltIn, modelType);
+		_donnx = new SentisDepthModel(BuiltIn, modelType);
 
 		return _donnx;
 	}
@@ -66,7 +66,7 @@ public class DepthModelBehavior : MonoBehaviour {
 		_donnx = null;
 
 		if (!useOnnxRuntime)
-			_donnx = new BarracudaDepthModel(onnxpath, modelType);
+			_donnx = new SentisDepthModel(onnxpath, modelType);
 		else {
 
 #if !UNITY_STANDALONE_WIN && !UNITY_EDITOR_WIN
@@ -92,7 +92,7 @@ public class DepthModelBehavior : MonoBehaviour {
 	}
 }
 
-public class BarracudaDepthModel : DepthModel {
+public class SentisDepthModel : DepthModel {
 	public string ModelType {get; private set;}
 
 	private RenderTexture _input;
@@ -101,7 +101,7 @@ public class BarracudaDepthModel : DepthModel {
 	private IWorker _engine;
 	private Model _model;
 
-	public BarracudaDepthModel(NNModel nnm, string modelType) {
+	public SentisDepthModel(ModelAsset nnm, string modelType) {
 		_model = ModelLoader.Load(nnm);
 
 		ModelType = modelType;
@@ -110,7 +110,7 @@ public class BarracudaDepthModel : DepthModel {
 		AllocateObjects();
 	}
 
-	public BarracudaDepthModel(string onnxpath, string modelType) {
+	public SentisDepthModel(string onnxpath, string modelType) {
 		/*
 		Currently not used.
 		Args:
@@ -118,7 +118,9 @@ public class BarracudaDepthModel : DepthModel {
 		*/
 
 		var onnx_conv = new ONNXModelConverter(true);
-		_model = onnx_conv.Convert(onnxpath);
+		//_model = onnx_conv.Convert(onnxpath);
+		//Was this change necessary?
+		_model = onnx_conv.Convert(Path.GetFileName(onnxpath), Path.GetDirectoryName(onnxpath));
 
 		ModelType = modelType;
 
@@ -148,12 +150,15 @@ public class BarracudaDepthModel : DepthModel {
 		DeallocateObjects();
 	}
 
-	/// Loads the NNM asset in memory and creates a Barracuda IWorker
+	/// Loads the NNM asset in memory and creates a ~~Barracuda~~ Sentis IWorker
 	private void InitializeNetwork()
 	{
 		// Create a worker
-		_engine = WorkerFactory.CreateWorker(_model, WorkerFactory.Device.GPU);
+		//_engine = WorkerFactory.CreateWorker(_model, WorkerFactory.Device.GPU);
+		//BackendType: {CPU, GPUCommandBuffer, GPUCompute, GPUPixel}.
+		_engine = WorkerFactory.CreateWorker(BackendType.GPUCompute, _model);
 
+		/*
 		// Get Tensor dimensionality ( texture width/height )
 		// In Barracuda 1.0.4 the width and height are in channels 1 & 2.
 		// In later versions in channels 5 & 6
@@ -164,6 +169,11 @@ public class BarracudaDepthModel : DepthModel {
 			_width  = _model.inputs[0].shape[1];
 			_height = _model.inputs[0].shape[2];
 		#endif
+		*/
+		//AssertionException: IndexError: axis 5 is out of bounds shape of rank, 4
+		//[1, 3, 256, 256]
+		_width  = _model.inputs[0].shape[2].value;
+		_height = _model.inputs[0].shape[3].value;
 
 		_output = new float[_width*_height];
 	}
@@ -195,10 +205,14 @@ public class BarracudaDepthModel : DepthModel {
 
 	/// Performs Inference on the Neural Network Model
 	private void RunModel(Texture source) {
-		using (var tensor = new Tensor(source, 3)) {
+		TextureConverter.ToTensor(source);
+
+		//using (var tensor = new Tensor(source, 3)) {
+		using (var tensor = TextureConverter.ToTensor(source, channels:3)) {
 			_engine.Execute(tensor);
 		}
 		
+		/*
 		// In Barracuda 1.0.4 the output of MiDaS can be passed  directly to a texture as it is shaped correctly.
 		// In later versions we have to reshape the tensor. Don't ask why...
 		#if _CHANNEL_SWAP
@@ -207,10 +221,12 @@ public class BarracudaDepthModel : DepthModel {
 			var to = _engine.PeekOutput();
 		#endif
 		//I don't know what this code does, both have the same output for me
+		*/
 
-		float[] output = TensorExtensions.AsFloats(to);
+		var outTensor = _engine.PeekOutput() as TensorFloat;
+		float[] output = outTensor.ToReadOnlyArray();
 
-		to?.Dispose();
+		//to?.Dispose();
 
 		float min = output.Min();
 		float max = output.Max();
