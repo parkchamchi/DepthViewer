@@ -206,8 +206,6 @@ public class SentisDepthModel : DepthModel {
 
 	/// Performs Inference on the Neural Network Model
 	private void RunModel(Texture source) {
-		TextureConverter.ToTensor(source);
-
 		//using (var tensor = new Tensor(source, 3)) {
 		using (var tensor = TextureConverter.ToTensor(source, channels:3)) {
 			_engine.Execute(tensor);
