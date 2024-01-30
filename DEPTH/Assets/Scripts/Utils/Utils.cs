@@ -15,6 +15,9 @@ public static class Utils {
 	public static string OptionsPath {get {return $"{DepthFileUtils.SaveDir}/options.txt";}}
 	public static string InitCmdsPath {get {return $"{DepthFileUtils.SaveDir}/initcmds.txt";}}
 
+	private static string _repeatingCmd = null;
+	private static float _repeatingCmdInterval = -1;
+
 	public static Texture2D LoadImage(string path) {
 		if (!File.Exists(path)) {
 			Debug.LogError("File " + path + " does not exist.");
@@ -215,4 +218,64 @@ public static class Utils {
 		Debug.Log($"Setting the background color to {c}");
 		camera.backgroundColor = c;
 	}
+
+	public static void ExecuteCmd(string cmd) {
+		if (cmd.StartsWith('#')) return;
+
+		Debug.Log($"Executing: {cmd}");
+		IngameDebugConsole.DebugLogConsole.ExecuteCommand(cmd);
+	}
+
+	public static void ExecuteMultipleCmds(string[] cmds) {
+		foreach (string cmd in cmds)
+			ExecuteCmd(cmd);
+	}
+
+	[ConsoleMethod("cmd_mult", "Execute multiple commands")]
+	public static void ExecuteMultipleCmds(string cmds) {
+		foreach (string cmd in cmds.Split(';'))
+			ExecuteCmd(cmd);
+	}
+
+	[ConsoleMethod("cmd_repeat", "Execute a command periodically")]
+	public static void SetRepeatingCmd(string cmd, float interval) {
+		string prevCmd = _repeatingCmd;
+
+		if (cmd == "null")
+			cmd = null;
+		_repeatingCmd = cmd;
+		_repeatingCmdInterval = interval;
+
+		if (_repeatingCmd == null || _repeatingCmdInterval <= 0) {
+			Debug.Log("Halting the repeating cmd.");
+			_repeatingCmd = null;
+		}
+		else if (prevCmd != _repeatingCmd) {
+			Debug.Log($"`{_repeatingCmd}` @ {_repeatingCmdInterval}s");
+			var mainBehav = GetMainBehav();
+
+			System.Threading.Tasks.Task.Run(() => {
+				string orig_cmd = _repeatingCmd;
+				if (orig_cmd == null) return; //redundant
+
+				while (orig_cmd == _repeatingCmd && _repeatingCmdInterval > 0) {
+					try {
+						//ExecuteCmd(cmd);
+						mainBehav.EnqueueCmd(cmd);
+					} catch (Exception e) {
+						Debug.LogError($"Got exception during `{orig_cmd}`: {e}");
+					}
+					System.Threading.Thread.Sleep((int) (_repeatingCmdInterval * 1000));
+				}
+			});
+		}
+	}
+
+	[ConsoleMethod("sshow", "Signal `next` every `interval`s")]
+	public static void SlideShow(float interval) =>
+		SetRepeatingCmd("scroll_dir true", interval);
+	
+	[ConsoleMethod("sshow_end", "End `slideshow`")]
+	public static void SlideShowEnd() =>
+		SetRepeatingCmd(null, -1);
 }

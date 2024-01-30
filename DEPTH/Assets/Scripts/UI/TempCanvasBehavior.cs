@@ -16,11 +16,15 @@ public class TempCanvasBehavior : MonoBehaviour {
 		_canvas = GetComponent<Canvas>();
 
 		DebugLogConsole.AddCommandInstance("mesh2con", "Move the mesh to the controller", "MoveMeshToTheController", this);
+		DebugLogConsole.AddCommandInstance("movecanvas", "Move the canvas to the world space", "MoveCanvas", this);
+		//DebugLogConsole.AddCommandInstance("set_con_lines", "Set the controller lines", "SetControllerLines", this);
 	}
 
 	void Update() {
+		/*
 		if (Input.GetKeyDown(Keymapper.Inst.MoveCanvas))
 			MoveCanvas();
+		*/
 	}
 
 	public void VrMode() {
@@ -61,5 +65,10 @@ public class TempCanvasBehavior : MonoBehaviour {
 
 		MainBehavior mainbehav = Utils.GetMainBehav();
 		mainbehav.SetDof(6);
+	}
+
+	public void SetControllerLines() {
+		var lr = LController.GetComponent<LineRenderer>();
+		//...
 	}
 }
