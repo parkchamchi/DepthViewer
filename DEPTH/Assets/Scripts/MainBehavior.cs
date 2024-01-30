@@ -940,7 +940,7 @@ public void SetBrowseDirName(string dirname) {
 			if (initcmds != null)
 				foreach (string cmd in initcmds) {
 					if (cmd.StartsWith('#')) continue;
-					ExecuteCmd(cmd);
+					Utils.ExecuteCmd(cmd);
 				}
 		}
 		catch (Exception exc) {
