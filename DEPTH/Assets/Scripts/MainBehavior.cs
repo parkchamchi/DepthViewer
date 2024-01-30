@@ -195,6 +195,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("set_ort_gpuid", "Set the id of the GPU. default: 0", "SetOrtGpuId", this);
 		addcmd("set_ort_gpu_provider", "Set the provider of the GPU accel. for ORT (try: `cuda`)", "SetOrtGpuProvider", this);
 		addcmd("set_ort_settings", "Set the settings string for GPU execution provider. default: null. Type \"null\" for the null value.", "SetOrtGpuSettings", this);
+		addcmd("set_wh_fallback", "Set the fallback value of the model inference size.", "SetModelWHFallback", this);
 
 		addcmd("dbg", "Temporary method for debugging.", "DebugTmp", this);
 		addcmd("force_stop_on_loop", "On native video inputs, force reload the video instead of pause on the loop points. Defaults to false.", "SetForceStopOnLoop", this); //See ImgVid...
@@ -793,6 +794,7 @@ public void SetBrowseDirName(string dirname) {
 	public void SetPointCloudSize(float val) =>
 		_meshBehav.SetMaterialFloat("_PointSize", val);
 
+	/* Where are these here */ 
 	public void SetOrtGpuProvider(string provider) =>
 		_depthModelBehav.OnnxRuntimeGpuProvider = provider;
 
@@ -801,6 +803,14 @@ public void SetBrowseDirName(string dirname) {
 
 	public void SetOrtGpuSettings(string settings) =>
 		_depthModelBehav.OnnxRuntimeGpuSettings = (settings == "null") ? null : settings;
+	
+	public void SetModelWHFallback(int w, int h) {
+		Debug.Log($"Setting the fallback size to {w}x{h}");
+
+		_depthModelBehav.WidthFallback = w;
+		_depthModelBehav.HeightFallback = h;
+	}
+	/* */
 
 	public string GetCurrentModelType() {
 		if (_donnx == null)

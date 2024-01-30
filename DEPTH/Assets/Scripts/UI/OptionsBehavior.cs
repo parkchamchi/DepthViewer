@@ -122,10 +122,16 @@ public class OptionsBehavior : MonoBehaviour {
 	}
 
 	public void LoadModel() {
-		string path = OnnxDropdown.captionText.text;
-		path = Path.Join(_onnxdir, path+".onnx");
+		string filename = OnnxDropdown.captionText.text;
+		string path = Path.Join(_onnxdir, filename+".onnx");
 
 		bool useOrt = UseOrtToggle.isOn;
+
+		/* Detect Depth-Anything models */
+		if (filename.Contains("depth_anything")) {
+			Debug.Log("Depth-Anything model detected, setting the fallback W/H to 518x518.");
+			_mainBehav.SetModelWHFallback(518, 518);
+		}
 
 		_mainBehav.LoadModel(path, useOrt);
 

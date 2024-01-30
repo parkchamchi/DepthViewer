@@ -49,6 +49,9 @@ public class DepthModelBehavior : MonoBehaviour {
 	public int OnnxRuntimeGpuId {get; set;} = 0;
 	public string OnnxRuntimeGpuSettings {get; set;} = null;
 
+	public int WidthFallback {get; set;} = 256;
+	public int HeightFallback {get; set;} = 256;
+
 	private static DepthModel _donnx;
 
 	public DepthModel GetBuiltIn() {
@@ -66,7 +69,7 @@ public class DepthModelBehavior : MonoBehaviour {
 		_donnx = null;
 
 		if (!useOnnxRuntime)
-			_donnx = new SentisDepthModel(onnxpath, modelType);
+			_donnx = new SentisDepthModel(onnxpath, modelType, widthFallback:WidthFallback, heightFallback:HeightFallback);
 		else {
 
 #if !UNITY_STANDALONE_WIN && !UNITY_EDITOR_WIN
@@ -101,26 +104,26 @@ public class SentisDepthModel : DepthModel {
 	private IWorker _engine;
 	private Model _model;
 
-	public SentisDepthModel(ModelAsset nnm, string modelType) {
+	private int _widthFallback, _heightFallback;
+
+	public SentisDepthModel(ModelAsset nnm, string modelType, int widthFallback=256, int heightFallback=256) {
 		_model = ModelLoader.Load(nnm);
 
-		ModelType = modelType;
-
-		InitializeNetwork();
-		AllocateObjects();
+		Init(modelType, widthFallback, heightFallback);
 	}
 
-	public SentisDepthModel(string onnxpath, string modelType) {
-		/*
-		Currently not used.
-		Args:
-			onnxpath: path to .onnx file
-		*/
-
+	public SentisDepthModel(string onnxpath, string modelType, int widthFallback=256, int heightFallback=256) {
 		var onnx_conv = new ONNXModelConverter(true);
 		//_model = onnx_conv.Convert(onnxpath);
 		//Was this change necessary?
 		_model = onnx_conv.Convert(onnxpath, Path.GetDirectoryName(onnxpath));
+
+		Init(modelType, widthFallback, heightFallback);
+	}
+
+	private void Init(string modelType, int widthFallback, int heightFallback) {
+		_widthFallback = widthFallback;
+		_heightFallback = heightFallback;
 
 		ModelType = modelType;
 
@@ -173,8 +176,23 @@ public class SentisDepthModel : DepthModel {
 		//AssertionException: IndexError: axis 5 is out of bounds shape of rank, 4
 		//[1, 3, 256, 256]
 		//Set these to (518, 518) for Depth-Anything models
-		_width  = _model.inputs[0].shape[2].value;
-		_height = _model.inputs[0].shape[3].value;
+
+		var heightSym = _model.inputs[0].shape[2];
+		var widthSym = _model.inputs[0].shape[3];
+
+		if (heightSym.isValue)
+			_height  = heightSym.value;
+		else {
+			Debug.Log($"SentisDepthModel: Height cannot be inferred, falling back to {_heightFallback}");
+			_height = _heightFallback;
+		}
+
+		if (widthSym.isValue)
+			_width = widthSym.value;
+		else {
+			Debug.Log($"SentisDepthModel: Width cannot be inferred, falling back to {_widthFallback}");
+			_width = _widthFallback;
+		}
 
 		_output = new float[_width*_height];
 	}
