@@ -66,7 +66,7 @@ public class OnnxRuntimeDepthModel : DepthModel {
 	private RenderTexture _rt;
 	private float[] _output;
 
-	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider=null, int gpuid=0, string settings=null) {
+	public OnnxRuntimeDepthModel(string onnxpath, string modelType, string provider=null, int gpuid=0, string settings=null, int widthFallback=256, int heightFallback=256) {
 		//param settings: used for TVM and OpenVINO
 
 		ModelType = modelType;
@@ -136,6 +136,12 @@ public class OnnxRuntimeDepthModel : DepthModel {
 			_outwidth = item.Value.Dimensions[1];
 			_outheight = item.Value.Dimensions[2];
 		} //only 1
+
+		if (_width < 2 || _height < 2 || _outwidth < 2 || _outheight < 2) {
+			Debug.Log($"OnnxRuntimeDepthModel: Invalid size ({_width}x{_height})->({_outwidth}x{_outheight}), falling back to {widthFallback}x{heightFallback}.");
+			_width = _outwidth = widthFallback;
+			_height = _outheight = heightFallback;
+		}
 
 		_rt = new RenderTexture(_width, _height, 16);
 	}

@@ -76,7 +76,7 @@ public class DepthModelBehavior : MonoBehaviour {
 			Debug.LogError("Not using onnxruntime but got useOnnxRuntime=true!");
 			return null;
 #else			
-			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, provider: OnnxRuntimeGpuProvider, gpuid: OnnxRuntimeGpuId, settings: OnnxRuntimeGpuSettings);
+			_donnx = new OnnxRuntimeDepthModel(onnxpath, modelType, provider: OnnxRuntimeGpuProvider, gpuid: OnnxRuntimeGpuId, settings: OnnxRuntimeGpuSettings, widthFallback:WidthFallback, heightFallback:HeightFallback);
 #endif
 
 		}
