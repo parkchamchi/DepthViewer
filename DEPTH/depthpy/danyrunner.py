@@ -32,7 +32,7 @@ class DanyRunner(Runner):
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		print("device: %s" % self.device)
 
-	def load_model(self, model_type="vitl14"):
+	def load_model(self, model_type="vitl14", **kwargs):
 		repo = f"LiheYoung/depth_anything_{model_type}"
 		print(f"repo: {repo}")
 
