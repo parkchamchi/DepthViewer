@@ -182,6 +182,7 @@ public class MainBehavior : MonoBehaviour {
 		addcmd("enqcmd_after", "Queue a command after the set seconds", "EnqueueCmdAfter", this);
 		addcmd("select_file", "Load the target file.", "SelectFile", this);
 		addcmd("scroll_dir", "Scroll thru the open dir", "ScrollDir", this);
+		addcmd("set_video_speed", "Set the speed of the video player", "SetVideoSpeed", this);
 
 		addcmd("wiggle", "Rotate the mesh in a predefined manner", "Wiggle", this);
 		addcmd("wiggle4", "Rotate the mesh in a predefined manner (4 vars)", "Wiggle4", this);
@@ -755,6 +756,15 @@ public void SetBrowseDirName(string dirname) {
 		return;
 	}
 #endif
+
+	public void SetVideoSpeed(float mult) {
+		if (_vp == null) {
+			Debug.LogError("SetVideoSpeed() called when _vp == null");
+			return;
+		}
+
+		_vp.playbackSpeed = mult;
+	}
 
 	public void SendMsgToTexInputs(string msg) {
 		if (_texInputs == null) {
