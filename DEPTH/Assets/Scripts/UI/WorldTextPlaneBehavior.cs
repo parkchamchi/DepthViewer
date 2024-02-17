@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+using IngameDebugConsole;
+
 public class WorldTextPlaneBehavior : MonoBehaviour {
 	public TMP_Text WorldText;
 
@@ -30,6 +32,8 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 
 		_dmesh.ParamChanged += onParamChanged;
 		getText();
+
+		DebugLogConsole.AddCommandInstance("worldtextplane.deactivate", "Deactivate the screen on the left", "Deactivate", this);
 	}
 
 	void Update() {
@@ -66,6 +70,13 @@ public class WorldTextPlaneBehavior : MonoBehaviour {
 
 		WorldText.text = _str;
 	}
+
+	public void Deactivate() {
+		Debug.Log("Deactivating the worldtextplane");
+		this.gameObject.SetActive(false);
+	}
+
+	//method names below have cause issues ig
 
 	private void getText() {
 		string newstr = "";
